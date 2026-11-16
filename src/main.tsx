@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { initMeta } from './features/backup/meta'
+import { startSync } from './features/sync/sync'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
 import { registerStorage } from './store/dataReset'
@@ -19,7 +20,12 @@ async function main() {
   initMeta(boot.meta)
 
   if (boot.db) {
-    registerStorage(boot.db, startPersistence(store, boot.db))
+    const persistence = startPersistence(store, boot.db, {
+      // With several windows open, only the one in use owns the saved tab session.
+      shouldPersistSession: () => document.hasFocus(),
+    })
+    registerStorage(boot.db, persistence)
+    if (typeof BroadcastChannel !== 'undefined') startSync(store, boot.db, persistence)
   } else {
     store.getState().setSaveStatus('error', boot.error)
     toast(`${boot.error}. Export your notes before closing this tab.`, {
