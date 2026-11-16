@@ -28,7 +28,11 @@ export function SearchPanel() {
   const results = useMemo(() => searchNotes(Object.values(notes), deferred), [notes, deferred])
   const input = useRef<HTMLInputElement>(null)
 
-  useEffect(() => input.current?.focus(), [])
+  const focusSearch = useAppStore((s) => s.ui.focusSearch)
+  useEffect(() => {
+    input.current?.focus()
+    input.current?.select()
+  }, [focusSearch])
 
   const open = (r: SearchResult) => {
     const s = getStore().getState()

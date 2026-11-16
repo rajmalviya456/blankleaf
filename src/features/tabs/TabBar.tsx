@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/sortable'
 import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { Plus } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
 import { orderedTabs } from '../../store/selectors'
@@ -26,7 +26,8 @@ import { TabOverflowMenu } from './TabOverflowMenu'
 export function TabBar({ actions }: { actions?: ReactNode }) {
   const tabs = useAppStore(useShallow(orderedTabs))
   const activeId = useAppStore((s) => s.session.activeTabId)
-  const [unpinId, setUnpinId] = useState<string | null>(null)
+  const unpinId = useAppStore((s) => s.ui.unpinPromptId)
+  const setUnpinId = (id: string | null) => getStore().getState().setUi({ unpinPromptId: id })
   const s = () => getStore().getState()
 
   const sensors = useSensors(

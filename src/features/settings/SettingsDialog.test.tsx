@@ -15,9 +15,9 @@ const open = (s: ReturnType<typeof setup>['s']) => act(() => s().setUi({ setting
 describe('SettingsDialog', () => {
   afterEach(() => document.documentElement.removeAttribute('style'))
 
-  it('⌘, opens settings', async () => {
+  it('Ctrl+, (⌘, on Mac) opens settings', async () => {
     setup()
-    fireEvent.keyDown(window, { key: ',', code: 'Comma', metaKey: true })
+    fireEvent.keyDown(window, { key: ',', code: 'Comma', ctrlKey: true })
     expect(await screen.findByRole('dialog', { name: /settings/i })).toBeInTheDocument()
   })
 
