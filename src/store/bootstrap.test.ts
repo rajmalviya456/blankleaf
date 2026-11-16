@@ -195,3 +195,37 @@ describe('journal replay', () => {
     expect(readAllJournals()).toEqual([])
   })
 })
+
+describe('startup resilience', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('a failing trash purge does not hide notes', async () => {
+    const a = note({ content: 'still here' })
+    await insertNote(db, a)
+    await putKv(db, 'session', { ...emptySession(), openTabIds: [a.id], activeTabId: a.id })
+    vi.spyOn(db.notes, 'where').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError')
+    })
+    const result = await bootstrap(NOW, () => db)
+    expect(result.db).toBe(db)
+    expect(result.state.notes[a.id].content).toBe('still here')
+    vi.restoreAllMocks()
+  })
+
+  it('restores journaled notes when IndexedDB is unavailable', async () => {
+    const j = { ...newNoteDraft(NOW - 5, DEFAULT_SETTINGS), content: 'typed in memory mode' }
+    writeJournal({
+      at: NOW - 1,
+      notes: [j],
+      session: { ...emptySession(), openTabIds: [j.id], activeTabId: j.id },
+      settings: { ...DEFAULT_SETTINGS, tabSize: 4 },
+    })
+    const result = await bootstrap(NOW, () => {
+      throw new Error('IndexedDB is not available')
+    })
+    expect(result.db).toBeNull()
+    expect(result.state.notes[j.id].content).toBe('typed in memory mode')
+    expect(result.state.session.openTabIds).toEqual([j.id])
+    expect(result.state.settings.tabSize).toBe(4)
+  })
+})

@@ -68,7 +68,10 @@ async function replayJournal(db: NotepadzDB): Promise<void> {
 
 export async function loadInitialState(db: NotepadzDB, now: number): Promise<InitialState> {
   await replayJournal(db)
-  await purgeExpiredTrash(db, now)
+  // Housekeeping must never stand between the user and their notes.
+  await purgeExpiredTrash(db, now).catch((e) =>
+    console.error('Notepadz: could not empty old Trash items', e),
+  )
   const data = await loadAll(db)
   const settings: Settings = mergeSettings(data.settings)
   const meta: Meta = { ...DEFAULT_META, ...data.meta }
@@ -79,10 +82,14 @@ export async function loadInitialState(db: NotepadzDB, now: number): Promise<Ini
     let first = newNoteDraft(now, settings)
     if (!meta.welcomeShown) {
       first = { ...first, title: 'Welcome', content: WELCOME_CONTENT }
-      const res = await saveNote(db, first, 0)
-      if (res.ok) first = { ...first, rev: res.rev }
       meta.welcomeShown = true
-      await putKv(db, 'meta', meta)
+      try {
+        const res = await saveNote(db, first, 0)
+        if (res.ok) first = { ...first, rev: res.rev }
+        await putKv(db, 'meta', meta)
+      } catch (e) {
+        console.error('Notepadz: could not save the Welcome note', e)
+      }
     }
     notes[first.id] = first
     session = { ...session, openTabIds: [first.id], activeTabId: first.id }
@@ -109,19 +116,34 @@ export async function bootstrap(now: number, open: () => NotepadzDB = openDb): P
   } catch (e) {
     db?.close()
     console.error('Notepadz: storage unavailable', e)
-    const settings = mergeSettings(undefined)
-    const note = newNoteDraft(now, settings)
     return {
-      state: {
-        notes: { [note.id]: note },
-        session: { ...emptySession(), openTabIds: [note.id], activeTabId: note.id },
-        settings,
-      },
+      state: memoryState(now),
       meta: null,
       db: null,
       error: 'Storage unavailable — changes won’t persist',
     }
   }
+}
+
+/** In-memory start when IndexedDB can't be used: rebuild from journals if there are any. */
+function memoryState(now: number): InitialState['state'] {
+  const journals = readAllJournals().map((x) => x.journal)
+  const notes: Record<string, Note> = {}
+  let session: Session | undefined
+  let settings: Settings = mergeSettings(undefined)
+  for (const j of journals) {
+    for (const n of j.notes)
+      if (!notes[n.id] || notes[n.id].updatedAt < n.updatedAt) notes[n.id] = n
+    if (j.session) session = j.session
+    settings = mergeSettings(j.settings)
+  }
+  let sess = sanitizeSession(session, notes)
+  if (!sess.openTabIds.length) {
+    const note = newNoteDraft(now, settings)
+    notes[note.id] = note
+    sess = { ...sess, openTabIds: [note.id], activeTabId: note.id }
+  }
+  return { notes, session: sess, settings }
 }
 
 export async function requestPersistentStorage(

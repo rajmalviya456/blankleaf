@@ -1,12 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
+import { exportAll } from './features/backup/actions'
 import { initMeta } from './features/backup/meta'
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
 import { registerStorage } from './store/dataReset'
+import { startMemoryJournal } from './store/memoryJournal'
 import { startPersistence } from './store/persistence'
 import { createAppStore, initStore } from './store/store'
 import './styles/index.css'
@@ -30,9 +32,11 @@ async function main() {
     if (typeof BroadcastChannel !== 'undefined') sync = startSync(store, boot.db, persistence)
   } else {
     store.getState().setSaveStatus('error', boot.error)
+    startMemoryJournal(store)
     toast(`${boot.error}. Export your notes before closing this tab.`, {
       tone: 'error',
       durationMs: 0,
+      action: { label: 'Export now', run: () => void exportAll() },
     })
   }
 
