@@ -36,4 +36,17 @@ describe('StatusBar', () => {
     render(<StatusBar />)
     expect(screen.queryByText(/Ln /)).toBeNull()
   })
+
+  it('wrap label toggles wrap for the note', async () => {
+    const { id, s } = setup()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    await userEvent.click(screen.getByRole('button', { name: /wrap: on/i }))
+    expect(s().notes[id].wrap).toBe(false)
+  })
+
+  it('says when highlighting is off for a large file', () => {
+    const { id, s } = setup()
+    act(() => s().updateContent(id, 'x'.repeat(2_000_001)))
+    expect(screen.getByText(/large file/i)).toBeInTheDocument()
+  })
 })
