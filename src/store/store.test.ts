@@ -1,0 +1,251 @@
+import { CLOSED_STACK_MAX } from '../domain/defaults'
+import { activeNote, liveNotesSorted, orderedTabs, trashedNotes } from './selectors'
+import { createAppStore } from './store'
+
+function setup() {
+  let t = 1000
+  const store = createAppStore(undefined, () => ++t)
+  return { store, s: () => store.getState() }
+}
+
+/** Create a tab with content so closing it keeps the note. */
+function filled(store: ReturnType<typeof createAppStore>, content = 'text') {
+  const id = store.getState().newNote()
+  store.getState().updateContent(id, content)
+  return id
+}
+
+describe('app store: tabs', () => {
+  it('newNote opens and activates a tab right of the active one', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    s().setActive(a)
+    const c = s().newNote()
+    expect(s().session.openTabIds).toEqual([a, c, b])
+    expect(s().session.activeTabId).toBe(c)
+  })
+
+  it('closeTab on empty untitled note removes the note entirely', () => {
+    const { s } = setup()
+    const id = s().newNote()
+    s().closeTab(id)
+    expect(s().notes[id]).toBeUndefined()
+    expect(s().session.openTabIds).toEqual([])
+    expect(s().session.closedStack).toEqual([])
+  })
+
+  it('closeTab on non-empty note keeps note, removes tab, pushes closedStack', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().closeTab(id)
+    expect(s().notes[id]).toBeDefined()
+    expect(s().session.openTabIds).toEqual([])
+    expect(s().session.closedStack).toEqual([id])
+  })
+
+  it('closedStack is capped at 20', () => {
+    const { store, s } = setup()
+    const ids = Array.from({ length: 25 }, () => filled(store))
+    ids.forEach((id) => s().closeTab(id))
+    expect(s().session.closedStack).toHaveLength(CLOSED_STACK_MAX)
+    expect(s().session.closedStack.at(-1)).toBe(ids.at(-1))
+  })
+
+  it('reopenClosedTab restores the last closed tab and skips trashed/missing ids', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    s().closeTab(a)
+    s().closeTab(b)
+    s().trashNote(b)
+    s().reopenClosedTab()
+    expect(s().session.openTabIds).toEqual([a])
+    expect(s().session.activeTabId).toBe(a)
+    expect(s().session.closedStack).toEqual([])
+  })
+
+  it('closeTab on pinned note is a no-op', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().togglePin(id)
+    s().closeTab(id)
+    expect(s().session.openTabIds).toEqual([id])
+  })
+
+  it('closeOthers and closeToRight keep pinned tabs', () => {
+    const { store, s } = setup()
+    const p = filled(store, 'p')
+    s().togglePin(p)
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    const c = filled(store, 'c')
+    s().closeToRight(a)
+    expect(s().session.openTabIds).toEqual([p, a])
+    s().openNote(b)
+    s().openNote(c)
+    s().closeOthers(b)
+    expect(s().session.openTabIds).toEqual([p, b])
+    expect(s().session.activeTabId).toBe(b)
+  })
+
+  it('moveTab cannot place an unpinned tab before a pinned one', () => {
+    const { store, s } = setup()
+    const p = filled(store, 'p')
+    s().togglePin(p)
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    s().moveTab(2, 0)
+    expect(s().session.openTabIds).toEqual([p, b, a])
+  })
+
+  it('togglePin moves the tab into the pinned group', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    s().togglePin(b)
+    expect(s().session.openTabIds).toEqual([b, a])
+    expect(s().notes[b].pinned).toBe(true)
+    expect(orderedTabs(s()).map((n) => n.id)).toEqual([b, a])
+  })
+
+  it('closing the last tab leaves activeTabId null', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().closeTab(id)
+    expect(s().session.activeTabId).toBeNull()
+    expect(activeNote(s())).toBeNull()
+  })
+
+  it('closing the active tab activates its right neighbour, else the left', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    const c = filled(store, 'c')
+    s().setActive(b)
+    s().closeTab(b)
+    expect(s().session.activeTabId).toBe(c)
+    s().closeTab(c)
+    expect(s().session.activeTabId).toBe(a)
+  })
+
+  it('goToTab(9) targets the last tab when fewer than 9 exist', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    filled(store, 'b')
+    const c = filled(store, 'c')
+    s().goToTab(9)
+    expect(s().session.activeTabId).toBe(c)
+    s().goToTab(1)
+    expect(s().session.activeTabId).toBe(a)
+  })
+
+  it('nextTab wraps around', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    s().nextTab(1)
+    expect(s().session.activeTabId).toBe(a)
+    s().nextTab(-1)
+    expect(s().session.activeTabId).toBe(b)
+  })
+})
+
+describe('app store: notes', () => {
+  it('renameNote trims and treats empty as auto-title', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().renameNote(id, '  Plan  ')
+    expect(s().notes[id].title).toBe('Plan')
+    s().renameNote(id, '   ')
+    expect(s().notes[id].title).toBeNull()
+  })
+
+  it('updateContent bumps updatedAt', () => {
+    const { s } = setup()
+    const id = s().newNote()
+    const before = s().notes[id].updatedAt
+    s().updateContent(id, 'x')
+    expect(s().notes[id].content).toBe('x')
+    expect(s().notes[id].updatedAt).toBeGreaterThan(before)
+  })
+
+  it('trashNote sets deletedAt, bumps updatedAt, closes its tab', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    const before = s().notes[id].updatedAt
+    s().trashNote(id)
+    expect(s().notes[id].deletedAt).not.toBeNull()
+    expect(s().notes[id].updatedAt).toBeGreaterThan(before)
+    expect(s().session.openTabIds).toEqual([])
+    expect(trashedNotes(s()).map((n) => n.id)).toEqual([id])
+    expect(liveNotesSorted(s())).toEqual([])
+  })
+
+  it('trashNote works on a pinned note and unpins it', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().togglePin(id)
+    s().trashNote(id)
+    expect(s().notes[id].pinned).toBe(false)
+    expect(s().session.openTabIds).toEqual([])
+  })
+
+  it('restoreNote clears deletedAt and bumps updatedAt', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().trashNote(id)
+    const before = s().notes[id].updatedAt
+    s().restoreNote(id)
+    expect(s().notes[id].deletedAt).toBeNull()
+    expect(s().notes[id].updatedAt).toBeGreaterThan(before)
+  })
+
+  it('purgeNote and emptyTrash only remove trashed notes', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    const c = filled(store, 'c')
+    s().purgeNote(a)
+    expect(s().notes[a]).toBeDefined()
+    s().trashNote(a)
+    s().trashNote(b)
+    s().purgeNote(a)
+    expect(s().notes[a]).toBeUndefined()
+    s().emptyTrash()
+    expect(s().notes[b]).toBeUndefined()
+    expect(s().notes[c]).toBeDefined()
+  })
+
+  it('duplicateNote copies content and opens next to the original', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'hello')
+    const b = filled(store, 'b')
+    const copy = s().duplicateNote(a)
+    expect(s().notes[copy].content).toBe('hello')
+    expect(s().notes[copy].title).toBe('hello (copy)')
+    expect(s().session.openTabIds).toEqual([a, copy, b])
+  })
+
+  it('liveNotesSorted puts pinned first, then most recently edited', () => {
+    const { store, s } = setup()
+    const a = filled(store, 'a')
+    const b = filled(store, 'b')
+    const c = filled(store, 'c')
+    s().togglePin(a)
+    s().updateContent(b, 'b2')
+    expect(liveNotesSorted(s()).map((n) => n.id)).toEqual([a, b, c])
+  })
+
+  it('setViewState merges with defaults', () => {
+    const { s } = setup()
+    const id = s().newNote()
+    s().setViewState(id, { head: 5 })
+    expect(s().session.perTab[id]).toEqual({
+      anchor: 0,
+      head: 5,
+      scrollTop: 0,
+      previewMode: 'edit',
+    })
+  })
+})
