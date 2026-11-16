@@ -107,3 +107,24 @@ describe('loadAll', () => {
     expect(all.tombstoneIds).toEqual([])
   })
 })
+
+describe('schema upgrade', () => {
+  it('v1 database upgrades to v2 without touching notes', async () => {
+    const name = `upgrade-${Math.random()}`
+    const { default: Dexie } = await import('dexie')
+    const v1 = new Dexie(name)
+    v1.version(1).stores({
+      notes: '&id, updatedAt, deletedAt, pinned',
+      kv: '&key',
+      tombstones: '&id',
+    })
+    await v1.table('notes').put(note({ content: 'from v1' }))
+    v1.close()
+    const v2 = openDb(name)
+    const notes = await v2.notes.toArray()
+    expect(notes.map((n) => n.content)).toEqual(['from v1'])
+    expect(await v2.shares.count()).toBe(0)
+    v2.close()
+    await v2.delete()
+  })
+})

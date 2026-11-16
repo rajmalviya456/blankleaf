@@ -31,21 +31,50 @@ export interface Tombstone {
   purgedAt: number
 }
 
+/** An active link share served by this browser (see features/share). */
+export interface ShareRow {
+  id: string
+  noteId: string
+  title: string
+  /** Link key, base64url. Deleted with the row when the share ends. */
+  keyB64: string
+  /** Expiry in epoch seconds, as carried in the link. */
+  exp: number
+  peerId: string
+  readTokenHash: string
+  /** Kept on this device only so "Copy message" works after a restart. */
+  password: string | null
+  /** AES-GCM IV and ciphertext, base64url (strings survive every structured-clone realm). */
+  iv: string
+  ciphertext: string
+  createdAt: number
+  expiresAt: number
+  opens: number
+  lastOpenedAt: number | null
+  failures: number
+  coolDownUntil: number
+  coolDownMs: number
+  stopped: boolean
+}
+
 export const DB_NAME = 'notepadz'
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 export class NotepadzDB extends Dexie {
   notes!: Table<Note, string>
   kv!: Table<KvRow, KvKey>
   tombstones!: Table<Tombstone, string>
+  shares!: Table<ShareRow, string>
 
   constructor(name: string) {
     super(name)
-    this.version(SCHEMA_VERSION).stores({
+    this.version(1).stores({
       notes: '&id, updatedAt, deletedAt, pinned',
       kv: '&key',
       tombstones: '&id',
     })
+    // v2 only adds the shares table; existing data is untouched.
+    this.version(2).stores({ shares: '&id, expiresAt, noteId' })
   }
 }
 
