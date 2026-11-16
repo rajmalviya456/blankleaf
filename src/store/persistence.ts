@@ -1,0 +1,234 @@
+/**
+ * Mirrors the app store into IndexedDB.
+ *
+ * - Note edits: debounced per note (default 300ms), saved with a rev check.
+ * - Session + settings: debounced (default 1000ms).
+ * - Everything pending is flushed on page hide, tab switch and tab close.
+ * - A note that disappears from the store was either trashed (→ purge + tombstone) or
+ *   an empty untitled tab (→ hard delete). See the contract at the top of store.ts.
+ * - A note whose `rev` changed came from a save or another window, not an edit: no save.
+ * - Write errors keep the text in memory, show "Not saved" and retry with backoff.
+ */
+import type { StoreApi } from 'zustand'
+import type { NotepadzDB } from '../db/db'
+import { hardDeleteNote, purgeNote, putKv, saveNote } from '../db/notesRepo'
+import type { Note } from '../domain/types'
+import { createDebouncedWriter } from '../lib/debouncedWriter'
+import { toast } from '../ui/toast'
+import type { AppState, AppStore } from './store'
+
+type NoteOp = 'save' | 'hard-delete' | 'purge'
+type ConflictListener = (local: Note, current: Note) => void
+
+export interface PersistenceOptions {
+  contentDelay?: number
+  sessionDelay?: number
+  /** First retry delay after a failed write; doubles up to 10s. */
+  retryBaseMs?: number
+  target?: Window
+  now?: () => number
+  /** Return false to skip writing the session (used by multi-window sync). */
+  shouldPersistSession?: () => boolean
+}
+
+export interface Persistence {
+  flush(): Promise<void>
+  stop(): void
+  onConflict(cb: ConflictListener): () => void
+  hasPendingFor(id: string): boolean
+  /** Tell persistence a note now matches the DB at `rev` (e.g. applied from another window). */
+  markSynced(id: string, rev: number): void
+}
+
+const MAX_RETRY_MS = 10_000
+
+function describeError(e: unknown): string {
+  if (e instanceof DOMException && e.name === 'QuotaExceededError')
+    return `Storage is full (${e.message})`
+  if (e instanceof Error) return e.message || e.name
+  return String(e)
+}
+
+export function startPersistence(
+  store: StoreApi<AppStore>,
+  db: NotepadzDB,
+  opts: PersistenceOptions = {},
+): Persistence {
+  const {
+    contentDelay = 300,
+    sessionDelay = 1000,
+    retryBaseMs = 1000,
+    target = window,
+    now = Date.now,
+    shouldPersistSession = () => true,
+  } = opts
+
+  const knownRev = new Map<string, number>()
+  for (const n of Object.values(store.getState().notes)) knownRev.set(n.id, n.rev)
+
+  const conflictListeners = new Set<ConflictListener>()
+  let failures = 0
+  let retryTimer: ReturnType<typeof setTimeout> | undefined
+  const failedIds = new Set<string>()
+
+  const s = () => store.getState()
+
+  /** Once nothing is queued or in flight, show "Saved" (deferred past the writer's bookkeeping). */
+  const settle = () =>
+    setTimeout(() => {
+      if (failures === 0 && !anyPending() && s().ui.saveStatus !== 'saved')
+        s().setSaveStatus('saved')
+    }, 0)
+
+  const markOk = () => {
+    failures = 0
+    settle()
+  }
+
+  const markFailed = (id: string | null, e: unknown) => {
+    failures++
+    if (id) failedIds.add(id)
+    s().setSaveStatus('error', describeError(e))
+    if (failures === 1) {
+      toast('Couldn’t save to browser storage. Your text is kept in this tab.', {
+        tone: 'error',
+        durationMs: 0,
+        action: { label: 'Export now', run: () => s().setUi({ settingsOpen: true }) },
+      })
+    }
+    clearTimeout(retryTimer)
+    const delay = Math.min(retryBaseMs * 2 ** (failures - 1), MAX_RETRY_MS)
+    retryTimer = setTimeout(() => {
+      for (const fid of failedIds) notes.schedule(fid, 'save')
+      failedIds.clear()
+      if (id === null) {
+        meta.schedule('session', null)
+        meta.schedule('settings', null)
+      }
+    }, delay)
+  }
+
+  const writeNote = async (id: string, op: NoteOp) => {
+    try {
+      if (op === 'hard-delete') {
+        await hardDeleteNote(db, id)
+        knownRev.delete(id)
+      } else if (op === 'purge') {
+        await purgeNote(db, id, now())
+        knownRev.delete(id)
+      } else {
+        const note = s().notes[id]
+        if (!note) return
+        const res = await saveNote(db, note, knownRev.get(id) ?? 0)
+        if (res.ok) {
+          knownRev.set(id, res.rev)
+          const latest = s().notes[id]
+          if (latest && latest.rev !== res.rev) {
+            store.setState({ notes: { ...s().notes, [id]: { ...latest, rev: res.rev } } })
+          }
+        } else {
+          if (conflictListeners.size) conflictListeners.forEach((cb) => cb(note, res.current))
+          else {
+            // No sync handler yet: keep this window's text (never drop what the user typed).
+            knownRev.set(id, res.current.rev)
+            notes.schedule(id, 'save')
+          }
+        }
+      }
+      markOk()
+    } catch (e) {
+      markFailed(id, e)
+    }
+  }
+
+  const writeMeta = async (key: string) => {
+    try {
+      if (key === 'session') {
+        if (!shouldPersistSession()) return
+        await putKv(db, 'session', s().session)
+      } else {
+        await putKv(db, 'settings', s().settings)
+      }
+      markOk()
+    } catch (e) {
+      markFailed(null, e)
+    }
+  }
+
+  const notes = createDebouncedWriter<NoteOp>(writeNote, contentDelay)
+  const meta = createDebouncedWriter<null>((k) => writeMeta(k), sessionDelay)
+  const anyPending = () => notes.hasPending() || meta.hasPending()
+
+  const flush = async () => {
+    await Promise.all([notes.flush(), meta.flush()])
+  }
+
+  const markSaving = () => {
+    if (s().ui.saveStatus === 'saved') s().setSaveStatus('saving')
+  }
+
+  const onChange = (next: AppState, prev: AppState) => {
+    let flushNow = false
+
+    if (next.notes !== prev.notes) {
+      for (const [id, note] of Object.entries(next.notes)) {
+        const before = prev.notes[id]
+        if (before === note) continue
+        if (before && before.rev !== note.rev) {
+          knownRev.set(id, Math.max(knownRev.get(id) ?? 0, note.rev))
+          continue
+        }
+        // Same rev, new object → an edit. A brand-new blank note waits until it has content.
+        if (!before && note.content === '' && note.title === null) continue
+        notes.schedule(id, 'save')
+        markSaving()
+      }
+      for (const [id, before] of Object.entries(prev.notes)) {
+        if (next.notes[id]) continue
+        notes.cancel(id)
+        if (!knownRev.get(id)) continue // never stored, nothing to delete
+        notes.schedule(id, before.deletedAt !== null ? 'purge' : 'hard-delete')
+        flushNow = true
+      }
+    }
+
+    if (next.session !== prev.session) {
+      meta.schedule('session', null)
+      if (next.session.activeTabId !== prev.session.activeTabId) flushNow = true
+      if (next.session.openTabIds.length < prev.session.openTabIds.length) flushNow = true
+    }
+    if (next.settings !== prev.settings) meta.schedule('settings', null)
+
+    if (flushNow) void notes.flush()
+  }
+
+  const unsubscribe = store.subscribe(onChange)
+
+  const onHide = () => void flush()
+  const onVisibility = () => {
+    if (document.visibilityState === 'hidden') void flush()
+  }
+  target.addEventListener('pagehide', onHide)
+  target.document.addEventListener('visibilitychange', onVisibility)
+
+  return {
+    flush,
+    stop() {
+      unsubscribe()
+      clearTimeout(retryTimer)
+      notes.dispose()
+      meta.dispose()
+      target.removeEventListener('pagehide', onHide)
+      target.document.removeEventListener('visibilitychange', onVisibility)
+    },
+    onConflict(cb) {
+      conflictListeners.add(cb)
+      return () => conflictListeners.delete(cb)
+    },
+    hasPendingFor: (id) => notes.hasPending(id),
+    markSynced(id, rev) {
+      knownRev.set(id, rev)
+      notes.cancel(id)
+    },
+  }
+}
