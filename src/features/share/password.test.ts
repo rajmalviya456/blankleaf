@@ -33,4 +33,8 @@ describe('passwords', () => {
     }
     expect(generatePassword(rng)).toBe('aaaa-aaaa-aaaa')
   })
+
+  it('treats composed and decomposed accents as the same password', () => {
+    expect(normalizePassword('caf\u0065\u0301-pass')).toBe(normalizePassword('caf\u00e9-pass'))
+  })
 })

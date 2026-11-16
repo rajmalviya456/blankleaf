@@ -21,9 +21,12 @@ export function generatePassword(random: Random = cryptoRandom): string {
   return `${out.slice(0, 4)}-${out.slice(4, 8)}-${out.slice(8)}`
 }
 
-/** Spaces and hyphens are only for readability; everything else (including case) counts. */
+/**
+ * Spaces and hyphens are only for readability; everything else (including case) counts.
+ * NFC makes accented characters typed on different systems compare equal.
+ */
 export function normalizePassword(input: string): string {
-  return input.replace(/[\s-]+/g, '')
+  return input.normalize('NFC').replace(/[\s-]+/g, '')
 }
 
 export function isPasswordValid(input: string): boolean {
