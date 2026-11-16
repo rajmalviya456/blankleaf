@@ -32,6 +32,8 @@
   - `Nd h:mm` beyond that.
 
   They all use one shared `useCountdown(expiresAt)` hook.
+- **Expiry bar shrinks live** with the countdown (`width = msLeft / (expiresAt - createdAt)`, every second) in the share dialog and each popover row. The recipient has no bar (the link carries no start time), only the ticking countdown.
+- **Wrong password:** nothing is shown until a wrong attempt; then one short red line under the password field: "Wrong password. Try again." (replaces the spec's longer wording).
 - **The sender can see and revoke every active share** from the status-bar indicator's popover, in any window, whichever note or window created it.
 - **Frozen snapshot**, taken at Create.
 - **Opening a share link never touches the recipient's notes** until Save.
@@ -355,6 +357,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
   - `password on by default with a generated value; ↻ changes it`;
   - `turning the password off hides it and the message has no Password line`;
   - `countdown in the dialog ticks every second` (fake timers: 5:00 → 4:59 → 4:58);
+  - `expiry bar shrinks every second` (width 100% → ~99.67% after 1 s of 5 min → 0% at expiry);
   - `custom password shorter than 8 disables Create`;
   - `create copies the message and shows link, password and countdown`;
   - `stop calls host.stop and closes`;
@@ -383,7 +386,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
 
 - [ ] **Step 1: Failing tests:**
   - `hidden with no shares; shows count and soonest time left`;
-  - `indicator and each popover row tick every second`;
+  - `indicator and each popover row tick every second, bars shrinking`;
   - `lists every active share, including ones created in another window`;
   - `popover copy message includes the stored password`;
   - `stop from the popover ends the share`;
@@ -418,6 +421,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
 - [ ] **Step 1: Failing tests** (memory transport, real host):
   - `opening a share link creates no notes`: render `ShareView` → the IndexedDB `notes` count stays 0 and there's no Welcome;
   - `password flow to a read-only note`;
+  - `no error before an attempt; a wrong password shows "Wrong password. Try again." under the field`;
   - `save boots the app and opens a copy titled "<title> (shared)"`;
   - `download exports with the format's extension`;
   - `expired link shows the expired screen`;
