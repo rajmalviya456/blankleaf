@@ -22,6 +22,12 @@ export interface UiState {
   renamingId: string | null
   /** Ask the editor of `noteId` to select [from, to) and scroll to it (nonce makes repeats fire). */
   reveal: { noteId: string; from: number; to: number; nonce: number } | null
+  paletteMode: 'commands' | 'formats'
+  shortcutsOpen: boolean
+  /** Pinned tab whose close was requested; the tab bar asks to unpin it. */
+  unpinPromptId: string | null
+  /** Bumped to ask the search box to take focus. */
+  focusSearch: number
 }
 
 export interface AppState {
@@ -80,6 +86,10 @@ const initialUi = (): UiState => ({
   settingsOpen: false,
   renamingId: null,
   reveal: null,
+  paletteMode: 'commands',
+  shortcutsOpen: false,
+  unpinPromptId: null,
+  focusSearch: 0,
 })
 
 /** Keep pinned tabs first, preserving relative order inside each group. */
