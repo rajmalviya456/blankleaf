@@ -1,0 +1,385 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Calm theme tokens. Components use these via Tailwind (bg-bg, text-fg-muted, …)
+   or directly as var(--token). Light is the default; dark overrides below. */
+:root {
+  --bg: #ffffff;
+  --bg-elev: #f6f7f9;
+  --bg-sunken: #eef0f3;
+  --bg-hover: #e9ecf1;
+  --fg: #23272f;
+  --fg-muted: #4a515c;
+  --fg-faint: #5f6672;
+  --border: #e2e5ea;
+  --accent: #3d5ce6;
+  --accent-soft: #3d5ce61f;
+  --accent-fg: #ffffff;
+  --danger: #d43c4b;
+  --warn: #b7791f;
+  --ok: #2f9e5b;
+  --selection: #3d5ce633;
+
+  --syn-keyword: #8a3ffc;
+  --syn-string: #24855a;
+  --syn-number: #b4580a;
+  --syn-comment: #8a909a;
+  --syn-function: #2f5bd8;
+  --syn-type: #0f7f95;
+  --syn-property: #a1356f;
+  --syn-meta: #6b7280;
+  --syn-punct: #6a7180;
+
+  --find-match: #ffd23f73;
+  --find-current: #ff9a1fb3;
+  --find-current-ring: #e07b00;
+
+  --font-ui: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, Consolas, monospace;
+  --ui-font-size: 13px;
+  --editor-font-size: 14px;
+  --editor-line-height: 1.6;
+}
+
+:root[data-theme='dark'] {
+  --bg: #111318;
+  --bg-elev: #161920;
+  --bg-sunken: #0b0d10;
+  --bg-hover: #1d212a;
+  --fg: #d4d7de;
+  --fg-muted: #a3a9b4;
+  --fg-faint: #9096a2;
+  --border: #23272f;
+  --accent: #7c9cff;
+  --accent-soft: #7c9cff24;
+  --accent-fg: #0b0d10;
+  --danger: #ff6b7a;
+  --warn: #e0b25a;
+  --ok: #5fd08a;
+  --selection: #7c9cff38;
+
+  --syn-keyword: #c792ea;
+  --syn-string: #a5d6a7;
+  --syn-number: #f5b97a;
+  --syn-comment: #6b7280;
+  --syn-function: #82aaff;
+  --syn-type: #7fdbca;
+  --syn-property: #f48fb1;
+  --syn-meta: #8b919c;
+  --syn-punct: #8b919c;
+
+  --find-match: #e0b25a47;
+  --find-current: #f0a63ccc;
+  --find-current-ring: #ffc46b;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-bg-hover: var(--bg-hover);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --font-ui: var(--font-ui);
+  --font-mono: var(--font-mono);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: var(--ui-font-size);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--selection);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+/* Markdown preview — calm, readable prose. */
+.md-preview {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 24px 28px 40vh;
+  font-family: var(--font-ui);
+  font-size: calc(var(--editor-font-size) + 1px);
+  line-height: 1.65;
+  color: var(--fg);
+}
+.md-preview > :first-child {
+  margin-top: 0;
+}
+.md-preview h1,
+.md-preview h2,
+.md-preview h3,
+.md-preview h4 {
+  margin: 1.4em 0 0.5em;
+  line-height: 1.25;
+  font-weight: 650;
+}
+.md-preview h1 {
+  font-size: 1.75em;
+}
+.md-preview h2 {
+  font-size: 1.4em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border);
+}
+.md-preview h3 {
+  font-size: 1.15em;
+}
+.md-preview p,
+.md-preview ul,
+.md-preview ol,
+.md-preview pre,
+.md-preview blockquote,
+.md-preview table {
+  margin: 0 0 1em;
+}
+.md-preview ul,
+.md-preview ol {
+  padding-left: 1.5em;
+}
+.md-preview ul {
+  list-style: disc;
+}
+.md-preview ol {
+  list-style: decimal;
+}
+.md-preview li > input[type='checkbox'] {
+  margin-right: 0.45em;
+  accent-color: var(--accent);
+}
+.md-preview li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -1.3em;
+}
+.md-preview a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-preview code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+  padding: 0.12em 0.35em;
+}
+.md-preview pre {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.md-preview pre code {
+  background: none;
+  padding: 0;
+}
+.md-preview blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1em;
+  color: var(--fg-muted);
+}
+.md-preview hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+.md-preview table {
+  border-collapse: collapse;
+}
+.md-preview th,
+.md-preview td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+}
+.md-preview th {
+  background: var(--bg-elev);
+}
+.md-preview img {
+  max-width: 100%;
+}
+
+/* Find widget (src/features/editor/findPanel.ts). */
+.np-find {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 0.18),
+    0 1px 2px rgb(0 0 0 / 0.12);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  animation: np-pop 120ms ease-out;
+}
+.np-find-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.np-find-row[hidden] {
+  display: none;
+}
+.np-find-field,
+.np-find-field-solo {
+  display: flex;
+  align-items: center;
+  width: 260px;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.np-find-field:focus-within,
+.np-find-field-solo:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.np-find-field:has(input[aria-invalid='true']) {
+  border-color: var(--danger);
+}
+.np-find-input {
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+}
+.np-find-field-solo {
+  padding: 0 8px;
+}
+.np-find-input::placeholder {
+  color: var(--fg-faint);
+}
+.np-find-opt {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 4px;
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.np-find-opt:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+.np-find-opt[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.np-find-count {
+  min-width: 64px;
+  padding: 0 4px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+.np-find-count[data-empty='true'] {
+  color: var(--danger);
+}
+.np-find-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+}
+.np-find-btn:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+.np-find-expand svg {
+  transition: transform 120ms ease;
+}
+.np-find-open .np-find-expand svg {
+  transform: rotate(90deg);
+}
+.np-find-spacer {
+  width: 26px;
+}
+.np-find-text-btn {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+.np-find-text-btn:hover {
+  background: var(--bg-hover);
+}
+.np-find button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.np-find input:focus-visible {
+  outline: none;
+}
+
+@keyframes np-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Backdrop behind dialogs: light dim + blur, fades in. */
+.np-overlay {
+  background: rgb(10 12 16 / 0.28);
+  backdrop-filter: blur(2px);
+  animation: np-fade 140ms ease-out;
+}
+:root[data-theme='dark'] .np-overlay {
+  background: rgb(0 0 0 / 0.45);
+}
+@keyframes np-fade {
+  from {
+    opacity: 0;
+  }
+}
