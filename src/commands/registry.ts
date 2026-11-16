@@ -4,6 +4,7 @@
  */
 import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
+import { shareStore } from '../features/share/shareStore'
 import { nextThemePref } from '../lib/theme'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
@@ -150,6 +151,19 @@ export const COMMANDS: Command[] = [
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) st(ctx).trashNote(id)
+    },
+  },
+  {
+    id: 'note.share',
+    title: 'Share note…',
+    section: 'Note',
+    keywords: ['link', 'send', 'password', 'expire'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) shareStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
     },
   },
   {
