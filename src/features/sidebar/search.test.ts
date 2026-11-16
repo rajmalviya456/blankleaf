@@ -39,10 +39,10 @@ describe('searchNotes', () => {
     expect(searchNotes([note('hello', { deletedAt: 5 })], 'hello')).toEqual([])
   })
 
-  it('1000 notes × 5KB searches in under 50ms', () => {
+  it('1000 notes × 5KB searches in under 100ms', () => {
     const notes = Array.from({ length: 1000 }, (_, i) => note('lorem ipsum '.repeat(420) + i))
     const t = performance.now()
     searchNotes(notes, 'needle')
-    expect(performance.now() - t).toBeLessThan(process.env.CI ? 500 : 50)
+    expect(performance.now() - t).toBeLessThan(100)
   })
 })

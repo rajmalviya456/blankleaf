@@ -66,7 +66,7 @@ export function App() {
       />
       <div className="flex min-h-0 flex-1">
         <Rail />
-        <SidePanel open={false} />
+        <SidePanel />
         <EditorArea />
       </div>
       <StatusBar />
