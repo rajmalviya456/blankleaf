@@ -29,6 +29,12 @@ const cases: [string, string][] = [
   ['toml', '[package]\nname = "notepadz"\nversion = "0.1.0"'],
   ['yaml', 'name: ci\non:\n  push:\n    branches: [main]\njobs:\n  build:\n    runs-on: ubuntu'],
   ['markdown', '# Sprint sync\n\n- ship tabs\n- fix export\n\n**blocker:** none'],
+  [
+    'markdown',
+    '# Sprint sync\n\nShip **tabs** and `export`.\n\n- [x] tabs\n\n```js\nconst x = 1\n```\n',
+  ],
+  ['markdown', 'Notes\n\n```python\nimport os\nprint(1)\n```'],
+  ['yaml', '# deploy config\nservices:\n  - web\n  - db\nregion: eu\nreplicas: 2'],
   ['plaintext', 'Meeting went fine. Need to call Sam tomorrow about the budget.'],
   ['plaintext', ''],
 ]

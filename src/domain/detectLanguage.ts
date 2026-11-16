@@ -14,6 +14,13 @@ function nonEmptyLines(text: string, max: number): string[] {
   return out
 }
 
+function looksLikeYaml(lines: string[]): boolean {
+  const body = lines.filter((l) => !/^\s*#/.test(l))
+  const keys = body.filter((l) => /^\s*(- )?[\w-]+:(\s|$)/.test(l)).length
+  const items = body.filter((l) => /^\s*- \S/.test(l)).length
+  return body.length >= 3 && keys >= 2 && (keys + items) / body.length >= 0.8
+}
+
 function looksLikeJson(text: string): boolean {
   const t = text.trim()
   if (!/^[[{]/.test(t)) return false
@@ -42,6 +49,11 @@ export function detectLanguage(text: string): LanguageId {
   if (/^<!doctype html|^<html[\s>]/i.test(first) || has(/<(div|span|body|head|p|a)[\s>]/i))
     return 'html'
   if (/^#!.*\b(ba|z|fi)?sh\b/.test(first) || share(/^\$ \S/) >= 0.5) return 'shell'
+  // Markdown that embeds code: fences, or a heading plus inline markdown. Checked before the
+  // code rules so a ```js block doesn't make the whole note JavaScript.
+  if (has(/^```/m)) return 'markdown'
+  if (/^#{1,6} \S/.test(first) && has(/\*\*\S|`[^`\n]+`|\[[^\]]+\]\([^)]+\)|^\s*[-*] \[[ x]\]/m))
+    return 'markdown'
   if (/^diff --git /.test(first) || (has(/^@@ -\d+(,\d+)? \+\d+/m) && has(/^[+-]/m))) return 'diff'
   if (/^FROM \S+/.test(first) && has(/^(RUN|CMD|COPY|WORKDIR|ENTRYPOINT) /m)) return 'dockerfile'
   if (has(/^package \w+\s*$/m) && has(/^func /m)) return 'go'
@@ -61,7 +73,7 @@ export function detectLanguage(text: string): LanguageId {
   if (has(/^\s*(const|let|var|function|import|export)\b/m) || has(/=>/)) return 'javascript'
   if (has(/^[.#@]?[\w-]+[^{\n]*\{\s*$/m) && has(/^\s+[\w-]+\s*:\s*[^;]+;\s*$/m)) return 'css'
   if (has(/^\[[\w.-]+\]\s*$/m) && has(/^[\w-]+\s*=\s*\S/m)) return 'toml'
-  if (share(/^\s*(- )?[\w-]+:(\s|$)/) >= 0.6 && lines.length >= 3) return 'yaml'
+  if (looksLikeYaml(lines)) return 'yaml'
   if (has(/^#{1,6} \S/m) || (has(/^\s*[-*] \S/m) && has(/\*\*\S|`\S|\[.+\]\(.+\)|^#/m)))
     return 'markdown'
   return 'plaintext'
