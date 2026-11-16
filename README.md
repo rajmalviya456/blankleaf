@@ -19,6 +19,20 @@ npm run typecheck  # TypeScript
 npm run build      # production build (served from /notepadz/)
 ```
 
+## Deploy (GitHub Pages)
+
+The built app is published to a separate **`gh-pages`** branch — build output is never committed to `main`.
+
+One-time setup on GitHub: **Settings → Pages → Source: Deploy from a branch → Branch: `gh-pages` / `(root)`**.
+The site is then served at `https://<user>.github.io/notepadz/`.
+
+- **Automatic:** every push to `main` runs `.github/workflows/deploy.yml` (lint, typecheck, tests, build) and publishes `dist/` to `gh-pages`.
+- **Manual:** `npm run deploy` builds and pushes `dist/` to `gh-pages` from your machine (uses the [`gh-pages`](https://www.npmjs.com/package/gh-pages) package).
+
+Notepadz is a PWA: after the first visit it works offline and can be installed from the browser's address bar. When a new version is deployed, the app offers a **Reload** — it never reloads on its own.
+
+Icons are generated from `public/logo.svg` with `npm run icons`.
+
 ## Docs
 
 - Design: [`docs/superpowers/specs/2026-11-16-notepadz-design.md`](docs/superpowers/specs/2026-11-16-notepadz-design.md)
