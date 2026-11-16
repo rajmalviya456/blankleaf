@@ -63,11 +63,24 @@ export function createPeerTransport(): ShareTransport {
         throw e
       }
       peer.on('connection', (dc) => dc.on('open', () => onConn(wrap(dc))))
-      // Keep the registration alive if the signaling socket drops.
+      // Keep the registration alive if the signaling socket drops, backing off (1s → 60s)
+      // so an offline laptop doesn't hammer the signaling server.
+      let backoff = 1000
+      let retry: ReturnType<typeof setTimeout> | undefined
+      peer.on('open', () => (backoff = 1000))
       peer.on('disconnected', () => {
-        if (!peer.destroyed) peer.reconnect()
+        clearTimeout(retry)
+        retry = setTimeout(() => {
+          if (!peer.destroyed) peer.reconnect()
+        }, backoff)
+        backoff = Math.min(backoff * 2, 60_000)
       })
-      return { stop: () => peer.destroy() }
+      return {
+        stop: () => {
+          clearTimeout(retry)
+          peer.destroy()
+        },
+      }
     },
 
     async connect(peerId, timeoutMs = 15_000) {
