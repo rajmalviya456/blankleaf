@@ -68,6 +68,8 @@ export interface AppActions {
   setUi(p: Partial<UiState>): void
   applyRemoteNote(note: Note): void
   reveal(noteId: string, from: number, to: number): void
+  /** Another window deleted this note permanently. */
+  removeRemoteNote(id: string): void
   /** Merge notes from an import. Existing notes keep their local rev; nothing is opened. */
   importNotes(notes: Note[]): void
   /** Markdown notes: edit → split → preview → edit. */
@@ -378,6 +380,16 @@ export function createAppStore(
         const order = ['edit', 'split', 'preview'] as const
         const current = get().session.perTab[id]?.previewMode ?? 'edit'
         get().setViewState(id, { previewMode: order[(order.indexOf(current) + 1) % order.length] })
+      },
+
+      removeRemoteNote(id) {
+        if (!get().notes[id]) return
+        const { [id]: _gone, ...rest } = get().notes
+        const session = withoutTab(get().session, id)
+        set({
+          notes: rest,
+          session: { ...session, closedStack: session.closedStack.filter((x) => x !== id) },
+        })
       },
 
       reveal(noteId, from, to) {

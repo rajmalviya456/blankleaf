@@ -55,7 +55,7 @@ async function replayJournal(db: NotepadzDB): Promise<void> {
       if (current && current.updatedAt >= n.updatedAt) continue
       await db.notes.put({ ...n, rev: (current?.rev ?? 0) + 1 })
     }
-    await putKv(db, 'session', j.session)
+    if (j.session) await putKv(db, 'session', j.session)
     await putKv(db, 'settings', j.settings)
   })
   clearJournal()

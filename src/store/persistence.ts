@@ -21,6 +21,11 @@ import type { AppState, AppStore } from './store'
 type NoteOp = 'save' | 'hard-delete' | 'purge'
 type ConflictListener = (local: Note, current: Note) => void
 
+/** A write that reached IndexedDB (used to notify other windows). */
+export type WriteEvent =
+  { t: 'note'; id: string; rev: number } | { t: 'deleted'; id: string } | { t: 'settings' }
+type WriteListener = (e: WriteEvent) => void
+
 export interface PersistenceOptions {
   contentDelay?: number
   sessionDelay?: number
@@ -36,6 +41,7 @@ export interface Persistence {
   flush(): Promise<void>
   stop(): void
   onConflict(cb: ConflictListener): () => void
+  onWrite(cb: WriteListener): () => void
   hasPendingFor(id: string): boolean
   /** Tell persistence a note now matches the DB at `rev` (e.g. applied from another window). */
   markSynced(id: string, rev: number): void
@@ -68,6 +74,8 @@ export function startPersistence(
   for (const n of Object.values(store.getState().notes)) knownRev.set(n.id, n.rev)
 
   const conflictListeners = new Set<ConflictListener>()
+  const writeListeners = new Set<WriteListener>()
+  const emit = (e: WriteEvent) => writeListeners.forEach((cb) => cb(e))
   let failures = 0
   let retryTimer: ReturnType<typeof setTimeout> | undefined
   const failedIds = new Set<string>()
@@ -124,15 +132,18 @@ export function startPersistence(
       if (op === 'hard-delete') {
         await hardDeleteNote(db, id)
         knownRev.delete(id)
+        emit({ t: 'deleted', id })
       } else if (op === 'purge') {
         await purgeNote(db, id, now())
         knownRev.delete(id)
+        emit({ t: 'deleted', id })
       } else {
         const note = s().notes[id]
         if (!note) return
         const res = await saveNote(db, note, knownRev.get(id) ?? 0)
         if (res.ok) {
           knownRev.set(id, res.rev)
+          emit({ t: 'note', id, rev: res.rev })
           const latest = s().notes[id]
           if (latest && latest.rev !== res.rev) {
             store.setState({ notes: { ...s().notes, [id]: { ...latest, rev: res.rev } } })
@@ -159,6 +170,7 @@ export function startPersistence(
         await putKv(db, 'session', s().session)
       } else {
         await putKv(db, 'settings', s().settings)
+        emit({ t: 'settings' })
       }
       markOk()
     } catch (e) {
@@ -187,6 +199,11 @@ export function startPersistence(
         if (before === note) continue
         if (before && before.rev !== note.rev) {
           knownRev.set(id, Math.max(knownRev.get(id) ?? 0, note.rev))
+          continue
+        }
+        if (!before && note.rev > 0) {
+          // Arrived from storage (another window), not typed here.
+          knownRev.set(id, note.rev)
           continue
         }
         // Same rev, new object → an edit. A brand-new blank note waits until it has content.
@@ -223,7 +240,7 @@ export function startPersistence(
     journaled = writeJournal({
       at: now(),
       notes: dirty,
-      session: s().session,
+      session: shouldPersistSession() ? s().session : undefined,
       settings: s().settings,
     })
   }
@@ -235,7 +252,12 @@ export function startPersistence(
   const onVisibility = () => {
     if (document.visibilityState === 'hidden') onHide()
   }
+  const onFocus = () => {
+    meta.schedule('session', null)
+    void meta.flush()
+  }
   target.addEventListener('pagehide', onHide)
+  target.addEventListener('focus', onFocus)
   target.document.addEventListener('visibilitychange', onVisibility)
 
   return {
@@ -246,11 +268,16 @@ export function startPersistence(
       notes.dispose()
       meta.dispose()
       target.removeEventListener('pagehide', onHide)
+      target.removeEventListener('focus', onFocus)
       target.document.removeEventListener('visibilitychange', onVisibility)
     },
     onConflict(cb) {
       conflictListeners.add(cb)
       return () => conflictListeners.delete(cb)
+    },
+    onWrite(cb) {
+      writeListeners.add(cb)
+      return () => writeListeners.delete(cb)
     },
     hasPendingFor: (id) => notes.hasPending(id),
     markSynced(id, rev) {

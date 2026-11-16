@@ -11,7 +11,8 @@ export const JOURNAL_KEY = 'notepadz:unsaved'
 export interface Journal {
   at: number
   notes: Note[]
-  session: Session
+  /** Omitted by windows that shouldn't own the saved session (unfocused). */
+  session?: Session
   settings: Settings
 }
 
@@ -38,8 +39,7 @@ export function readJournal(): Journal | null {
     const raw = storage()?.getItem(JOURNAL_KEY)
     if (!raw) return null
     const j = JSON.parse(raw) as Partial<Journal>
-    if (typeof j.at !== 'number' || !Array.isArray(j.notes) || !j.session || !j.settings)
-      return null
+    if (typeof j.at !== 'number' || !Array.isArray(j.notes) || !j.settings) return null
     return j as Journal
   } catch {
     return null

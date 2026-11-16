@@ -172,7 +172,7 @@ describe('persistence journal', () => {
     // Checked synchronously: nothing async may run before the page is gone.
     const j = readJournal()
     expect(j?.notes.map((n) => n.content)).toEqual(['not yet in idb'])
-    expect(j?.session.openTabIds).toEqual([id])
+    expect(j?.session?.openTabIds).toEqual([id])
   })
 
   it('clears the journal once everything is saved', async () => {
