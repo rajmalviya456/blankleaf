@@ -228,6 +228,54 @@ input[type='search']::-webkit-search-decoration {
   background: none;
   padding: 0;
 }
+/* Code-block highlighting (highlight.js classes) in the Calm syntax palette. */
+.md-preview .hljs-keyword,
+.md-preview .hljs-selector-tag,
+.md-preview .hljs-built_in,
+.md-preview .hljs-literal {
+  color: var(--syn-keyword);
+}
+.md-preview .hljs-string,
+.md-preview .hljs-regexp,
+.md-preview .hljs-addition,
+.md-preview .hljs-template-string {
+  color: var(--syn-string);
+}
+.md-preview .hljs-number,
+.md-preview .hljs-symbol,
+.md-preview .hljs-bullet {
+  color: var(--syn-number);
+}
+.md-preview .hljs-comment,
+.md-preview .hljs-quote {
+  color: var(--syn-comment);
+  font-style: italic;
+}
+.md-preview .hljs-title,
+.md-preview .hljs-title.function_,
+.md-preview .hljs-section {
+  color: var(--syn-function);
+}
+.md-preview .hljs-type,
+.md-preview .hljs-title.class_,
+.md-preview .hljs-name,
+.md-preview .hljs-tag {
+  color: var(--syn-type);
+}
+.md-preview .hljs-attr,
+.md-preview .hljs-attribute,
+.md-preview .hljs-property,
+.md-preview .hljs-variable,
+.md-preview .hljs-params {
+  color: var(--syn-property);
+}
+.md-preview .hljs-meta,
+.md-preview .hljs-punctuation {
+  color: var(--syn-meta);
+}
+.md-preview .hljs-deletion {
+  color: var(--danger);
+}
 .md-preview blockquote {
   border-left: 3px solid var(--border);
   padding-left: 1em;

@@ -29,6 +29,23 @@ describe('MarkdownPreview', () => {
     expect(container.innerHTML).not.toMatch(/javascript:/i)
   })
 
+  it('highlights fenced code by language', () => {
+    const { container } = render(
+      <MarkdownPreview source={'```js\nconst x = 1\n```\n\n```ruby\ndef test\nend\n```'} />,
+    )
+    const keywords = [...container.querySelectorAll('.hljs-keyword')].map((n) => n.textContent)
+    expect(keywords).toEqual(expect.arrayContaining(['const', 'def', 'end']))
+    expect(container.querySelector('.hljs-number')?.textContent).toBe('1')
+  })
+
+  it('leaves unknown or unlabeled fences as plain text', () => {
+    const { container } = render(
+      <MarkdownPreview source={'```\nplain words\n```\n\n```nosuchlang\nx\n```'} />,
+    )
+    expect(container.querySelectorAll('[class*="hljs-"]')).toHaveLength(0)
+    expect(container.textContent).toContain('plain words')
+  })
+
   it('opens links in a new tab safely', () => {
     render(<MarkdownPreview source={'[site](https://example.com)'} />)
     const a = screen.getByRole('link', { name: 'site' })

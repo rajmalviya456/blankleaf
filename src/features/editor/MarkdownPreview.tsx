@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
+import rehypeHighlight from 'rehype-highlight'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 
@@ -13,7 +14,9 @@ export const MarkdownPreview = memo(function MarkdownPreview({ source }: { sourc
     <article aria-label="Markdown preview" className="md-preview">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeSanitize]}
+        // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
+        // highlighting only wraps text in spans, so it can't reintroduce anything unsafe.
+        rehypePlugins={[rehypeSanitize, [rehypeHighlight, { detect: false }]]}
         components={components}
       >
         {source}
