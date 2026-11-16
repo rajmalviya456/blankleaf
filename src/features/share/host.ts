@@ -4,6 +4,7 @@
  * stopped, enforcing the password check and the wrong-password cool-down itself.
  */
 import type { NotepadzDB } from '../../db/db'
+import { displayTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
 import { fromB64url, toB64url } from './b64'
 import { deriveSecrets, encryptSnapshot, packSnapshot, sha256Hex, timingSafeEqual } from './crypto'
@@ -80,12 +81,23 @@ interface Serving {
 
 const noLocks: LockManagerLike = { request: (_n, _o, cb) => cb() }
 
+/** Cross-window notifications between share hosts (separate from note sync). */
+export interface ShareChannel {
+  onmessage: ((e: MessageEvent) => void) | null
+  postMessage(data: unknown): void
+  close(): void
+}
+type ShareMsg = { t: 'changed' } | { t: 'stopped'; id: string }
+const CHANNEL_NAME = 'notepadz-shares'
+
 export function createShareHost(o: {
   db: NotepadzDB
   transport: ShareTransport
   appUrl: string
   now?: () => number
   locks?: LockManagerLike
+  /** Defaults to a BroadcastChannel when available. */
+  channel?: ShareChannel | null
 }): ShareHost {
   const { db, transport, appUrl } = o
   const now = o.now ?? Date.now
@@ -97,6 +109,13 @@ export function createShareHost(o: {
   const listeners = new Set<() => void>()
   let rows: ShareRow[] = []
   let disposed = false
+  const channel: ShareChannel | null =
+    o.channel !== undefined
+      ? o.channel
+      : typeof BroadcastChannel !== 'undefined'
+        ? new BroadcastChannel(CHANNEL_NAME)
+        : null
+  const announce = (m: ShareMsg) => channel?.postMessage(m)
 
   const notify = () => listeners.forEach((cb) => cb())
   const refresh = async () => {
@@ -168,7 +187,28 @@ export function createShareHost(o: {
     endServing(id)
     await deleteShare(db, id)
     await refresh()
+    announce({ t: 'changed' })
   }
+
+  /** Keep answering "stopped" (holding no key or data) until the link would have expired. */
+  const tombstone = (id: string, expiresAt: number | undefined) => {
+    const s = serving.get(id)
+    if (!s) return
+    if (expiresAt === undefined || expiresAt <= now()) return endServing(id)
+    s.tombstone = true
+    clearTimeout(s.timer)
+    s.timer = setTimeout(() => endServing(id), expiresAt - now())
+  }
+
+  if (channel)
+    channel.onmessage = (e: MessageEvent) => {
+      const m = e.data as ShareMsg
+      if (disposed || !m) return
+      if (m.t === 'stopped') {
+        tombstone(m.id, rows.find((r) => r.id === m.id)?.expiresAt)
+        void refresh()
+      } else if (m.t === 'changed') void refresh()
+    }
 
   /**
    * Serve a share while holding its lock. Resolves once registered (or immediately if another
@@ -218,7 +258,7 @@ export function createShareHost(o: {
       const row: ShareRow = {
         id: crypto.randomUUID(),
         noteId: note.id,
-        title: note.title ?? '',
+        title: displayTitle(note),
         keyB64: toB64url(key),
         exp,
         peerId: secrets.peerId,
@@ -246,6 +286,7 @@ export function createShareHost(o: {
         )
       }
       await refresh()
+      announce({ t: 'changed' })
       return {
         id: row.id,
         link: linkFor(row),
@@ -258,13 +299,8 @@ export function createShareHost(o: {
     async stop(id) {
       const row = await getShare(db, id)
       await deleteShare(db, id)
-      const s = serving.get(id)
-      if (s && row && row.expiresAt > now()) {
-        // Keep answering "stopped" (holding no key or data) until the link would have expired.
-        s.tombstone = true
-        clearTimeout(s.timer)
-        s.timer = setTimeout(() => endServing(id), row.expiresAt - now())
-      } else endServing(id)
+      tombstone(id, row?.expiresAt)
+      announce({ t: 'stopped', id })
       await refresh()
     },
 
@@ -295,6 +331,7 @@ export function createShareHost(o: {
 
     dispose() {
       disposed = true
+      channel?.close()
       for (const id of [...serving.keys()]) endServing(id)
       listeners.clear()
     },

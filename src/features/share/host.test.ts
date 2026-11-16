@@ -103,6 +103,15 @@ describe('share host', () => {
     expect(host.active().map((r) => r.id)).toEqual([created.id])
   })
 
+  it('names an auto-titled note after its first line', async () => {
+    const host = makeHost(createMemoryTransport())
+    await host.create(
+      { ...note('Grocery list\nmilk'), title: null },
+      { expiresInMs: 300_000, password: null },
+    )
+    expect(host.active()[0].title).toBe('Grocery list')
+  })
+
   it('right token gets the share and counts an open', async () => {
     const t = createMemoryTransport()
     const host = makeHost(t)
@@ -241,5 +250,54 @@ describe('share host without Web Locks', () => {
     const host = makeHost(t, syncLocks)
     const created = await host.create(note(), { expiresInMs: 300_000, password: null })
     expect((await ask(t, created.link, null)).type).toBe('share')
+  })
+})
+
+describe('share host across windows', () => {
+  /** Shared in-memory stand-in for BroadcastChannel between two hosts. */
+  function hub() {
+    const members = new Set<{ onmessage: ((e: MessageEvent) => void) | null }>()
+    return () => {
+      const ch = {
+        onmessage: null as ((e: MessageEvent) => void) | null,
+        postMessage(data: unknown) {
+          for (const m of members)
+            if (m !== ch) queueMicrotask(() => m.onmessage?.({ data } as MessageEvent))
+        },
+        close() {
+          members.delete(ch)
+        },
+      }
+      members.add(ch)
+      return ch
+    }
+  }
+
+  it('other windows see new shares and can stop them; the serving window stops at once', async () => {
+    const t = createMemoryTransport()
+    const locks = fakeLocks()
+    const channel = hub()
+    const a = createShareHost({
+      db,
+      transport: t,
+      appUrl: 'https://x.dev/notepadz/',
+      now,
+      locks,
+      channel: channel(),
+    })
+    const b = createShareHost({
+      db,
+      transport: t,
+      appUrl: 'https://x.dev/notepadz/',
+      now,
+      locks,
+      channel: channel(),
+    })
+    hosts.push(a, b)
+    const created = await a.create(note(), { expiresInMs: 300_000, password: null })
+    await vi.waitFor(() => expect(b.active().map((r) => r.id)).toEqual([created.id]))
+    await b.stop(created.id)
+    await vi.waitFor(() => expect(a.active()).toEqual([]))
+    expect(await ask(t, created.link, null)).toEqual({ type: 'stopped' })
   })
 })
