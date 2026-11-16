@@ -51,8 +51,10 @@ describe('SettingsDialog', () => {
     open(s)
     await user.click(await screen.findByRole('switch', { name: /line numbers/i }))
     expect(s().settings.lineNumbers).toBe(false)
-    await user.selectOptions(screen.getByRole('combobox', { name: /tab size/i }), '4')
+    await user.click(screen.getByRole('combobox', { name: /tab size/i }))
+    await user.click(await screen.findByRole('option', { name: '4 spaces' }))
     expect(s().settings.tabSize).toBe(4)
+    expect(screen.getByRole('combobox', { name: /tab size/i })).toHaveTextContent('4 spaces')
   })
 
   it('clear all data button stays disabled until "delete" typed', async () => {
@@ -64,5 +66,15 @@ describe('SettingsDialog', () => {
     expect(button).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: /type delete/i }), 'e')
     expect(button).toBeEnabled()
+  })
+
+  it('select menus open below their trigger with the same width', async () => {
+    const { s, user } = setup()
+    open(s)
+    await user.click(await screen.findByRole('combobox', { name: /new notes start as/i }))
+    const listbox = await screen.findByRole('listbox')
+    const content = listbox.closest('[data-side]') as HTMLElement
+    expect(content.dataset.side).toBe('bottom')
+    expect(content.style.width || content.className).toMatch(/radix-select-trigger-width/)
   })
 })

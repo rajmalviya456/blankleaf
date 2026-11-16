@@ -1,5 +1,7 @@
+import * as Select from '@radix-ui/react-select'
 import * as Switch from '@radix-ui/react-switch'
-import { useId, type ReactNode } from 'react'
+import { Check, ChevronDown } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -100,25 +102,48 @@ export function SelectBox<T extends string | number>({
   options: { value: T; label: string }[]
   onChange(v: T): void
 }) {
-  const id = useId()
   return (
-    <select
-      id={id}
-      aria-label={label}
+    <Select.Root
       value={String(value)}
-      onChange={(e) => {
-        const raw = e.target.value
+      onValueChange={(raw) => {
         const match = options.find((o) => String(o.value) === raw)
         if (match) onChange(match.value)
       }}
-      className="rounded-md border border-border bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none focus-visible:ring-1 focus-visible:ring-accent"
     >
-      {options.map((o) => (
-        <option key={String(o.value)} value={String(o.value)}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+      <Select.Trigger
+        aria-label={label}
+        className="flex h-7 w-36 items-center justify-between gap-2 rounded-md border border-border bg-bg-sunken pl-2.5 pr-2 text-[12px] text-fg outline-none hover:border-fg-faint focus-visible:ring-1 focus-visible:ring-accent data-[state=open]:border-accent"
+      >
+        <Select.Value />
+        <Select.Icon className="text-fg-faint">
+          <ChevronDown size={13} />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          side="bottom"
+          align="end"
+          sideOffset={4}
+          className="z-[60] w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border border-border bg-bg-elev p-1 shadow-lg"
+        >
+          <Select.Viewport>
+            {options.map((o) => (
+              <Select.Item
+                key={String(o.value)}
+                value={String(o.value)}
+                className="relative flex h-7 cursor-default select-none items-center rounded pl-7 pr-2 text-[12px] text-fg outline-none data-[highlighted]:bg-accent-soft"
+              >
+                <Select.ItemIndicator className="absolute left-2 text-accent">
+                  <Check size={12} />
+                </Select.ItemIndicator>
+                <Select.ItemText>{o.label}</Select.ItemText>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
   )
 }
 

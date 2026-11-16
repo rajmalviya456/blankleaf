@@ -72,7 +72,7 @@ export function DataSection({ settings: s, update }: Props) {
             aria-label="Type delete to confirm"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="delete"
+            placeholder="Type delete"
             className="w-32 rounded-md border border-border bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none focus-visible:ring-1 focus-visible:ring-danger"
           />
           <button
