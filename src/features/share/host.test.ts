@@ -233,3 +233,13 @@ describe('share host', () => {
     expect(await db.shares.count()).toBe(0)
   })
 })
+
+describe('share host without Web Locks', () => {
+  it('serves when the lock manager runs callbacks synchronously', async () => {
+    const t = createMemoryTransport()
+    const syncLocks: LockManagerLike = { request: (_n, _o, cb) => cb() }
+    const host = makeHost(t, syncLocks)
+    const created = await host.create(note(), { expiresInMs: 300_000, password: null })
+    expect((await ask(t, created.link, null)).type).toBe('share')
+  })
+})

@@ -180,6 +180,8 @@ export function createShareHost(o: {
       const held = new Promise<void>((r) => (release = r))
       let started = false
       const entry: Serving = { host: null, release, timer: undefined, tombstone: false }
+      // Register before asking for the lock: some lock managers run the callback synchronously.
+      serving.set(row.id, entry)
       void locks
         .request(`share:${row.id}`, { mode: 'exclusive' }, async () => {
           if (disposed || serving.get(row.id) !== entry) return
@@ -196,7 +198,6 @@ export function createShareHost(o: {
           await held
         })
         .catch(reject)
-      serving.set(row.id, entry)
       // Lock busy elsewhere: we're queued; report success to the caller right away.
       queueMicrotask(() => {
         if (!started) resolve()
