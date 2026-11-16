@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mod, newNote, openApp, tabs } from './helpers'
+import { newNote, openApp, tabs } from './helpers'
 
 test('export, clear all data, import: every note comes back', async ({ page }) => {
   await openApp(page)

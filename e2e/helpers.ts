@@ -1,7 +1,5 @@
 import { expect, type Page } from '@playwright/test'
 
-export const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
-
 export async function openApp(page: Page) {
   await page.goto('./')
   await expect(page.locator('.cm-editor')).toBeVisible()
