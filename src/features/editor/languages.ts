@@ -13,7 +13,15 @@ const legacy = async (pick: () => Promise<Parameters<typeof StreamLanguage.defin
   StreamLanguage.define(await pick())
 
 const LOADERS: Partial<Record<LanguageId, Loader>> = {
-  markdown: async () => (await import('@codemirror/lang-markdown')).markdown(),
+  markdown: async () => {
+    const [{ markdown, markdownLanguage }, { languages }] = await Promise.all([
+      import('@codemirror/lang-markdown'),
+      import('@codemirror/language-data'),
+    ])
+    // GFM (tables, task lists, strikethrough) + highlighting inside ```lang fences,
+    // each fence language loading on demand.
+    return markdown({ base: markdownLanguage, codeLanguages: languages })
+  },
   log: async () => logLanguage,
   json: async () => (await import('@codemirror/lang-json')).json(),
   javascript: async () => (await import('@codemirror/lang-javascript')).javascript({ jsx: true }),
