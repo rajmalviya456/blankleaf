@@ -2,6 +2,7 @@ import * as ContextMenu from '@radix-ui/react-context-menu'
 import type { ReactNode } from 'react'
 import type { Note } from '../../domain/types'
 import { getStore } from '../../store/store'
+import { exportNote } from '../backup/actions'
 
 interface Props {
   note: Note
@@ -56,8 +57,7 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           <ContextMenu.Item className={itemClass} onSelect={copy}>
             Copy content
           </ContextMenu.Item>
-          {/* Enabled by the backup feature (Task 14). */}
-          <ContextMenu.Item className={itemClass} disabled>
+          <ContextMenu.Item className={itemClass} onSelect={() => exportNote(note.id)}>
             Export
           </ContextMenu.Item>
         </ContextMenu.Content>

@@ -3,6 +3,7 @@
  * sheet and menus all read from here.
  */
 import type { StoreApi } from 'zustand'
+import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { nextThemePref } from '../lib/theme'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
@@ -222,6 +223,34 @@ export const COMMANDS: Command[] = [
     keywords: ['dark', 'light', 'appearance'],
     shortcuts: [],
     run: (ctx) => st(ctx).updateSettings({ theme: nextThemePref(st(ctx).settings.theme) }),
+  },
+  {
+    id: 'note.export',
+    title: 'Export note as file',
+    section: 'Data',
+    keywords: ['download', 'save as'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) exportNote(id)
+    },
+  },
+  {
+    id: 'data.export',
+    title: 'Export all notes (backup)',
+    section: 'Data',
+    keywords: ['backup', 'download', 'save'],
+    shortcuts: [],
+    run: () => void exportAll(),
+  },
+  {
+    id: 'data.import',
+    title: 'Import backup or files…',
+    section: 'Data',
+    keywords: ['restore', 'open', 'upload'],
+    shortcuts: [],
+    run: () => pickFilesToImport(),
   },
   {
     id: 'app.settings',

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
+import { initMeta } from './features/backup/meta'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
 import { registerStorage } from './store/dataReset'
@@ -15,6 +16,7 @@ async function main() {
 
   const boot = await bootstrap(Date.now())
   const store = initStore(createAppStore(boot.state))
+  initMeta(boot.meta)
 
   if (boot.db) {
     registerStorage(boot.db, startPersistence(store, boot.db))

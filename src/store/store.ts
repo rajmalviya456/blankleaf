@@ -68,6 +68,8 @@ export interface AppActions {
   setUi(p: Partial<UiState>): void
   applyRemoteNote(note: Note): void
   reveal(noteId: string, from: number, to: number): void
+  /** Merge notes from an import. Existing notes keep their local rev; nothing is opened. */
+  importNotes(notes: Note[]): void
   /** Markdown notes: edit → split → preview → edit. */
   cyclePreview(id: string): void
 }
@@ -359,6 +361,16 @@ export function createAppStore(
 
       setUi(p) {
         set({ ui: { ...get().ui, ...p } })
+      },
+
+      importNotes(incoming) {
+        if (!incoming.length) return
+        const notes = { ...get().notes }
+        for (const n of incoming) {
+          const current = notes[n.id]
+          notes[n.id] = { ...n, pinned: false, rev: current ? current.rev : 0 }
+        }
+        set({ notes })
       },
 
       cyclePreview(id) {

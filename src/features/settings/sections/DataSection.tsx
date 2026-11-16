@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import type { Settings } from '../../../domain/types'
 import { formatBytes, getStorageInfo, type StorageInfo } from '../../../lib/storageInfo'
 import { clearAllData } from '../../../store/dataReset'
+import { exportAll, pickFilesToImport } from '../../backup/actions'
+import { getLastBackupAt } from '../../backup/meta'
+import { relativeTime } from '../../../lib/relativeTime'
 import { buttonClass, Row, Section, SelectBox } from '../controls'
 
 interface Props {
@@ -20,6 +23,7 @@ export function DataSection({ settings: s, update }: Props) {
   const [info, setInfo] = useState<StorageInfo | null>(null)
   const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
+  const lastBackup = getLastBackupAt()
 
   useEffect(() => {
     let alive = true
@@ -38,12 +42,14 @@ export function DataSection({ settings: s, update }: Props) {
       </Row>
       <Row
         label="Back up"
-        hint="Export all notes to a file you can import again. Coming in the backup step."
+        hint={`Save all notes to one file you can import again.${
+          lastBackup ? ` Last backup ${relativeTime(lastBackup)}.` : ' No backup yet.'
+        }`}
       >
-        <button type="button" disabled className={buttonClass}>
+        <button type="button" onClick={() => void exportAll()} className={buttonClass}>
           Export…
         </button>
-        <button type="button" disabled className={buttonClass}>
+        <button type="button" onClick={pickFilesToImport} className={buttonClass}>
           Import…
         </button>
       </Row>
