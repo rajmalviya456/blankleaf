@@ -49,4 +49,13 @@ describe('StatusBar', () => {
     act(() => s().updateContent(id, 'x'.repeat(2_000_001)))
     expect(screen.getByText(/large file/i)).toBeInTheDocument()
   })
+
+  it('share button opens the share dialog for the active note', async () => {
+    const { id } = setup()
+    const { shareStore } = await import('../../features/share/shareStore')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    await userEvent.click(screen.getByRole('button', { name: /share note/i }))
+    expect(shareStore.getState().dialogNoteId).toBe(id)
+    act(() => shareStore.getState().close())
+  })
 })

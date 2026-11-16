@@ -5,6 +5,9 @@ import { exportAll } from './features/backup/actions'
 import { initMeta } from './features/backup/meta'
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
+import { createShareHost } from './features/share/host'
+import { pickTransport } from './features/share/pickTransport'
+import { setShareHost } from './features/share/shareStore'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
 import { registerStorage } from './store/dataReset'
@@ -30,6 +33,14 @@ async function main() {
     })
     if (typeof BroadcastChannel !== 'undefined') sync = startSync(store, boot.db, persistence)
     registerStorage(boot.db, persistence, sync ? () => sync?.announceCleared() : null)
+    // Link sharing: resume serving any shares that are still running (PeerJS loads only then).
+    const shareHost = createShareHost({
+      db: boot.db,
+      transport: pickTransport(),
+      appUrl: new URL(import.meta.env.BASE_URL, location.origin).href,
+    })
+    setShareHost(shareHost)
+    void shareHost.resume()
   } else {
     store.getState().setSaveStatus('error', boot.error)
     startMemoryJournal(store)

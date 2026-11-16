@@ -1,10 +1,11 @@
-import { AlertTriangle, Check, Loader } from 'lucide-react'
+import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
 import { useDeferredValue } from 'react'
 import type { Note } from '../../domain/types'
 import { lineColAt, textStats } from '../../lib/textStats'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
+import { shareStore } from '../../features/share/shareStore'
 import { isLargeDoc } from '../../domain/languages'
 
 /** Above this size, skip word counting so typing stays smooth. */
@@ -106,7 +107,19 @@ export function StatusBar() {
       className="flex h-6 shrink-0 items-center gap-3 border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
     >
       {note && <NoteInfo note={note} />}
-      <span className="ml-auto">
+      {note && (
+        <button
+          type="button"
+          aria-label="Share note"
+          title="Share note"
+          onClick={() => shareStore.getState().open(note.id)}
+          className="ml-auto flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+        >
+          <Share2 size={11} />
+          Share
+        </button>
+      )}
+      <span className={note ? '' : 'ml-auto'}>
         <SaveState />
       </span>
     </footer>

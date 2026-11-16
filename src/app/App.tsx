@@ -2,6 +2,7 @@ import { Contrast, Settings as SettingsIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
+import { shareStore } from '../features/share/shareStore'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
@@ -32,6 +33,9 @@ const ShortcutsSheet = lazy(() =>
 const CommandPalette = lazy(() =>
   import('../features/palette/CommandPalette').then((m) => ({ default: m.CommandPalette })),
 )
+const ShareDialog = lazy(() =>
+  import('../features/share/ShareDialog').then((m) => ({ default: m.ShareDialog })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -42,18 +46,21 @@ function Dialogs() {
   const settings = useAppStore((s) => s.ui.settingsOpen)
   const shortcuts = useAppStore((s) => s.ui.shortcutsOpen)
   const importing = useStore(importStore, (s) => s.open)
-  const [seen, setSeen] = useState({ palette, settings, shortcuts, importing })
+  const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
+  const [seen, setSeen] = useState({ palette, settings, shortcuts, importing, sharing })
   if (
     (palette && !seen.palette) ||
     (settings && !seen.settings) ||
     (shortcuts && !seen.shortcuts) ||
-    (importing && !seen.importing)
+    (importing && !seen.importing) ||
+    (sharing && !seen.sharing)
   ) {
     setSeen({
       palette: seen.palette || palette,
       settings: seen.settings || settings,
       shortcuts: seen.shortcuts || shortcuts,
       importing: seen.importing || importing,
+      sharing: seen.sharing || sharing,
     })
   }
   return (
@@ -62,6 +69,7 @@ function Dialogs() {
       {seen.shortcuts && <ShortcutsSheet />}
       {seen.settings && <SettingsDialog />}
       {seen.importing && <ImportDialog />}
+      {seen.sharing && <ShareDialog />}
     </Suspense>
   )
 }
