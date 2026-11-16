@@ -97,8 +97,9 @@ and server features go unused and GitHub Pages base-path handling adds friction.
    - Inter for the UI and JetBrains Mono for the editor. Both are self-hosted so they work offline.
    - Light and dark themes, following the system by default, with a toggle (◐).
    - Font, font size, accent color and monospace vs proportional text are adjustable in Settings.
-5. **Hosting:** GitHub Pages, deployed automatically by a GitHub Actions workflow on push to `main`,
-   with a PWA built on `vite-plugin-pwa`.
+5. **Hosting:** GitHub Pages served from a dedicated **`gh-pages` branch**. Build output is never
+   committed to `main`. Publish with `npm run deploy` (the `gh-pages` package) or automatically by a
+   GitHub Actions workflow on push to `main`. PWA built on `vite-plugin-pwa`.
 6. **Stack (option A):**
    - Vite + React 19 + TypeScript (strict)
    - CodeMirror 6 via `@uiw/react-codemirror`, plus `@codemirror/lang-*` and `@codemirror/language-data`
