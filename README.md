@@ -6,6 +6,25 @@ A full-window, tabbed notepad that lives in your browser.
 - **Remembers your session.** Open tabs, cursor and scroll position come back after a reload or restart.
 - **Private by design.** There is no server and no account. Notes are stored only in your browser (IndexedDB) and never leave your machine. Use Export to back them up.
 
+## Sharing a note
+
+Click **Share** in the status bar (or **Share…** in a tab's menu, or _Share note…_ in the ⌘K palette):
+
+1. Pick how long the link works — **5 min** (default), 1 hour, 1 day or 7 days.
+2. Keep **Protect with password** on (a random `xxxx-xxxx-xxxx` password is generated; ↻ for a new one) or switch it off.
+3. **Create link** — a ready-to-send message with the link, password and expiry is copied.
+
+The recipient opens the link, types the password and gets a read-only copy they can **Save to my notes** or **Download**.
+
+How it works, and what to know:
+
+- **No server stores your note.** It's encrypted in your browser and sent directly to the recipient's browser (WebRTC). A free public PeerJS server only introduces the two browsers; it never sees the note, key or password.
+- **Keep Notepadz open** until the link has been opened. If you close it, the link waits; reopen Notepadz before the expiry and the same link works again.
+- **Expiry is real**: when it passes (or you click _Stop sharing_), your browser stops answering and forgets the key — the link can never deliver the note again. It can't un-share a copy someone already opened.
+- **The password is checked by your browser** before anything is sent; after 5 wrong tries it pauses attempts (30 s, doubling). For confidential notes, send the password a different way than the link.
+- The status bar shows **Sharing N notes · m:ss left**; click it to see every active share, copy its message again, or stop it.
+- Some strict networks block direct browser-to-browser connections; the recipient will be told to try another network.
+
 ## Development
 
 Requires Node 24.
