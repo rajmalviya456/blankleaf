@@ -60,7 +60,8 @@ export async function importFileList(
       skipped.push(file.name)
       continue
     }
-    if (/\.json$/i.test(file.name) && /"app"\s*:\s*"notepadz"/.test(text.slice(0, 2000))) {
+    // A backup is recognised by its content, so renamed or extension-less files still work.
+    if (/^\s*\{/.test(text) && /"app"\s*:\s*"notepadz"/.test(text.slice(0, 2000))) {
       try {
         const backup = parseBackup(text)
         const tombs = opts.tombstoneIds ?? (await tombstoneIdsFromDb())

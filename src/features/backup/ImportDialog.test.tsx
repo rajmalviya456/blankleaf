@@ -66,6 +66,17 @@ describe('importing files', () => {
     expect(s().notes[gone.id]?.content).toBe('deleted here')
   })
 
+  it('recognises a backup by its content even without a .json name', async () => {
+    setup()
+    const backup = buildBackup(
+      [{ ...newNoteDraft(5, DEFAULT_SETTINGS), content: 'x' }],
+      DEFAULT_SETTINGS,
+      1,
+    )
+    await act(() => importFileList([file('backup-copy', JSON.stringify(backup))]))
+    expect(await screen.findByRole('dialog', { name: /import/i })).toHaveTextContent('1 new')
+  })
+
   it('plain text files become notes and open as tabs', async () => {
     const { s } = setup()
     await act(() => importFileList([file('todo.md', '# Todo'), file('run.sh', 'echo hi')]))
