@@ -8,6 +8,7 @@
  */
 import { createStore, useStore, type StoreApi } from 'zustand'
 import { CLOSED_STACK_MAX, DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
+import { languageMeta } from '../domain/languages'
 import { displayTitle } from '../domain/title'
 import type { LanguageId, Note, NoteMode, Session, Settings, TabViewState } from '../domain/types'
 
@@ -266,10 +267,23 @@ export function createAppStore(
       },
 
       setNoteMode: (id, mode) => patchNote(id, { mode }),
-      setLanguage: (id, language) => patchNote(id, { language }),
+      setLanguage(id, language) {
+        const note = get().notes[id]
+        if (!note) return
+        if (language === 'auto') return patchNote(id, { language })
+        const patch: Partial<Note> = {
+          language,
+          mode: language === 'markdown' ? 'markdown' : 'plain',
+        }
+        if (!get().session.perTab[id]?.wrapTouched)
+          patch.wrap = languageMeta(language).kind === 'text'
+        patchNote(id, patch)
+      },
       toggleWrap(id) {
         const note = get().notes[id]
-        if (note) patchNote(id, { wrap: !note.wrap })
+        if (!note) return
+        patchNote(id, { wrap: !note.wrap })
+        get().setViewState(id, { wrapTouched: true })
       },
 
       trashNote(id) {

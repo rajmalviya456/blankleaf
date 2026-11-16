@@ -249,3 +249,41 @@ describe('app store: notes', () => {
     })
   })
 })
+
+describe('app store: formats', () => {
+  it('choosing a code or log format turns wrap off', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().setLanguage(id, 'python')
+    expect(s().notes[id]).toMatchObject({ language: 'python', wrap: false, mode: 'plain' })
+    s().setLanguage(id, 'plaintext')
+    expect(s().notes[id].wrap).toBe(true)
+  })
+
+  it('keeps wrap once the user toggled it on this tab', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().toggleWrap(id)
+    s().toggleWrap(id)
+    expect(s().session.perTab[id].wrapTouched).toBe(true)
+    s().setLanguage(id, 'log')
+    expect(s().notes[id].wrap).toBe(true)
+  })
+
+  it('markdown format switches the note to markdown mode and back', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().setLanguage(id, 'markdown')
+    expect(s().notes[id].mode).toBe('markdown')
+    s().setLanguage(id, 'json')
+    expect(s().notes[id].mode).toBe('plain')
+  })
+
+  it('auto keeps the current wrap and mode', () => {
+    const { store, s } = setup()
+    const id = filled(store)
+    s().setLanguage(id, 'go')
+    s().setLanguage(id, 'auto')
+    expect(s().notes[id]).toMatchObject({ language: 'auto', wrap: false, mode: 'plain' })
+  })
+})
