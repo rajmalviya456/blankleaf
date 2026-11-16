@@ -106,4 +106,10 @@ async function main() {
   )
 }
 
+// A share link pasted into an already-open Notepadz tab only changes the hash; reload so it
+// goes through the share entry point (and the key leaves the address bar).
+window.addEventListener('hashchange', () => {
+  if (parseShareHash(location.hash)) location.reload()
+})
+
 void main()
