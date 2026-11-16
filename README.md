@@ -20,10 +20,10 @@ How it works, and what to know:
 
 - **No server stores your note.** It's encrypted in your browser and sent directly to the recipient's browser (WebRTC). A free public PeerJS server only introduces the two browsers; it never sees the note, key or password.
 - **Keep Notepadz open** until the link has been opened. If you close it, the link waits; reopen Notepadz before the expiry and the same link works again.
-- **Expiry is real**: when it passes (or you click _Stop sharing_), your browser stops answering and forgets the key — the link can never deliver the note again. It can't un-share a copy someone already opened.
+- **Expiry is real**: when it passes (or you click _Stop sharing_), your browser stops answering and forgets the key — the link can never deliver the note again. Anyone who opened it before then can keep their copy.
 - **The password is checked by your browser** before anything is sent; after 5 wrong tries it pauses attempts (30 s, doubling). For confidential notes, send the password a different way than the link.
 - The status bar shows **Sharing N notes · m:ss left**; click it to see every active share, copy its message again, or stop it.
-- Some strict networks block direct browser-to-browser connections; the recipient will be told to try another network.
+- If a direct browser-to-browser connection isn't possible, PeerJS's free relay may forward the data — still encrypted end to end, so the relay can't read it. If even that fails, the recipient is told to try another network.
 
 ## Development
 
