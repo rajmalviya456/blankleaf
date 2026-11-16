@@ -16,6 +16,15 @@ export type LanguageId =
   | 'yaml'
   | 'shell'
   | 'log'
+  | 'xml'
+  | 'toml'
+  | 'dockerfile'
+  | 'diff'
+  | 'java'
+  | 'cpp'
+  | 'go'
+  | 'rust'
+  | 'php'
 
 export interface Note {
   id: string
@@ -41,6 +50,8 @@ export interface TabViewState {
   head: number
   scrollTop: number
   previewMode: PreviewMode
+  /** User toggled wrap on this tab, so format changes stop choosing it. */
+  wrapTouched?: boolean
 }
 
 export type SidePanel = 'notes' | 'search' | 'trash'
