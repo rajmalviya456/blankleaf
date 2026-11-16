@@ -99,4 +99,15 @@ describe('Rail + SidePanel', () => {
     expect(s().notes[a]).toBeUndefined()
     expect(s().notes[b]).toBeUndefined()
   })
+
+  it('search box has an app-styled clear button instead of the browser one', async () => {
+    const { s, user } = setup()
+    act(() => s().setSidebar({ open: true, panel: 'search' }))
+    const box = screen.getByRole('searchbox')
+    expect(screen.queryByRole('button', { name: /clear search/i })).toBeNull()
+    await user.type(box, 'abc')
+    await user.click(screen.getByRole('button', { name: /clear search/i }))
+    expect(box).toHaveValue('')
+    expect(box).toHaveFocus()
+  })
 })

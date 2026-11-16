@@ -38,7 +38,7 @@ export function RenameInput({ initial, onCommit, onCancel }: Props) {
         else if (e.key === 'Escape') finish(false)
       }}
       onPointerDown={(e) => e.stopPropagation()}
-      className="min-w-0 rounded-sm bg-bg-sunken px-1 text-fg outline-none ring-1 ring-accent"
+      className="min-w-0 rounded-sm border border-accent bg-bg-sunken px-1 text-fg outline-none"
     />
   )
 }

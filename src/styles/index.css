@@ -118,6 +118,26 @@ body {
   outline-offset: -2px;
 }
 
+/* Text fields and selects show focus on their own border (or their wrapper's), and menu/list
+   items on their highlight background — never with a second outline drawn inside them. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[contenteditable]:focus-visible,
+[cmdk-input]:focus-visible,
+[role='combobox']:focus-visible,
+[role='option']:focus-visible,
+[role^='menuitem']:focus-visible {
+  outline: none;
+}
+
+/* The browser's own search-field clear (×) and decorations clash with the theme. */
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

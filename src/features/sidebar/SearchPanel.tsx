@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
@@ -44,7 +44,7 @@ export function SearchPanel() {
     <>
       <PanelHeader title="Search" count={deferred.trim() ? results.length : undefined} />
       <div className="px-2 pb-2">
-        <label className="flex items-center gap-2 rounded-md border border-border bg-bg px-2 focus-within:border-accent">
+        <label className="flex h-8 items-center gap-2 rounded-md border border-border bg-bg pl-2 pr-1 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]">
           <Search size={13} className="shrink-0 text-fg-faint" />
           <input
             ref={input}
@@ -53,10 +53,28 @@ export function SearchPanel() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && results[0]) open(results[0])
+              if (e.key === 'Escape' && query) {
+                e.preventDefault()
+                setQuery('')
+              }
             }}
             placeholder="Search all notes"
-            className="h-7 min-w-0 flex-1 bg-transparent text-[12.5px] text-fg outline-none placeholder:text-fg-faint"
+            className="h-full min-w-0 flex-1 bg-transparent text-[12.5px] text-fg outline-none placeholder:text-fg-faint"
           />
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              title="Clear (Esc)"
+              onClick={() => {
+                setQuery('')
+                input.current?.focus()
+              }}
+              className="grid size-5 shrink-0 place-items-center rounded text-fg-faint hover:bg-bg-hover hover:text-fg"
+            >
+              <X size={12} strokeWidth={2} />
+            </button>
+          )}
         </label>
       </div>
       <ul aria-label="Search results" className="flex-1 overflow-y-auto px-1.5 pb-2">

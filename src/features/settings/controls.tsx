@@ -112,7 +112,7 @@ export function SelectBox<T extends string | number>({
     >
       <Select.Trigger
         aria-label={label}
-        className="flex h-7 w-36 items-center justify-between gap-2 rounded-md border border-border bg-bg-sunken pl-2.5 pr-2 text-[12px] text-fg outline-none hover:border-fg-faint focus-visible:ring-1 focus-visible:ring-accent data-[state=open]:border-accent"
+        className="flex h-7 w-36 items-center justify-between gap-2 rounded-md border border-border bg-bg-sunken pl-2.5 pr-2 text-[12px] text-fg outline-none transition-colors hover:border-fg-faint focus-visible:border-accent focus-visible:shadow-[0_0_0_3px_var(--accent-soft)] data-[state=open]:border-accent"
       >
         <Select.Value />
         <Select.Icon className="text-fg-faint">
