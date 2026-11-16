@@ -17,11 +17,26 @@ interface Options {
   wrap: boolean
   /** Very large document: drop per-line decorations to stay responsive. */
   large?: boolean
-  settings: Pick<Settings, 'lineNumbers' | 'highlightActiveLine' | 'tabSize'>
+  settings: Pick<
+    Settings,
+    | 'lineNumbers'
+    | 'highlightActiveLine'
+    | 'tabSize'
+    | 'editorFontSize'
+    | 'lineHeight'
+    | 'editorFont'
+  >
 }
 
 export function useEditorExtensions({ wrap, settings, large = false }: Options): Extension[] {
-  const { lineNumbers: showNumbers, highlightActiveLine: activeLine, tabSize } = settings
+  const {
+    lineNumbers: showNumbers,
+    highlightActiveLine: activeLine,
+    tabSize,
+    editorFontSize,
+    lineHeight,
+    editorFont,
+  } = settings
   return useMemo(() => {
     const ext: Extension[] = [
       history(),
@@ -36,6 +51,17 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
     if (activeLine && !large) ext.push(highlightActiveLine())
     if (!large) ext.push(highlightSelectionMatches())
     if (wrap) ext.push(EditorView.lineWrapping)
+    // Typography lives in a theme extension (not only CSS vars) so a change reconfigures
+    // the view and CodeMirror re-measures line heights; otherwise the gutter drifts.
+    ext.push(
+      EditorView.theme({
+        '.cm-scroller': {
+          fontSize: `${editorFontSize}px`,
+          lineHeight: String(lineHeight),
+          fontFamily: editorFont === 'mono' ? 'var(--font-mono)' : 'var(--font-ui)',
+        },
+      }),
+    )
     return ext
-  }, [wrap, showNumbers, activeLine, tabSize, large])
+  }, [wrap, showNumbers, activeLine, tabSize, large, editorFontSize, lineHeight, editorFont])
 }

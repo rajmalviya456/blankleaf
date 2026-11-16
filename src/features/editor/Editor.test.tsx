@@ -82,3 +82,18 @@ describe('Editor formats', () => {
     expect(store.getState().notes[id].language).toBe('auto')
   })
 })
+
+describe('Editor typography', () => {
+  it('reconfigures the editor when font settings change so line metrics are re-measured', () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    const { container } = render(<Editor noteId={id} />)
+    const view = EditorView.findFromDOM(container.querySelector('.cm-editor') as HTMLElement)!
+    const before = view.state
+    act(() => store.getState().updateSettings({ editorFontSize: 20 }))
+    expect(view.state).not.toBe(before)
+    expect(view.dom.querySelector('.cm-scroller')).toBeTruthy()
+    const scroller = view.dom.querySelector('.cm-scroller') as HTMLElement
+    expect(getComputedStyle(scroller).fontSize).toBe('20px')
+  })
+})
