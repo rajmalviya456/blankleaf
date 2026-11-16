@@ -3,7 +3,7 @@ import { insertNote, loadAll, putKv } from '../db/notesRepo'
 import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
 import type { Note } from '../domain/types'
 import { bootstrap, loadInitialState, requestPersistentStorage } from './bootstrap'
-import { readJournal, writeJournal } from './journal'
+import { JOURNAL_PREFIX, readAllJournals, readJournal, writeJournal } from './journal'
 
 const DAY = 86_400_000
 const NOW = 100 * DAY
@@ -176,5 +176,22 @@ describe('journal replay', () => {
     })
     const { state } = await loadInitialState(db, NOW)
     expect(state.notes![current.id].content).toBe('newest')
+  })
+
+  it('replays every window’s journal and skips notes deleted forever', async () => {
+    const a = { ...newNoteDraft(NOW - 50, DEFAULT_SETTINGS), content: 'from window A' }
+    const b = { ...newNoteDraft(NOW - 40, DEFAULT_SETTINGS), content: 'from window B' }
+    const gone = { ...newNoteDraft(NOW - 30, DEFAULT_SETTINGS), content: 'purged elsewhere' }
+    await db.tombstones.put({ id: gone.id, purgedAt: NOW - 1 })
+    writeJournal({ at: NOW - 20, notes: [a], settings: DEFAULT_SETTINGS }, `${JOURNAL_PREFIX}A`)
+    writeJournal(
+      { at: NOW - 10, notes: [b, gone], settings: DEFAULT_SETTINGS },
+      `${JOURNAL_PREFIX}B`,
+    )
+    const { state } = await loadInitialState(db, NOW)
+    expect(state.notes![a.id].content).toBe('from window A')
+    expect(state.notes![b.id].content).toBe('from window B')
+    expect(state.notes![gone.id]).toBeUndefined()
+    expect(readAllJournals()).toEqual([])
   })
 })

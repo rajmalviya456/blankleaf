@@ -1,5 +1,5 @@
 import type { NotepadzDB } from '../db/db'
-import { clearJournal } from './journal'
+import { clearAllJournals } from './journal'
 import type { Persistence } from './persistence'
 
 /** Handles to the live storage, registered once at startup (main.tsx). */
@@ -26,6 +26,6 @@ export async function clearAllData(reload: () => void = () => location.reload())
     await activeDb.delete()
     activeDb = null
   }
-  clearJournal()
+  clearAllJournals()
   reload()
 }

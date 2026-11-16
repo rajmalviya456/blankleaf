@@ -2,7 +2,7 @@ import { openDb, SCHEMA_VERSION, type Meta, type NotepadzDB } from '../db/db'
 import { loadAll, purgeExpiredTrash, putKv, saveNote } from '../db/notesRepo'
 import { emptySession, mergeSettings, newNoteDraft, WELCOME_CONTENT } from '../domain/defaults'
 import type { Note, Session, Settings } from '../domain/types'
-import { clearJournal, readJournal } from './journal'
+import { clearJournal, readAllJournals } from './journal'
 import type { AppState } from './store'
 
 export interface InitialState {
@@ -47,18 +47,23 @@ function sanitizeSession(stored: Session | undefined, notes: Record<string, Note
 
 /** Replay unsaved work journaled at the last page hide (see journal.ts). Newer wins. */
 async function replayJournal(db: NotepadzDB): Promise<void> {
-  const j = readJournal()
-  if (!j) return
-  await db.transaction('rw', db.notes, db.kv, async () => {
-    for (const n of j.notes) {
-      const current = await db.notes.get(n.id)
-      if (current && current.updatedAt >= n.updatedAt) continue
-      await db.notes.put({ ...n, rev: (current?.rev ?? 0) + 1 })
+  for (const { key, journal: j } of readAllJournals()) {
+    try {
+      await db.transaction('rw', db.notes, db.kv, db.tombstones, async () => {
+        for (const n of j.notes) {
+          if (await db.tombstones.get(n.id)) continue // deleted forever elsewhere
+          const current = await db.notes.get(n.id)
+          if (current && current.updatedAt >= n.updatedAt) continue
+          await db.notes.put({ ...n, rev: (current?.rev ?? 0) + 1 })
+        }
+        if (j.session) await putKv(db, 'session', j.session)
+        await putKv(db, 'settings', j.settings)
+      })
+      clearJournal(key) // only once its contents are safely in IndexedDB
+    } catch (e) {
+      console.error('Notepadz: could not replay unsaved work; keeping it for next time', e)
     }
-    if (j.session) await putKv(db, 'session', j.session)
-    await putKv(db, 'settings', j.settings)
-  })
-  clearJournal()
+  }
 }
 
 export async function loadInitialState(db: NotepadzDB, now: number): Promise<InitialState> {

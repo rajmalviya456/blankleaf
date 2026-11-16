@@ -1,5 +1,12 @@
 import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
-import { clearJournal, JOURNAL_KEY, readJournal, writeJournal } from './journal'
+import {
+  clearJournal,
+  journalKey,
+  JOURNAL_PREFIX,
+  readAllJournals,
+  readJournal,
+  writeJournal,
+} from './journal'
 
 beforeEach(() => localStorage.clear())
 
@@ -20,9 +27,9 @@ describe('journal', () => {
   })
 
   it('ignores corrupt or foreign data', () => {
-    localStorage.setItem(JOURNAL_KEY, '{nope')
+    localStorage.setItem(journalKey(), '{nope')
     expect(readJournal()).toBeNull()
-    localStorage.setItem(JOURNAL_KEY, JSON.stringify({ foo: 1 }))
+    localStorage.setItem(journalKey(), JSON.stringify({ foo: 1 }))
     expect(readJournal()).toBeNull()
   })
 
@@ -32,5 +39,16 @@ describe('journal', () => {
     })
     expect(writeJournal(data())).toBe(false)
     spy.mockRestore()
+  })
+
+  it('keeps one journal per window and lists them all, oldest first', () => {
+    const other = `${JOURNAL_PREFIX}other-window`
+    writeJournal({ ...data(), at: 9 })
+    writeJournal({ ...data(), at: 3 }, other)
+    const all = readAllJournals()
+    expect(all.map((j) => j.journal.at)).toEqual([3, 9])
+    expect(all.map((j) => j.key)).toEqual([other, journalKey()])
+    clearJournal()
+    expect(readAllJournals().map((j) => j.key)).toEqual([other])
   })
 })
