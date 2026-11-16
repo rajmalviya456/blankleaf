@@ -1,12 +1,29 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronUp } from 'lucide-react'
 import { detectLanguage } from '../../domain/detectLanguage'
-import { LANGUAGES, languageMeta } from '../../domain/languages'
+import { LANGUAGE_GROUPS, LANGUAGES, languageMeta } from '../../domain/languages'
 import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 
-const itemClass =
-  'flex cursor-default select-none items-center gap-2 rounded px-2 py-1 text-[12.5px] text-fg outline-none data-[highlighted]:bg-accent-soft'
+/** One row: [check] [label ............ .ext] — fixed columns so everything lines up. */
+function Item({ value, label, ext }: { value: string; label: string; ext?: string }) {
+  return (
+    <DropdownMenu.RadioItem
+      value={value}
+      className="grid h-7 cursor-default select-none grid-cols-[14px_1fr_auto] items-center gap-2 rounded px-2 text-[12.5px] text-fg outline-none data-[highlighted]:bg-accent-soft"
+    >
+      <DropdownMenu.ItemIndicator className="text-accent">
+        <Check size={12} />
+      </DropdownMenu.ItemIndicator>
+      <span className="col-start-2 truncate">{label}</span>
+      {ext && (
+        <span aria-hidden className="col-start-3 font-mono text-[11px] text-fg-faint">
+          .{ext}
+        </span>
+      )}
+    </DropdownMenu.RadioItem>
+  )
+}
 
 /** Status-bar dropdown that sets a note's format (saved with the note). */
 export function FormatPicker({ noteId }: { noteId: string }) {
@@ -43,32 +60,27 @@ export function FormatPicker({ noteId }: { noteId: string }) {
           side="top"
           align="start"
           sideOffset={6}
-          className="z-50 max-h-[70vh] min-w-48 overflow-y-auto rounded-md border border-border bg-bg-elev p-1 shadow-lg"
+          className="z-50 max-h-[70vh] w-60 overflow-y-auto rounded-md border border-border bg-bg-elev p-1 shadow-lg"
         >
           <DropdownMenu.RadioGroup value={lang} onValueChange={choose}>
-            <DropdownMenu.RadioItem value="auto" className={itemClass}>
-              <span className="w-3">
-                <DropdownMenu.ItemIndicator>
-                  <Check size={12} />
-                </DropdownMenu.ItemIndicator>
-              </span>
-              Auto-detect
-            </DropdownMenu.RadioItem>
-            <DropdownMenu.Separator className="my-1 h-px bg-border" />
-            {LANGUAGES.map((l) => (
-              <DropdownMenu.RadioItem key={l.id} value={l.id} className={itemClass}>
-                <span className="w-3">
-                  <DropdownMenu.ItemIndicator>
-                    <Check size={12} />
-                  </DropdownMenu.ItemIndicator>
-                </span>
-                <span className="flex-1">{l.label}</span>
-                <span aria-hidden className="text-[11px] text-fg-faint">
-                  .{l.ext}
-                </span>
-              </DropdownMenu.RadioItem>
-            ))}
+            <Item value="auto" label="Auto-detect" />
           </DropdownMenu.RadioGroup>
+          {LANGUAGE_GROUPS.map((g) => (
+            <DropdownMenu.RadioGroup
+              key={g.id}
+              aria-label={g.label}
+              value={lang}
+              onValueChange={choose}
+            >
+              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+              <DropdownMenu.Label className="pb-0.5 pl-[30px] pr-2 pt-1 text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint">
+                {g.label}
+              </DropdownMenu.Label>
+              {LANGUAGES.filter((l) => l.group === g.id).map((l) => (
+                <Item key={l.id} value={l.id} label={l.label} ext={l.ext} />
+              ))}
+            </DropdownMenu.RadioGroup>
+          ))}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

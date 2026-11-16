@@ -40,4 +40,15 @@ describe('FormatPicker', () => {
     await user.click(items[0])
     expect(s().notes[id].language).toBe('auto')
   })
+
+  it('groups formats under Text, Data & config and Code', async () => {
+    const { user } = setup()
+    await user.click(screen.getByRole('button', { name: /format/i }))
+    const groups = await screen.findAllByRole('group')
+    expect(groups.map((g) => g.getAttribute('aria-label')).filter(Boolean)).toEqual([
+      'Text',
+      'Data & config',
+      'Code',
+    ])
+  })
 })

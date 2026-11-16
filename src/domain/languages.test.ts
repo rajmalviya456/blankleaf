@@ -36,4 +36,8 @@ describe('isLargeDoc', () => {
     expect(isLargeDoc(2_000_000)).toBe(false)
     expect(isLargeDoc(2_000_001)).toBe(true)
   })
+
+  it('assigns every format to a picker group', () => {
+    for (const l of LANGUAGES) expect(['text', 'data', 'code']).toContain(l.group)
+  })
 })
