@@ -10,6 +10,7 @@ import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
+import { releaseActiveView, setActiveView } from './activeView'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
 function useLanguageExtension(lang: LanguageId, large: boolean): Extension | null {
@@ -73,6 +74,7 @@ export function Editor({ noteId }: { noteId: string }) {
   const onCreateEditor = useCallback(
     (view: EditorView) => {
       viewRef.current = view
+      setActiveView(view)
       const saved = s().session.perTab[noteId]
       if (saved) {
         const len = view.state.doc.length
@@ -102,7 +104,13 @@ export function Editor({ noteId }: { noteId: string }) {
     [noteId],
   )
 
-  useEffect(() => () => scrollCleanup.current(), [])
+  useEffect(
+    () => () => {
+      scrollCleanup.current()
+      if (viewRef.current) releaseActiveView(viewRef.current)
+    },
+    [],
+  )
 
   const onChange = useCallback((value: string) => s().updateContent(noteId, value), [noteId])
 

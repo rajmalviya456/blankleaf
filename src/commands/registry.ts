@@ -202,6 +202,14 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    id: 'view.toolbar',
+    title: 'Toggle toolbar',
+    section: 'View',
+    keywords: ['format', 'bold', 'buttons'],
+    shortcuts: [],
+    run: (ctx) => st(ctx).updateSettings({ showToolbar: !st(ctx).settings.showToolbar }),
+  },
+  {
     id: 'view.sidebar',
     title: 'Toggle sidebar',
     section: 'View',
