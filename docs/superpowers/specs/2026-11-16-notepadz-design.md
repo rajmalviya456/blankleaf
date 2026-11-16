@@ -317,6 +317,13 @@ or a mixed bag.
 - E2E (Playwright): **no-data-loss** scenarios first: type then reload immediately; close the browser
   tab mid-debounce; two windows editing; quota error path (simulated).
 
+## 10a. Planned after v1: share a note by link (user request, 2026-11-16)
+The user wants to share a note easily via a link. Direction so far: no server. The note (content,
+title, format) is compressed into the link's `#fragment`, so it never reaches any server. Opening the
+link in Notepadz creates a **copy** as a new note for the recipient, with an option to download it as a
+file instead. This needs its own short spec before building (link length limits, very large notes,
+wording that makes clear that anyone with the link can read the note).
+
 ## 11. Left to the builder
 - Exact debounce values, the highlighting size threshold, and the language-detect heuristics.
 - The precise color values within the Calm direction, spacing scale and animation details (subtle and
