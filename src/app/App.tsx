@@ -1,12 +1,10 @@
 import { Contrast, Settings as SettingsIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { useStore } from 'zustand'
+import { importStore } from '../features/backup/importStore'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
-import { ImportDialog } from '../features/backup/ImportDialog'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
-import { ShortcutsSheet } from '../features/help/ShortcutsSheet'
-import { CommandPalette } from '../features/palette/CommandPalette'
-import { SettingsDialog } from '../features/settings/SettingsDialog'
 import {
   applySettingsToDocument,
   nextThemePref,
@@ -23,6 +21,50 @@ import { SidePanel } from './layout/SidePanel'
 import { StatusBar } from './layout/StatusBar'
 import { TabBar } from './layout/TabBar'
 import { ZenExitHint } from './layout/ZenExitHint'
+
+// Dialogs load on first open so they don't weigh on startup.
+const SettingsDialog = lazy(() =>
+  import('../features/settings/SettingsDialog').then((m) => ({ default: m.SettingsDialog })),
+)
+const ShortcutsSheet = lazy(() =>
+  import('../features/help/ShortcutsSheet').then((m) => ({ default: m.ShortcutsSheet })),
+)
+const CommandPalette = lazy(() =>
+  import('../features/palette/CommandPalette').then((m) => ({ default: m.CommandPalette })),
+)
+const ImportDialog = lazy(() =>
+  import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
+)
+
+/** Mount each dialog the first time it opens, then keep it (so closing animations/state work). */
+function Dialogs() {
+  const palette = useAppStore((s) => s.ui.paletteOpen)
+  const settings = useAppStore((s) => s.ui.settingsOpen)
+  const shortcuts = useAppStore((s) => s.ui.shortcutsOpen)
+  const importing = useStore(importStore, (s) => s.open)
+  const [seen, setSeen] = useState({ palette, settings, shortcuts, importing })
+  if (
+    (palette && !seen.palette) ||
+    (settings && !seen.settings) ||
+    (shortcuts && !seen.shortcuts) ||
+    (importing && !seen.importing)
+  ) {
+    setSeen({
+      palette: seen.palette || palette,
+      settings: seen.settings || settings,
+      shortcuts: seen.shortcuts || shortcuts,
+      importing: seen.importing || importing,
+    })
+  }
+  return (
+    <Suspense fallback={null}>
+      {seen.palette && <CommandPalette />}
+      {seen.shortcuts && <ShortcutsSheet />}
+      {seen.settings && <SettingsDialog />}
+      {seen.importing && <ImportDialog />}
+    </Suspense>
+  )
+}
 
 const iconButton =
   'grid size-7 place-items-center rounded-md text-fg-muted hover:bg-bg-hover hover:text-fg'
@@ -83,10 +125,7 @@ export function App() {
       </div>
       {!zen && <StatusBar />}
       {zen && <ZenExitHint />}
-      <CommandPalette />
-      <ShortcutsSheet />
-      <SettingsDialog />
-      <ImportDialog />
+      <Dialogs />
       <DropZone />
       <Toaster />
     </div>
