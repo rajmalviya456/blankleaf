@@ -1,4 +1,5 @@
 import { act, render } from '@testing-library/react'
+import { language } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from './Editor'
@@ -50,5 +51,34 @@ describe('Editor', () => {
     const { container } = render(<Editor noteId={id} />)
     const view = EditorView.findFromDOM(container.querySelector('.cm-editor') as HTMLElement)!
     expect(view.state.selection.main.head).toBe(2)
+  })
+})
+
+describe('Editor formats', () => {
+  it('applies syntax highlighting for the note format', async () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    store.getState().updateContent(id, 'def f():\n    return 1')
+    store.getState().setLanguage(id, 'python')
+    const { container } = render(<Editor noteId={id} />)
+    const view = EditorView.findFromDOM(container.querySelector('.cm-editor') as HTMLElement)!
+    await vi.waitFor(() => expect(view.state.facet(language)?.name).toBe('python'))
+  })
+
+  it('auto-detects the format of an auto note and saves it', async () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    store.getState().updateContent(id, '{\n  "a": 1,\n  "b": [true]\n}')
+    render(<Editor noteId={id} />)
+    await vi.waitFor(() => expect(store.getState().notes[id].language).toBe('json'))
+  })
+
+  it('leaves plain prose on auto', async () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    store.getState().updateContent(id, 'Call Sam about the budget tomorrow.')
+    render(<Editor noteId={id} />)
+    await new Promise((r) => setTimeout(r, 50))
+    expect(store.getState().notes[id].language).toBe('auto')
   })
 })

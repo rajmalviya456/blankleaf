@@ -21,6 +21,16 @@
   --ok: #2f9e5b;
   --selection: #4f6fff33;
 
+  --syn-keyword: #8a3ffc;
+  --syn-string: #24855a;
+  --syn-number: #b4580a;
+  --syn-comment: #8a909a;
+  --syn-function: #2f5bd8;
+  --syn-type: #0f7f95;
+  --syn-property: #a1356f;
+  --syn-meta: #6b7280;
+  --syn-punct: #6a7180;
+
   --font-ui: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, Consolas, monospace;
   --ui-font-size: 13px;
@@ -44,6 +54,16 @@
   --warn: #e0b25a;
   --ok: #5fd08a;
   --selection: #7c9cff38;
+
+  --syn-keyword: #c792ea;
+  --syn-string: #a5d6a7;
+  --syn-number: #f5b97a;
+  --syn-comment: #6b7280;
+  --syn-function: #82aaff;
+  --syn-type: #7fdbca;
+  --syn-property: #f48fb1;
+  --syn-meta: #8b919c;
+  --syn-punct: #8b919c;
 }
 
 @theme inline {

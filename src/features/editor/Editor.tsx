@@ -1,9 +1,39 @@
 import CodeMirror, { type ViewUpdate } from '@uiw/react-codemirror'
 import type { EditorView } from '@codemirror/view'
-import { useCallback, useEffect, useRef } from 'react'
+import type { Extension } from '@codemirror/state'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { detectLanguage } from '../../domain/detectLanguage'
+import { isLargeDoc } from '../../domain/languages'
+import { calmSyntax } from './highlight'
+import { loadLanguage } from './languages'
+import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
+
+/** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
+function useLanguageExtension(lang: LanguageId, large: boolean): Extension | null {
+  const [loaded, setLoaded] = useState<{ lang: LanguageId; ext: Extension | null } | null>(null)
+  useEffect(() => {
+    if (large) return
+    let alive = true
+    void loadLanguage(lang).then((ext) => alive && setLoaded({ lang, ext }))
+    return () => {
+      alive = false
+    }
+  }, [lang, large])
+  return !large && loaded?.lang === lang ? loaded.ext : null
+}
+
+/** While a note's format is 'auto', guess it from the content and save the guess. */
+function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
+  const deferred = useDeferredValue(content)
+  useEffect(() => {
+    if (lang !== 'auto' || deferred.trim().length < 8) return
+    const guess = detectLanguage(deferred)
+    if (guess !== 'plaintext') getStore().getState().setLanguage(noteId, guess)
+  }, [noteId, lang, deferred])
+}
 
 /**
  * CodeMirror bound to one note. Mount with `key={noteId}` so each tab gets a fresh
@@ -12,8 +42,16 @@ import { useEditorExtensions } from './useEditorExtensions'
 export function Editor({ noteId }: { noteId: string }) {
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
+  const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const settings = useAppStore((s) => s.settings)
-  const extensions = useEditorExtensions({ wrap, settings })
+  const large = isLargeDoc(content.length)
+  const base = useEditorExtensions({ wrap, settings, large })
+  const langExt = useLanguageExtension(lang, large)
+  const extensions = useMemo(
+    () => (langExt ? [...base, langExt, calmSyntax] : base),
+    [base, langExt],
+  )
+  useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
 
   const s = () => getStore().getState()

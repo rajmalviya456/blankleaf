@@ -15,25 +15,27 @@ import type { Settings } from '../../domain/types'
 
 interface Options {
   wrap: boolean
+  /** Very large document: drop per-line decorations to stay responsive. */
+  large?: boolean
   settings: Pick<Settings, 'lineNumbers' | 'highlightActiveLine' | 'tabSize'>
 }
 
-export function useEditorExtensions({ wrap, settings }: Options): Extension[] {
+export function useEditorExtensions({ wrap, settings, large = false }: Options): Extension[] {
   const { lineNumbers: showNumbers, highlightActiveLine: activeLine, tabSize } = settings
   return useMemo(() => {
     const ext: Extension[] = [
       history(),
       drawSelection(),
       search({ top: true }),
-      highlightSelectionMatches(),
       EditorState.allowMultipleSelections.of(true),
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
     ]
     if (showNumbers) ext.push(lineNumbers(), highlightActiveLineGutter())
-    if (activeLine) ext.push(highlightActiveLine())
+    if (activeLine && !large) ext.push(highlightActiveLine())
+    if (!large) ext.push(highlightSelectionMatches())
     if (wrap) ext.push(EditorView.lineWrapping)
     return ext
-  }, [wrap, showNumbers, activeLine, tabSize])
+  }, [wrap, showNumbers, activeLine, tabSize, large])
 }
