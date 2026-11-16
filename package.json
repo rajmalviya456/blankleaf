@@ -15,7 +15,8 @@
     "typecheck": "tsc -b --noEmit",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist --dotfiles --nojekyll -m \"deploy: publish build\"",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -63,7 +64,9 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/vite": "^4.3.5",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
