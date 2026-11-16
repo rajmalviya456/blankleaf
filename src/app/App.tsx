@@ -89,7 +89,7 @@ export function App() {
             <>
               <button
                 type="button"
-                aria-label="Command palette"
+                aria-label={`Command palette ${formatShortcut({ code: 'KeyK', mod: true }, platform())}`}
                 title="Command palette"
                 onClick={() => s().setUi({ paletteOpen: true, paletteMode: 'commands' })}
                 className="mr-1 rounded-md border border-border px-1.5 py-0.5 text-[11px] text-fg-muted hover:bg-bg-hover hover:text-fg"

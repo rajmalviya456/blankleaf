@@ -46,6 +46,7 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+      EditorView.contentAttributes.of({ 'aria-label': 'Note text' }),
     ]
     if (showNumbers) ext.push(lineNumbers(), highlightActiveLineGutter())
     if (activeLine && !large) ext.push(highlightActiveLine())

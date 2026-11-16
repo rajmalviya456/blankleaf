@@ -61,7 +61,7 @@ describe('TabBar', () => {
 
   it('close button closes a tab', async () => {
     const { user, ids, s } = setup()
-    await user.click(within(tab(/first/)).getByRole('button', { name: /close/i }))
+    await user.click(screen.getByLabelText('Close first'))
     expect(s().session.openTabIds).toEqual([ids[1]])
   })
 

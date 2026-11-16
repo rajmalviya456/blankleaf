@@ -28,6 +28,16 @@ export function TabItem({ note, active, onRequestClose }: Props) {
     if (active) ref.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
   }, [active])
 
+  const tabClass = [
+    'group relative flex h-7 max-w-56 min-w-24 shrink-0 cursor-default select-none items-center gap-1 rounded-t-md pl-3 pr-1.5 text-[12.5px]',
+    active
+      ? 'bg-bg text-fg shadow-[inset_0_2px_0_var(--accent)]'
+      : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
+    isDragging ? 'z-10 opacity-80' : '',
+  ].join(' ')
+
+  // The close button sits next to (not inside) the role="tab" element so no interactive
+  // control is nested in another. The wrapper carries the drag transform and menus.
   return (
     <TabContextMenu note={note} onClose={onRequestClose}>
       <div
@@ -35,14 +45,9 @@ export function TabItem({ note, active, onRequestClose }: Props) {
           setNodeRef(el)
           ref.current = el
         }}
-        {...attributes}
-        {...listeners}
-        role="tab"
-        aria-selected={active}
-        tabIndex={active ? 0 : -1}
-        title={title}
+        role="none"
         style={{ transform: CSS.Translate.toString(transform), transition }}
-        onClick={() => s().setActive(note.id)}
+        title={title}
         onDoubleClick={() => s().setUi({ renamingId: note.id })}
         onMouseDown={(e) => {
           if (e.button === 1) e.preventDefault() // no autoscroll on middle-click
@@ -53,17 +58,8 @@ export function TabItem({ note, active, onRequestClose }: Props) {
             onRequestClose(note.id)
           }
         }}
-        className={[
-          'group relative flex h-7 max-w-56 min-w-24 shrink-0 cursor-default select-none items-center gap-1.5 rounded-t-md pl-3 pr-1.5 text-[12.5px] outline-none',
-          active
-            ? 'bg-bg text-fg shadow-[inset_0_2px_0_var(--accent)]'
-            : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
-          isDragging ? 'z-10 opacity-80' : '',
-        ].join(' ')}
+        className={tabClass}
       >
-        {note.pinned && (
-          <Pin aria-label="Pinned" size={11} strokeWidth={2} className="shrink-0 text-warn" />
-        )}
         {renaming ? (
           <RenameInput
             initial={note.title ?? title}
@@ -74,11 +70,28 @@ export function TabItem({ note, active, onRequestClose }: Props) {
             onCancel={() => s().setUi({ renamingId: null })}
           />
         ) : (
-          <span className="min-w-0 flex-1 truncate">{title}</span>
+          <div
+            {...attributes}
+            {...listeners}
+            role="tab"
+            aria-selected={active}
+            aria-roledescription={undefined}
+            tabIndex={active ? 0 : -1}
+            onClick={() => s().setActive(note.id)}
+            className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch outline-none focus-visible:underline"
+          >
+            {note.pinned && (
+              <Pin aria-label="Pinned" size={11} strokeWidth={2} className="shrink-0 text-warn" />
+            )}
+            <span className="min-w-0 flex-1 truncate">{title}</span>
+          </div>
         )}
         {!note.pinned && !renaming && (
+          // Mouse affordance only: hidden from assistive tech because a tablist may contain
+          // only tabs. Keyboard/screen-reader users close with Mod2+W or the tab's menu.
           <button
             type="button"
+            aria-hidden="true"
             aria-label={`Close ${title}`}
             tabIndex={-1}
             onPointerDown={(e) => e.stopPropagation()}
