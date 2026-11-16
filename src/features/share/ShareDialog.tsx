@@ -199,7 +199,9 @@ function Options({ noteId }: { noteId: string }) {
     const sharing = host.create(note, { expiresInMs: expiry, password: protect ? password : null })
     // Safari only allows clipboard writes during the click itself, but the link takes a few
     // seconds; hand the clipboard a promise of the message now (falls back to writeText).
-    const viaPromise = copyLater(sharing.then((sh) => sh.message))
+    const message = sharing.then((sh) => sh.message)
+    message.catch(() => {}) // failure is reported below; don't leave this branch unhandled
+    const viaPromise = copyLater(message)
     try {
       const share = await sharing
       const copied = (await viaPromise) || (await copy(share.message))
