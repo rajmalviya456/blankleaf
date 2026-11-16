@@ -46,16 +46,18 @@ export function ShortcutsSheet() {
                         {c.id === 'tab.goto1' ? 'Go to tab 1–9' : c.title}
                       </dt>
                       <dd className="flex gap-1.5">
-                        {c.shortcuts.map((s) => (
-                          <kbd
-                            key={s.code}
-                            className="rounded border border-border bg-bg-sunken px-1.5 py-px text-[11px] text-fg-muted"
-                          >
-                            {c.id === 'tab.goto1'
-                              ? formatShortcut(s, p).replace(/1$/, '1…9')
-                              : formatShortcut(s, p)}
-                          </kbd>
-                        ))}
+                        {c.shortcuts
+                          .filter((s) => !s.standaloneOnly)
+                          .map((s) => (
+                            <kbd
+                              key={s.code}
+                              className="rounded border border-border bg-bg-sunken px-1.5 py-px text-[11px] text-fg-muted"
+                            >
+                              {c.id === 'tab.goto1'
+                                ? formatShortcut(s, p).replace(/1$/, '1…9')
+                                : formatShortcut(s, p)}
+                            </kbd>
+                          ))}
                       </dd>
                     </div>
                   ))}

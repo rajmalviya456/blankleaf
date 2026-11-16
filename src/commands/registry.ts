@@ -54,14 +54,20 @@ export const COMMANDS: Command[] = [
     title: 'New note',
     section: 'Note',
     keywords: ['create', 'add', 'tab'],
-    shortcuts: [{ code: 'KeyN', mod2: true }],
+    shortcuts: [
+      { code: 'KeyN', mod2: true },
+      { code: 'KeyT', mod: true, standaloneOnly: true },
+    ],
     run: (ctx) => void st(ctx).newNote(),
   },
   {
     id: 'tab.close',
     title: 'Close tab',
     section: 'Tabs',
-    shortcuts: [{ code: 'KeyW', mod2: true }],
+    shortcuts: [
+      { code: 'KeyW', mod2: true },
+      { code: 'KeyW', mod: true, standaloneOnly: true },
+    ],
     when: hasActive,
     run: (ctx) => {
       const id = activeId(ctx)

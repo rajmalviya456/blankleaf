@@ -120,3 +120,23 @@ describe('command palette', () => {
     expect(sheet).toHaveTextContent('Ctrl+Shift+F')
   })
 })
+
+describe('installed app shortcuts', () => {
+  it('Ctrl+T is ignored in a browser tab but opens a note in the installed app', () => {
+    const { s } = setup()
+    press('KeyT', { ctrlKey: true })
+    expect(s().session.openTabIds).toHaveLength(1)
+    const mm = window.matchMedia
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes('standalone'),
+      media: q,
+      addListener() {},
+      removeListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+    })) as unknown as typeof mm
+    press('KeyT', { ctrlKey: true })
+    expect(s().session.openTabIds).toHaveLength(2)
+    window.matchMedia = mm
+  })
+})

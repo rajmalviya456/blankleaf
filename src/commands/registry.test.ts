@@ -1,7 +1,10 @@
 import { COMMANDS } from './registry'
 
 const key = (c: (typeof COMMANDS)[number]) =>
-  c.shortcuts.map((s) => `${s.mod ? 'm' : ''}${s.mod2 ? 'M' : ''}${s.shift ? 's' : ''}${s.code}`)
+  c.shortcuts.map(
+    (s) =>
+      `${s.standaloneOnly ? 'A:' : ''}${s.mod ? 'm' : ''}${s.mod2 ? 'M' : ''}${s.shift ? 's' : ''}${s.code}`,
+  )
 
 describe('command registry', () => {
   it('all command ids are unique', () => {
@@ -33,5 +36,11 @@ describe('command registry', () => {
     expect(byId['view.zen']).toContain('mPeriod')
     expect(byId['tab.rename']).toContain('F2')
     expect(byId['app.settings']).toContain('mComma')
+  })
+
+  it('binds Cmd/Ctrl+T and +W only inside the installed app', () => {
+    const byId = Object.fromEntries(COMMANDS.map((c) => [c.id, key(c)]))
+    expect(byId['note.new']).toContain('A:mKeyT')
+    expect(byId['tab.close']).toContain('A:mKeyW')
   })
 })

@@ -13,6 +13,8 @@ export interface Shortcut {
   mod?: boolean
   mod2?: boolean
   shift?: boolean
+  /** Only active in the installed app window, where the browser doesn't own the key. */
+  standaloneOnly?: boolean
 }
 
 type KeyLike = Pick<KeyboardEvent, 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'>

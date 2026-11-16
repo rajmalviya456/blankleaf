@@ -4,6 +4,14 @@ import { matchShortcut } from '../lib/shortcuts'
 import { getStore } from '../store/store'
 import { COMMANDS, commandEnabled } from './registry'
 
+/** Running as an installed app (no browser tabs competing for Cmd/Ctrl+T/W). */
+function isStandalone(): boolean {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(display-mode: standalone)').matches
+  )
+}
+
 /**
  * Listens for command shortcuts on the whole window (capture phase, so they work while the
  * editor has focus). Only a matching key is consumed; all other typing passes through.
@@ -16,7 +24,10 @@ export function useGlobalShortcuts(): void {
       const store = getStore()
       const state = store.getState()
       for (const cmd of COMMANDS) {
-        if (!cmd.shortcuts.some((s) => matchShortcut(e, s, p))) continue
+        const hit = cmd.shortcuts.some(
+          (s) => matchShortcut(e, s, p) && (!s.standaloneOnly || isStandalone()),
+        )
+        if (!hit) continue
         if (!commandEnabled(cmd, state)) return
         e.preventDefault()
         e.stopPropagation()
