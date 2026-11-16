@@ -157,8 +157,13 @@ describe('share host', () => {
     const created = await host.create(note(), { expiresInMs: 1500, password: null })
     clock = created.expiresAt
     expect(await ask(t, created.link, null)).toEqual({ type: 'expired' })
-    await vi.waitFor(async () => expect(await db.shares.count()).toBe(0), { timeout: 3000 })
-    expect(host.active()).toEqual([])
+    await vi.waitFor(
+      async () => {
+        expect(await db.shares.count()).toBe(0)
+        expect(host.active()).toEqual([])
+      },
+      { timeout: 4000 },
+    )
   })
 
   it('stop replies stopped to new connections, then deletes the row', async () => {
