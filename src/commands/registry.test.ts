@@ -36,6 +36,7 @@ describe('command registry', () => {
     expect(byId['view.zen']).toContain('mPeriod')
     expect(byId['tab.rename']).toContain('F2')
     expect(byId['app.settings']).toContain('mComma')
+    expect(byId['app.settings']).toContain('MComma')
   })
 
   it('binds Cmd/Ctrl+T and +W only inside the installed app', () => {

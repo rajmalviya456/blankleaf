@@ -263,7 +263,11 @@ export const COMMANDS: Command[] = [
     title: 'Settings',
     section: 'App',
     keywords: ['preferences', 'font', 'size'],
-    shortcuts: [{ code: 'Comma', mod: true }],
+    // ⌘, is often kept by the browser for its own settings; ⌃⌥, (Alt+,) always reaches us.
+    shortcuts: [
+      { code: 'Comma', mod: true },
+      { code: 'Comma', mod2: true },
+    ],
     run: (ctx) => st(ctx).setUi({ settingsOpen: true, paletteOpen: false }),
   },
   {
