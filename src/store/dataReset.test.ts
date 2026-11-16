@@ -12,11 +12,13 @@ describe('clearAllData', () => {
     await insertNote(db, newNoteDraft(1, DEFAULT_SETTINGS))
     writeJournal({ at: 1, notes: [], session: emptySession(), settings: DEFAULT_SETTINGS })
     const stop = vi.fn()
-    registerStorage(db, { stop } as unknown as Persistence)
+    const announce = vi.fn()
+    registerStorage(db, { stop } as unknown as Persistence, announce)
     const reload = vi.fn()
 
     await clearAllData(reload)
 
+    expect(announce).toHaveBeenCalled()
     expect(stop).toHaveBeenCalled()
     expect(readJournal()).toBeNull()
     expect(reload).toHaveBeenCalled()

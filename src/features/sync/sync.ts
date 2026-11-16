@@ -16,7 +16,7 @@ import type { Persistence, WriteEvent } from '../../store/persistence'
 import type { AppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 
-export type SyncMsg = (WriteEvent | { t: 'active' }) & { from: string }
+export type SyncMsg = (WriteEvent | { t: 'active' } | { t: 'cleared' }) & { from: string }
 
 /** The slice of BroadcastChannel we use (lets tests pass an in-memory stand-in). */
 export interface SyncChannel {
@@ -59,6 +59,8 @@ export interface Sync {
   ownsSession(): boolean
   /** Make this window the session owner and tell the others. */
   claimSession(): void
+  /** Tell other windows all data is being erased so they stop saving and reload. */
+  announceCleared(): void
 }
 
 export function startSync(
@@ -67,6 +69,7 @@ export function startSync(
   persistence: Persistence,
   channel: SyncChannel = new BroadcastChannel(CHANNEL_NAME),
   target: Window = window,
+  reload: () => void = () => location.reload(),
 ): Sync {
   const self = crypto.randomUUID()
   let stopped = false
@@ -117,6 +120,13 @@ export function startSync(
   channel.onmessage = (e: MessageEvent) => {
     const msg = e.data as SyncMsg
     if (stopped || !msg || msg.from === self) return
+    if (msg.t === 'cleared') {
+      // Another window is erasing everything: stop writing at once so nothing comes back.
+      stopped = true
+      persistence.stop()
+      reload()
+      return
+    }
     if (msg.t === 'active') otherActiveAt = Math.max(Date.now(), selfActiveAt + 1)
     else if (msg.t === 'note') void applyNote(msg.id)
     else if (msg.t === 'deleted') applyDelete(msg.id)
@@ -128,6 +138,9 @@ export function startSync(
   return {
     ownsSession: () => selfActiveAt > otherActiveAt,
     claimSession,
+    announceCleared() {
+      channel.postMessage({ t: 'cleared', from: self } satisfies SyncMsg)
+    },
     stop() {
       stopped = true
       target.removeEventListener('focus', onFocus)

@@ -28,8 +28,8 @@ async function main() {
       // With several windows open, only the most recently used one owns the saved tab session.
       shouldPersistSession: () => sync?.ownsSession() ?? true,
     })
-    registerStorage(boot.db, persistence)
     if (typeof BroadcastChannel !== 'undefined') sync = startSync(store, boot.db, persistence)
+    registerStorage(boot.db, persistence, sync ? () => sync?.announceCleared() : null)
   } else {
     store.getState().setSaveStatus('error', boot.error)
     startMemoryJournal(store)

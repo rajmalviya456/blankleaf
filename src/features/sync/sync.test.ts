@@ -36,7 +36,7 @@ afterEach(async () => {
   await db.delete()
 })
 
-function openWindow(hub: Hub) {
+function openWindow(hub: Hub, reload: () => void = () => {}) {
   const db: NotepadzDB = openDb(name)
   const store = createAppStore()
   const ref: { sync?: ReturnType<typeof startSync> } = {}
@@ -46,7 +46,7 @@ function openWindow(hub: Hub) {
     target: fakeWindow(),
     shouldPersistSession: () => ref.sync?.ownsSession() ?? true,
   })
-  ref.sync = startSync(store, db, persistence, new StubChannel(hub))
+  ref.sync = startSync(store, db, persistence, new StubChannel(hub), window, reload)
   const sync = ref.sync
   cleanups.push(() => {
     sync.stop()
@@ -163,5 +163,20 @@ describe('sync between windows', () => {
     W.s().updateContent(id, 'x')
     await W.p.flush()
     expect((await loadAll(W.db)).session?.openTabIds).toEqual([id])
+  })
+})
+
+describe('clear all data across windows', () => {
+  it('other windows stop saving and reload when one window clears all data', async () => {
+    const hub = new Hub()
+    const A = openWindow(hub)
+    const reload = vi.fn()
+    const B = openWindow(hub, reload)
+    const id = B.s().newNote()
+    B.s().updateContent(id, 'would be written back')
+    A.sync.announceCleared()
+    await vi.waitFor(() => expect(reload).toHaveBeenCalled())
+    await B.p.flush()
+    expect((await loadAll(A.db)).notes.find((n) => n.id === id)).toBeUndefined()
   })
 })
