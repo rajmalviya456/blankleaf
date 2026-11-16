@@ -25,7 +25,7 @@ export function ImportDialog() {
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
+        <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
         <Dialog.Content
           aria-describedby={undefined}
           className="fixed left-1/2 top-[20vh] z-50 w-[min(400px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-bg-elev p-4 shadow-2xl outline-none"

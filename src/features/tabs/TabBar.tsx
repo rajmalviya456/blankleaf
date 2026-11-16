@@ -90,7 +90,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
 
       <AlertDialog.Root open={unpinId !== null} onOpenChange={(o) => !o && setUnpinId(null)}>
         <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
+          <AlertDialog.Overlay className="np-overlay fixed inset-0 z-40" />
           <AlertDialog.Content className="fixed left-1/2 top-1/3 z-50 w-80 -translate-x-1/2 rounded-lg border border-border bg-bg-elev p-4 shadow-xl">
             <AlertDialog.Title className="text-sm font-medium text-fg">
               Unpin “{unpinNote ? displayTitle(unpinNote) : ''}”?

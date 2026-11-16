@@ -17,7 +17,7 @@ export function SettingsDialog() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
+        <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
         <Dialog.Content
           aria-describedby={undefined}
           className="fixed left-1/2 top-[8vh] z-50 flex max-h-[84vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"

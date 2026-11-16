@@ -63,7 +63,7 @@ export function CommandPalette() {
   return (
     <Dialog.Root open={open} onOpenChange={(o) => (o ? undefined : close())}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/25" />
+        <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
         <Dialog.Content
           aria-describedby={undefined}
           className="fixed left-1/2 top-[14vh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
