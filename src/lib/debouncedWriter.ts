@@ -6,6 +6,8 @@ export interface DebouncedWriter<V> {
   /** True if `key` (or any key) has a value waiting or a write in flight. */
   hasPending(key?: string): boolean
   cancel(key: string): void
+  /** Drop every pending value and timer (in-flight writes still finish). */
+  dispose(): void
 }
 
 /**
@@ -58,6 +60,10 @@ export function createDebouncedWriter<V>(
       const entry = pending.get(key)
       if (entry) clearTimeout(entry.timer)
       pending.delete(key)
+    },
+    dispose() {
+      for (const entry of pending.values()) clearTimeout(entry.timer)
+      pending.clear()
     },
   }
 }

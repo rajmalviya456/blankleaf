@@ -87,4 +87,14 @@ describe('createDebouncedWriter', () => {
     await w.flush()
     expect(write).toHaveBeenLastCalledWith('a', 'good')
   })
+
+  it('dispose drops all pending writes', async () => {
+    const { w, writes } = setup()
+    w.schedule('a', '1')
+    w.schedule('b', '2')
+    w.dispose()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(writes).toEqual([])
+    expect(w.hasPending()).toBe(false)
+  })
 })
