@@ -16,7 +16,7 @@ import type { Persistence, WriteEvent } from '../../store/persistence'
 import type { AppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 
-export type SyncMsg = WriteEvent & { from: string }
+export type SyncMsg = (WriteEvent | { t: 'active' }) & { from: string }
 
 /** The slice of BroadcastChannel we use (lets tests pass an in-memory stand-in). */
 export interface SyncChannel {
@@ -53,15 +53,35 @@ function sameSettings(a: Settings, b: Settings): boolean {
   return JSON.stringify(a) === JSON.stringify(b)
 }
 
+export interface Sync {
+  stop(): void
+  /** True if this window should save the shared tab session (most recently opened/focused). */
+  ownsSession(): boolean
+  /** Make this window the session owner and tell the others. */
+  claimSession(): void
+}
+
 export function startSync(
   store: StoreApi<AppStore>,
   db: NotepadzDB,
   persistence: Persistence,
   channel: SyncChannel = new BroadcastChannel(CHANNEL_NAME),
-): { stop(): void } {
+  target: Window = window,
+): Sync {
   const self = crypto.randomUUID()
   let stopped = false
   const s = () => store.getState()
+
+  // Session ownership: the latest window to open or gain focus wins. A lone window owns it.
+  let selfActiveAt = Date.now()
+  let otherActiveAt = 0
+  const claimSession = () => {
+    selfActiveAt = Math.max(Date.now(), otherActiveAt + 1)
+    channel.postMessage({ t: 'active', from: self } satisfies SyncMsg)
+    void persistence.saveSession()
+  }
+  const onFocus = () => claimSession()
+  target.addEventListener('focus', onFocus)
 
   const offWrite = persistence.onWrite((e) => {
     if (!stopped) channel.postMessage({ ...e, from: self } satisfies SyncMsg)
@@ -97,14 +117,20 @@ export function startSync(
   channel.onmessage = (e: MessageEvent) => {
     const msg = e.data as SyncMsg
     if (stopped || !msg || msg.from === self) return
-    if (msg.t === 'note') void applyNote(msg.id)
+    if (msg.t === 'active') otherActiveAt = Math.max(Date.now(), selfActiveAt + 1)
+    else if (msg.t === 'note') void applyNote(msg.id)
     else if (msg.t === 'deleted') applyDelete(msg.id)
     else if (msg.t === 'settings') void applySettings()
   }
 
+  channel.postMessage({ t: 'active', from: self } satisfies SyncMsg)
+
   return {
+    ownsSession: () => selfActiveAt > otherActiveAt,
+    claimSession,
     stop() {
       stopped = true
+      target.removeEventListener('focus', onFocus)
       offWrite()
       offConflict()
       channel.onmessage = null

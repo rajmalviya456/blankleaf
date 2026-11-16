@@ -45,6 +45,8 @@ export interface Persistence {
   hasPendingFor(id: string): boolean
   /** Tell persistence a note now matches the DB at `rev` (e.g. applied from another window). */
   markSynced(id: string, rev: number): void
+  /** Write the tab session now (e.g. this window just became the session owner). */
+  saveSession(): Promise<void>
 }
 
 const MAX_RETRY_MS = 10_000
@@ -280,6 +282,10 @@ export function startPersistence(
       return () => writeListeners.delete(cb)
     },
     hasPendingFor: (id) => notes.hasPending(id),
+    async saveSession() {
+      meta.schedule('session', null)
+      await meta.flush()
+    },
     markSynced(id, rev) {
       knownRev.set(id, rev)
       notes.cancel(id)

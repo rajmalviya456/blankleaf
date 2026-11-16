@@ -36,21 +36,31 @@ afterEach(async () => {
   await db.delete()
 })
 
-function openWindow(hub: Hub, opts: { focused?: () => boolean } = {}) {
+function openWindow(hub: Hub) {
   const db: NotepadzDB = openDb(name)
   const store = createAppStore()
+  const ref: { sync?: ReturnType<typeof startSync> } = {}
   const persistence: Persistence = startPersistence(store, db, {
     contentDelay: 60_000,
     sessionDelay: 60_000,
-    shouldPersistSession: opts.focused,
+    target: fakeWindow(),
+    shouldPersistSession: () => ref.sync?.ownsSession() ?? true,
   })
-  const sync = startSync(store, db, persistence, new StubChannel(hub))
+  ref.sync = startSync(store, db, persistence, new StubChannel(hub))
+  const sync = ref.sync
   cleanups.push(() => {
     sync.stop()
     persistence.stop()
     db.close()
   })
-  return { store, s: () => store.getState(), p: persistence, db }
+  return { store, s: () => store.getState(), p: persistence, db, sync }
+}
+
+/** Each test window gets its own event target so focus events don't leak between them. */
+function fakeWindow(): Window {
+  const t = new EventTarget() as unknown as Window
+  ;(t as unknown as { document: Document }).document = document
+  return t
 }
 
 async function shareNote(hub: Hub) {
@@ -125,12 +135,33 @@ describe('sync between windows', () => {
     expect(A.s().settings).toBe(before)
   })
 
-  it('session is not persisted from an unfocused window', async () => {
+  it('only the most recently opened or focused window saves the tab session', async () => {
     const hub = new Hub()
-    const W = openWindow(hub, { focused: () => false })
+    const A = openWindow(hub)
+    expect(A.sync.ownsSession()).toBe(true)
+    const a1 = A.s().newNote()
+    A.s().updateContent(a1, 'a')
+    await A.p.flush()
+    expect((await loadAll(A.db)).session?.openTabIds).toEqual([a1])
+
+    const B = openWindow(hub)
+    await vi.waitFor(() => expect(A.sync.ownsSession()).toBe(false))
+    expect(B.sync.ownsSession()).toBe(true)
+    A.s().newNote()
+    await A.p.flush()
+    expect((await loadAll(A.db)).session?.openTabIds).toEqual([a1])
+
+    A.sync.claimSession()
+    await vi.waitFor(() => expect(B.sync.ownsSession()).toBe(false))
+    await A.p.flush()
+    expect((await loadAll(A.db)).session?.openTabIds).toHaveLength(2)
+  })
+
+  it('a lone window always saves its session, even without focus', async () => {
+    const W = openWindow(new Hub())
     const id = W.s().newNote()
     W.s().updateContent(id, 'x')
     await W.p.flush()
-    expect((await loadAll(W.db)).session).toBeUndefined()
+    expect((await loadAll(W.db)).session?.openTabIds).toEqual([id])
   })
 })
