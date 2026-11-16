@@ -13,10 +13,15 @@ import { Rail } from './layout/Rail'
 import { SidePanel } from './layout/SidePanel'
 import { StatusBar } from './layout/StatusBar'
 import { TabBar } from './layout/TabBar'
+import { getStore, useAppStore } from '../store/store'
+import { Toaster } from '../ui/Toaster'
 
 export function App() {
-  // Local until the settings store lands (Task 4/13).
-  const [themePref, setThemePref] = useState<ThemePref>('system')
+  const themePref = useAppStore((s) => s.settings.theme)
+  const setThemePref = (next: (p: ThemePref) => ThemePref) =>
+    getStore()
+      .getState()
+      .updateSettings({ theme: next(themePref) })
   const [systemDark, setSystemDark] = useState(systemPrefersDark)
 
   useEffect(() => onSystemThemeChange(setSystemDark), [])
@@ -43,6 +48,7 @@ export function App() {
         <EditorArea />
       </div>
       <StatusBar />
+      <Toaster />
     </div>
   )
 }
