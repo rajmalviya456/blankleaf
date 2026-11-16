@@ -15,6 +15,7 @@ import { hardDeleteNote, purgeNote, putKv, saveNote } from '../db/notesRepo'
 import type { Note } from '../domain/types'
 import { createDebouncedWriter } from '../lib/debouncedWriter'
 import { toast } from '../ui/toast'
+import { clearJournal, writeJournal } from './journal'
 import type { AppState, AppStore } from './store'
 
 type NoteOp = 'save' | 'hard-delete' | 'purge'
@@ -73,11 +74,17 @@ export function startPersistence(
 
   const s = () => store.getState()
 
+  let journaled = false
+
   /** Once nothing is queued or in flight, show "Saved" (deferred past the writer's bookkeeping). */
   const settle = () =>
     setTimeout(() => {
-      if (failures === 0 && !anyPending() && s().ui.saveStatus !== 'saved')
-        s().setSaveStatus('saved')
+      if (failures !== 0 || anyPending()) return
+      if (journaled) {
+        clearJournal()
+        journaled = false
+      }
+      if (s().ui.saveStatus !== 'saved') s().setSaveStatus('saved')
     }, 0)
 
   const markOk = () => {
@@ -204,9 +211,25 @@ export function startPersistence(
 
   const unsubscribe = store.subscribe(onChange)
 
-  const onHide = () => void flush()
+  /** Synchronous safety net: IndexedDB may not finish before the page is gone. */
+  const journalUnsaved = () => {
+    const dirty = Object.values(s().notes).filter(
+      (n) => notes.hasPending(n.id) || failedIds.has(n.id),
+    )
+    journaled = writeJournal({
+      at: now(),
+      notes: dirty,
+      session: s().session,
+      settings: s().settings,
+    })
+  }
+
+  const onHide = () => {
+    journalUnsaved()
+    void flush().then(settle)
+  }
   const onVisibility = () => {
-    if (document.visibilityState === 'hidden') void flush()
+    if (document.visibilityState === 'hidden') onHide()
   }
   target.addEventListener('pagehide', onHide)
   target.document.addEventListener('visibilitychange', onVisibility)

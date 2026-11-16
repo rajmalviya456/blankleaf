@@ -1,6 +1,7 @@
 import { openDb, type NotepadzDB } from '../db/db'
 import { loadAll } from '../db/notesRepo'
 import { toastStore } from '../ui/toast'
+import { readJournal } from './journal'
 import { startPersistence, type Persistence } from './persistence'
 import { createAppStore } from './store'
 
@@ -157,5 +158,39 @@ describe('persistence', () => {
     expect(p.hasPendingFor(id)).toBe(true)
     await p.flush()
     expect(p.hasPendingFor(id)).toBe(false)
+  })
+})
+
+describe('persistence journal', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('pagehide synchronously journals unsaved notes and the session', async () => {
+    const { s } = setup({ contentDelay: 60_000, sessionDelay: 60_000 })
+    const id = s().newNote()
+    s().updateContent(id, 'not yet in idb')
+    window.dispatchEvent(new Event('pagehide'))
+    // Checked synchronously: nothing async may run before the page is gone.
+    const j = readJournal()
+    expect(j?.notes.map((n) => n.content)).toEqual(['not yet in idb'])
+    expect(j?.session.openTabIds).toEqual([id])
+  })
+
+  it('clears the journal once everything is saved', async () => {
+    const { s, p } = setup()
+    const id = s().newNote()
+    s().updateContent(id, 'x')
+    window.dispatchEvent(new Event('pagehide'))
+    expect(readJournal()).not.toBeNull()
+    await p.flush()
+    await vi.waitFor(() => expect(readJournal()).toBeNull())
+  })
+
+  it('clears a journal written while nothing was pending', async () => {
+    const { s } = setup()
+    const id = s().newNote()
+    s().updateContent(id, 'x')
+    await vi.waitFor(() => expect(s().ui.saveStatus).toBe('saved'))
+    window.dispatchEvent(new Event('pagehide'))
+    await vi.waitFor(() => expect(readJournal()).toBeNull())
   })
 })
