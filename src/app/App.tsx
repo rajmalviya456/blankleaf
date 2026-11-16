@@ -1,6 +1,9 @@
 import { Contrast, Settings as SettingsIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
+import { DropZone } from '../features/backup/DropZone'
+import { ImportDialog } from '../features/backup/ImportDialog'
+import { useBackupReminder } from '../features/backup/useBackupReminder'
 import { ShortcutsSheet } from '../features/help/ShortcutsSheet'
 import { CommandPalette } from '../features/palette/CommandPalette'
 import { SettingsDialog } from '../features/settings/SettingsDialog'
@@ -33,6 +36,7 @@ export function App() {
   useEffect(() => applySettingsToDocument(settings, systemDark), [settings, systemDark])
 
   useGlobalShortcuts()
+  useBackupReminder()
   const zen = useAppStore((s) => s.session.zen)
 
   return (
@@ -82,6 +86,8 @@ export function App() {
       <CommandPalette />
       <ShortcutsSheet />
       <SettingsDialog />
+      <ImportDialog />
+      <DropZone />
       <Toaster />
     </div>
   )

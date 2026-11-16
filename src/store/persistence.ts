@@ -100,7 +100,11 @@ export function startPersistence(
       toast('Couldn’t save to browser storage. Your text is kept in this tab.', {
         tone: 'error',
         durationMs: 0,
-        action: { label: 'Export now', run: () => s().setUi({ settingsOpen: true }) },
+        action: {
+          label: 'Export now',
+          // Lazy import keeps the store layer free of a static dependency on features.
+          run: () => void import('../features/backup/actions').then((m) => m.exportAll()),
+        },
       })
     }
     clearTimeout(retryTimer)
