@@ -78,18 +78,24 @@ export function startPersistence(
   const conflictListeners = new Set<ConflictListener>()
   const writeListeners = new Set<WriteListener>()
   const emit = (e: WriteEvent) => writeListeners.forEach((cb) => cb(e))
-  let failures = 0
+  // Writes that failed and are waiting for a retry, keyed per note / per meta record, with
+  // the operation to retry. While any remain, the status stays "Not saved".
+  const failed = new Map<
+    string,
+    { kind: 'note'; id: string; op: NoteOp } | { kind: 'meta'; key: string }
+  >()
+  let attempts = 0
   let retryTimer: ReturnType<typeof setTimeout> | undefined
-  const failedIds = new Set<string>()
+  const noteKey = (id: string) => `note:${id}`
 
   const s = () => store.getState()
 
   let journaled = false
 
-  /** Once nothing is queued or in flight, show "Saved" (deferred past the writer's bookkeeping). */
+  /** Once nothing is queued, in flight or failed, show "Saved" (deferred past the writer's bookkeeping). */
   const settle = () =>
     setTimeout(() => {
-      if (failures !== 0 || anyPending()) return
+      if (failed.size || anyPending()) return
       if (journaled) {
         clearJournal()
         journaled = false
@@ -97,16 +103,34 @@ export function startPersistence(
       if (s().ui.saveStatus !== 'saved') s().setSaveStatus('saved')
     }, 0)
 
-  const markOk = () => {
-    failures = 0
+  const markOk = (key: string) => {
+    failed.delete(key)
+    if (!failed.size) attempts = 0
     settle()
   }
 
-  const markFailed = (id: string | null, e: unknown) => {
-    failures++
-    if (id) failedIds.add(id)
+  const scheduleRetry = () => {
+    clearTimeout(retryTimer)
+    const delay = Math.min(retryBaseMs * 2 ** Math.max(0, attempts - 1), MAX_RETRY_MS)
+    retryTimer = setTimeout(() => {
+      for (const f of failed.values()) {
+        if (f.kind === 'meta') meta.schedule(f.key, null)
+        else if (f.op !== 'save' || s().notes[f.id]) notes.schedule(f.id, f.op)
+        else failed.delete(noteKey(f.id))
+      }
+    }, delay)
+  }
+
+  const markFailed = (
+    key: string,
+    entry: { kind: 'note'; id: string; op: NoteOp } | { kind: 'meta'; key: string },
+    e: unknown,
+  ) => {
+    const firstInEpisode = failed.size === 0
+    failed.set(key, entry)
+    attempts++
     s().setSaveStatus('error', describeError(e))
-    if (failures === 1) {
+    if (firstInEpisode) {
       toast('Couldn’t save to browser storage. Your text is kept in this tab.', {
         tone: 'error',
         durationMs: 0,
@@ -117,16 +141,7 @@ export function startPersistence(
         },
       })
     }
-    clearTimeout(retryTimer)
-    const delay = Math.min(retryBaseMs * 2 ** (failures - 1), MAX_RETRY_MS)
-    retryTimer = setTimeout(() => {
-      for (const fid of failedIds) notes.schedule(fid, 'save')
-      failedIds.clear()
-      if (id === null) {
-        meta.schedule('session', null)
-        meta.schedule('settings', null)
-      }
-    }, delay)
+    scheduleRetry()
   }
 
   const writeNote = async (id: string, op: NoteOp) => {
@@ -151,7 +166,9 @@ export function startPersistence(
             store.setState({ notes: { ...s().notes, [id]: { ...latest, rev: res.rev } } })
           }
         } else {
-          if (conflictListeners.size) conflictListeners.forEach((cb) => cb(note, res.current))
+          // Report the newest local text (the user may have typed while the save was in flight).
+          const latest = s().notes[id] ?? note
+          if (conflictListeners.size) conflictListeners.forEach((cb) => cb(latest, res.current))
           else {
             // No sync handler yet: keep this window's text (never drop what the user typed).
             knownRev.set(id, res.current.rev)
@@ -159,9 +176,9 @@ export function startPersistence(
           }
         }
       }
-      markOk()
+      markOk(noteKey(id))
     } catch (e) {
-      markFailed(id, e)
+      markFailed(noteKey(id), { kind: 'note', id, op }, e)
     }
   }
 
@@ -174,15 +191,17 @@ export function startPersistence(
         await putKv(db, 'settings', s().settings)
         emit({ t: 'settings' })
       }
-      markOk()
+      markOk(`meta:${key}`)
     } catch (e) {
-      markFailed(null, e)
+      markFailed(`meta:${key}`, { kind: 'meta', key }, e)
     }
   }
 
   const notes = createDebouncedWriter<NoteOp>(writeNote, contentDelay)
   const meta = createDebouncedWriter<null>((k) => writeMeta(k), sessionDelay)
   const anyPending = () => notes.hasPending() || meta.hasPending()
+  /** Unsaved local changes for this note: queued, in flight, or failed and awaiting retry. */
+  const hasPendingFor = (id: string) => notes.hasPending(id) || failed.has(noteKey(id))
 
   const flush = async () => {
     await Promise.all([notes.flush(), meta.flush()])
@@ -236,9 +255,7 @@ export function startPersistence(
 
   /** Synchronous safety net: IndexedDB may not finish before the page is gone. */
   const journalUnsaved = () => {
-    const dirty = Object.values(s().notes).filter(
-      (n) => notes.hasPending(n.id) || failedIds.has(n.id),
-    )
+    const dirty = Object.values(s().notes).filter((n) => hasPendingFor(n.id))
     journaled = writeJournal({
       at: now(),
       notes: dirty,
@@ -281,7 +298,7 @@ export function startPersistence(
       writeListeners.add(cb)
       return () => writeListeners.delete(cb)
     },
-    hasPendingFor: (id) => notes.hasPending(id),
+    hasPendingFor,
     async saveSession() {
       meta.schedule('session', null)
       await meta.flush()
@@ -289,6 +306,7 @@ export function startPersistence(
     markSynced(id, rev) {
       knownRev.set(id, rev)
       notes.cancel(id)
+      failed.delete(noteKey(id))
     },
   }
 }

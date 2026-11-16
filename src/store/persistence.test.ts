@@ -194,3 +194,73 @@ describe('persistence journal', () => {
     await vi.waitFor(() => expect(readJournal()).toBeNull())
   })
 })
+
+describe('persistence failure bookkeeping', () => {
+  beforeEach(() => toastStore.getState().clear())
+
+  it('a note whose save failed counts as pending until it is saved', async () => {
+    const { s, p } = setup({ retryBaseMs: 60_000 })
+    vi.spyOn(db.notes, 'put').mockRejectedValue(new DOMException('full', 'QuotaExceededError'))
+    const id = s().newNote()
+    s().updateContent(id, 'unsaved')
+    await p.flush()
+    expect(s().ui.saveStatus).toBe('error')
+    expect(p.hasPendingFor(id)).toBe(true)
+  })
+
+  it('stays "Not saved" while a note is failing even if a settings write succeeds', async () => {
+    const { s, p } = setup({ retryBaseMs: 60_000 })
+    vi.spyOn(db.notes, 'put').mockRejectedValue(new DOMException('full', 'QuotaExceededError'))
+    const id = s().newNote()
+    s().updateContent(id, 'big note')
+    await p.flush()
+    s().updateSettings({ tabSize: 4 })
+    await p.flush()
+    await new Promise((r) => setTimeout(r, 10))
+    expect(s().ui.saveStatus).toBe('error')
+    expect(toastStore.getState().toasts).toHaveLength(1)
+  })
+
+  it('retries a failed purge as a purge', async () => {
+    const { s, p } = setup({ retryBaseMs: 20 })
+    const id = s().newNote()
+    s().updateContent(id, 'x')
+    s().trashNote(id)
+    await p.flush()
+    const del = vi
+      .spyOn(db.notes, 'delete')
+      .mockRejectedValueOnce(new DOMException('busy', 'UnknownError'))
+    s().purgeNote(id)
+    await p.flush()
+    expect(s().ui.saveStatus).toBe('error')
+    del.mockRestore()
+    await vi.waitFor(async () => expect(await stored(id)).toBeUndefined(), { timeout: 2000 })
+    await vi.waitFor(() => expect(s().ui.saveStatus).toBe('saved'))
+  })
+
+  it('a conflict reports the latest text, including typing during the save', async () => {
+    const { s, p } = setup()
+    const id = s().newNote()
+    s().updateContent(id, 'v1')
+    await p.flush()
+    const other = (await stored(id))!
+    await db.notes.put({ ...other, content: 'theirs', rev: 9 })
+    const realGet = db.notes.get.bind(db.notes)
+    let typed = false
+    vi.spyOn(db.notes, 'get').mockImplementation(((key: string) => {
+      if (!typed) {
+        typed = true
+        s().updateContent(id, 'v2 plus typed during save')
+      }
+      return realGet(key)
+    }) as typeof realGet)
+    const onConflict = vi.fn()
+    p.onConflict(onConflict)
+    s().updateContent(id, 'v2')
+    await p.flush()
+    expect(onConflict).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'v2 plus typed during save' }),
+      expect.objectContaining({ content: 'theirs' }),
+    )
+  })
+})
