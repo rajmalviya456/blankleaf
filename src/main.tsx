@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { initMeta } from './features/backup/meta'
+import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
@@ -40,6 +41,8 @@ async function main() {
       <App />
     </StrictMode>,
   )
+
+  if (import.meta.env.PROD) setupPwa()
 
   // Ask the browser not to evict our data under storage pressure.
   void requestPersistentStorage().then(setPersistentStorageStatus)
