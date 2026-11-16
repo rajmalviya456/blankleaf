@@ -287,8 +287,8 @@ function Options({ noteId }: { noteId: string }) {
 
       <p className="text-[11.5px] leading-snug text-fg-muted">
         Encrypted in your browser and sent straight to the person who opens the link — no server
-        stores it. Anyone with the link{protect ? ' and password' : ''} can read it until it
-        expires.
+        stores it. Anyone with the link{protect ? ' and password' : ''} can read it until it expires
+        — and anyone who opens it before then can keep a copy.
       </p>
 
       {error && (

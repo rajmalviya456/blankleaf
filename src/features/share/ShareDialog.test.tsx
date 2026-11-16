@@ -181,4 +181,11 @@ describe('ShareDialog', () => {
     expect(within(dialog).getByText(/needs browser storage/i)).toBeInTheDocument()
     fireEvent.keyDown(dialog, { key: 'Escape' })
   })
+
+  it('says plainly that expiry can’t take back a copy already opened', async () => {
+    fakeHost()
+    setup()
+    const dialog = await screen.findByRole('dialog', { name: /share/i })
+    expect(within(dialog).getByText(/can keep a copy/i)).toBeInTheDocument()
+  })
 })
