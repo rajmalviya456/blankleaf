@@ -28,30 +28,24 @@ export const calmEditorTheme = EditorView.theme({
   },
   '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--fg-muted)' },
   '.cm-selectionMatch': { backgroundColor: 'var(--accent-soft)' },
-  '.cm-searchMatch': { backgroundColor: 'var(--accent-soft)', outline: '1px solid var(--accent)' },
-  '.cm-searchMatch.cm-searchMatch-selected': { backgroundColor: 'var(--selection)' },
-  '.cm-panels': {
-    backgroundColor: 'var(--bg-elev)',
-    color: 'var(--fg)',
-    fontFamily: 'var(--font-ui)',
+  // Find matches: warm and clearly different from the blue text selection.
+  '.cm-searchMatch': {
+    backgroundColor: 'var(--find-match)',
+    borderRadius: '2px',
+    boxShadow: '0 0 0 1px var(--find-match)',
   },
-  '.cm-panels.cm-panels-top': { borderBottom: '1px solid var(--border)' },
-  '.cm-panel.cm-search': { padding: '6px 10px', fontSize: '12px' },
-  '.cm-panel.cm-search input, .cm-panel.cm-search button': {
-    fontFamily: 'var(--font-ui)',
-    fontSize: '12px',
+  '.cm-searchMatch.cm-searchMatch-selected': {
+    backgroundColor: 'var(--find-current)',
+    boxShadow: '0 0 0 1px var(--find-current-ring)',
   },
-  '.cm-textfield': {
-    backgroundColor: 'var(--bg)',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    color: 'var(--fg)',
-  },
-  '.cm-button': {
-    backgroundImage: 'none',
-    backgroundColor: 'var(--bg-hover)',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    color: 'var(--fg)',
+  // The find widget floats over the top-right corner instead of pushing text down.
+  '.cm-panels': { backgroundColor: 'transparent', color: 'var(--fg)' },
+  '.cm-panels.cm-panels-top': {
+    position: 'absolute',
+    top: '10px',
+    right: '18px',
+    left: 'auto',
+    border: 'none',
+    zIndex: '20',
   },
 })

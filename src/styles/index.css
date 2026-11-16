@@ -31,6 +31,10 @@
   --syn-meta: #6b7280;
   --syn-punct: #6a7180;
 
+  --find-match: #ffd23f73;
+  --find-current: #ff9a1fb3;
+  --find-current-ring: #e07b00;
+
   --font-ui: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, Consolas, monospace;
   --ui-font-size: 13px;
@@ -64,6 +68,10 @@
   --syn-property: #f48fb1;
   --syn-meta: #8b919c;
   --syn-punct: #8b919c;
+
+  --find-match: #e0b25a47;
+  --find-current: #f0a63ccc;
+  --find-current-ring: #ffc46b;
 }
 
 @theme inline {
@@ -223,4 +231,155 @@ body {
 }
 .md-preview img {
   max-width: 100%;
+}
+
+/* Find widget (src/features/editor/findPanel.ts). */
+.np-find {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 0.18),
+    0 1px 2px rgb(0 0 0 / 0.12);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  animation: np-pop 120ms ease-out;
+}
+.np-find-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.np-find-row[hidden] {
+  display: none;
+}
+.np-find-field,
+.np-find-field-solo {
+  display: flex;
+  align-items: center;
+  width: 260px;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.np-find-field:focus-within,
+.np-find-field-solo:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.np-find-field:has(input[aria-invalid='true']) {
+  border-color: var(--danger);
+}
+.np-find-input {
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+}
+.np-find-field-solo {
+  padding: 0 8px;
+}
+.np-find-input::placeholder {
+  color: var(--fg-faint);
+}
+.np-find-opt {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 4px;
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.np-find-opt:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+.np-find-opt[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.np-find-count {
+  min-width: 64px;
+  padding: 0 4px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+.np-find-count[data-empty='true'] {
+  color: var(--danger);
+}
+.np-find-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+}
+.np-find-btn:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+.np-find-expand svg {
+  transition: transform 120ms ease;
+}
+.np-find-open .np-find-expand svg {
+  transform: rotate(90deg);
+}
+.np-find-spacer {
+  width: 26px;
+}
+.np-find-text-btn {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+.np-find-text-btn:hover {
+  background: var(--bg-hover);
+}
+.np-find button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.np-find input:focus-visible {
+  outline: none;
+}
+
+@keyframes np-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Backdrop behind dialogs: light dim + blur, fades in. */
+.np-overlay {
+  background: rgb(10 12 16 / 0.28);
+  backdrop-filter: blur(2px);
+  animation: np-fade 140ms ease-out;
+}
+:root[data-theme='dark'] .np-overlay {
+  background: rgb(0 0 0 / 0.45);
+}
+@keyframes np-fade {
+  from {
+    opacity: 0;
+  }
 }

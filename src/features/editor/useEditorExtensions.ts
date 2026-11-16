@@ -12,6 +12,7 @@ import {
 } from '@codemirror/view'
 import { useMemo } from 'react'
 import type { Settings } from '../../domain/types'
+import { createFindPanel } from './findPanel'
 
 interface Options {
   wrap: boolean
@@ -41,7 +42,7 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
     const ext: Extension[] = [
       history(),
       drawSelection(),
-      search({ top: true }),
+      search({ top: true, createPanel: createFindPanel }),
       EditorState.allowMultipleSelections.of(true),
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
