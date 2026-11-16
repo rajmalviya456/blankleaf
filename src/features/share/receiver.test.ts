@@ -126,4 +126,26 @@ describe('receiver', () => {
     await until('waiting')
     await until('expired')
   })
+
+  it('a sender that never replies is treated as offline (keeps retrying)', async () => {
+    const t = createMemoryTransport()
+    const parts = parseShareHash(
+      new URL(
+        `https://x.dev/#/s/${'A'.repeat(43)}.${Math.ceil(Date.now() / 1000 + 300).toString(36)}.n`,
+      ).hash,
+    )!
+    const { deriveSecrets } = await import('./crypto')
+    const s = await deriveSecrets(parts.key, parts.exp, null)
+    const silent = await t.host(s.peerId, () => {})
+    cleanups.push(() => silent.stop())
+    const r = createReceiver({
+      parts,
+      transport: t,
+      connectTimeoutMs: 200,
+      replyTimeoutMs: 100,
+      retryMs: 50,
+    })
+    cleanups.push(() => r.dispose())
+    await vi.waitFor(() => expect(r.state().s).toBe('waiting'), { timeout: 2000 })
+  })
 })

@@ -321,6 +321,7 @@ export function ShareView({ parts, transport, onSave, onClose, onDownload }: Pro
             The note is sent straight from the sender’s browser, so their Notepadz needs to be open.
           </p>
           <p className="tabular-nums">Link expires in {left.label}.</p>
+          {close}
         </Card>
       )
     case 'blocked':

@@ -150,4 +150,16 @@ describe('ShareView', () => {
     expect(screen.getByRole('textbox', { name: /shared note/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /save to my notes/i })).toBeEnabled()
   })
+
+  it('the waiting screen lets the recipient go to their notes', async () => {
+    const t = createMemoryTransport()
+    const h = host(t)
+    const created = await h.create(note(), { expiresInMs: 300_000, password: null })
+    h.dispose()
+    const { onClose, user } = view(t, created.link)
+    await user.click(
+      await screen.findByRole('button', { name: /go to my notes/i }, { timeout: 4000 }),
+    )
+    expect(onClose).toHaveBeenCalled()
+  })
 })

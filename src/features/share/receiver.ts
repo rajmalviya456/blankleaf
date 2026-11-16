@@ -45,6 +45,8 @@ export function createReceiver(o: {
   /** How often to retry while the sender is offline. */
   retryMs?: number
   connectTimeoutMs?: number
+  /** Treat a sender that connects but never answers as offline after this long. */
+  replyTimeoutMs?: number
 }): Receiver {
   const { parts, transport } = o
   const now = o.now ?? Date.now
@@ -78,10 +80,19 @@ export function createReceiver(o: {
 
   const request = (c: Conn): Promise<Reply> =>
     new Promise((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new TransportError('offline', 'no reply')),
+        o.replyTimeoutMs ?? 20_000,
+      )
       c.onMessage((m) => {
-        if (isReply(m)) resolve(m)
+        if (!isReply(m)) return
+        clearTimeout(timer)
+        resolve(m)
       })
-      c.onClose(() => reject(new TransportError('offline', 'closed before replying')))
+      c.onClose(() => {
+        clearTimeout(timer)
+        reject(new TransportError('offline', 'closed before replying'))
+      })
       c.send({ type: 'hello', v: 1, readToken: toB64url(secrets!.readToken) })
     })
 
