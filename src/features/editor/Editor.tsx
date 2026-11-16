@@ -53,18 +53,34 @@ export function Editor({ noteId }: { noteId: string }) {
   )
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
+  const viewRef = useRef<EditorView | null>(null)
+  const reveal = useAppStore((s) => (s.ui.reveal?.noteId === noteId ? s.ui.reveal : null))
+
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view || !reveal) return
+    const len = view.state.doc.length
+    const clamp = (n: number) => Math.max(0, Math.min(n, len))
+    view.dispatch({
+      selection: { anchor: clamp(reveal.from), head: clamp(reveal.to) },
+      scrollIntoView: true,
+    })
+    view.focus()
+  }, [reveal])
 
   const s = () => getStore().getState()
 
   const onCreateEditor = useCallback(
     (view: EditorView) => {
+      viewRef.current = view
       const saved = s().session.perTab[noteId]
       if (saved) {
         const len = view.state.doc.length
         const clamp = (n: number) => Math.max(0, Math.min(n, len))
         view.dispatch({
           selection: { anchor: clamp(saved.anchor), head: clamp(saved.head) },
-          scrollIntoView: saved.scrollTop === 0,
+          scrollIntoView:
+            saved.scrollTop === 0 || getStore().getState().ui.reveal?.noteId === noteId,
         })
         if (saved.scrollTop)
           requestAnimationFrame(() => (view.scrollDOM.scrollTop = saved.scrollTop))

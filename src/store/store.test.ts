@@ -287,3 +287,15 @@ describe('app store: formats', () => {
     expect(s().notes[id]).toMatchObject({ language: 'auto', wrap: false, mode: 'plain' })
   })
 })
+
+describe('app store: reveal', () => {
+  it('reveal records a request and the selection for the note', () => {
+    const { store, s } = setup()
+    const id = filled(store, 'hello world')
+    s().reveal(id, 6, 11)
+    expect(s().ui.reveal).toMatchObject({ noteId: id, from: 6, to: 11, nonce: 1 })
+    expect(s().session.perTab[id]).toMatchObject({ anchor: 6, head: 11 })
+    s().reveal(id, 6, 11)
+    expect(s().ui.reveal?.nonce).toBe(2)
+  })
+})

@@ -20,6 +20,8 @@ export interface UiState {
   paletteOpen: boolean
   settingsOpen: boolean
   renamingId: string | null
+  /** Ask the editor of `noteId` to select [from, to) and scroll to it (nonce makes repeats fire). */
+  reveal: { noteId: string; from: number; to: number; nonce: number } | null
 }
 
 export interface AppState {
@@ -59,6 +61,7 @@ export interface AppActions {
   setSaveStatus(s: SaveStatus, err?: string | null): void
   setUi(p: Partial<UiState>): void
   applyRemoteNote(note: Note): void
+  reveal(noteId: string, from: number, to: number): void
 }
 
 export type AppStore = AppState & AppActions
@@ -76,6 +79,7 @@ const initialUi = (): UiState => ({
   paletteOpen: false,
   settingsOpen: false,
   renamingId: null,
+  reveal: null,
 })
 
 /** Keep pinned tabs first, preserving relative order inside each group. */
@@ -343,6 +347,12 @@ export function createAppStore(
 
       setUi(p) {
         set({ ui: { ...get().ui, ...p } })
+      },
+
+      reveal(noteId, from, to) {
+        const nonce = (get().ui.reveal?.nonce ?? 0) + 1
+        set({ ui: { ...get().ui, reveal: { noteId, from, to, nonce } } })
+        get().setViewState(noteId, { anchor: from, head: to })
       },
 
       applyRemoteNote(note) {
