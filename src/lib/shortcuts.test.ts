@@ -2,6 +2,7 @@ import { formatShortcut, matchShortcut, type Shortcut } from './shortcuts'
 
 const k = (code: string, m: Partial<KeyboardEvent> = {}) => ({
   code,
+  key: '',
   metaKey: false,
   ctrlKey: false,
   altKey: false,
@@ -65,6 +66,52 @@ describe('matchShortcut', () => {
   it('plain keys need no modifiers at all', () => {
     expect(matchShortcut(k('F2'), { code: 'F2' }, 'mac')).toBe(true)
     expect(matchShortcut(k('F2', { altKey: true }), { code: 'F2' }, 'mac')).toBe(false)
+  })
+})
+
+describe('matchShortcut on other keyboard layouts', () => {
+  it('Dvorak: Cmd+V (physical Period key) is paste, not zen mode', () => {
+    expect(
+      matchShortcut(k('Period', { key: 'v', metaKey: true }), { code: 'Period', mod: true }, 'mac'),
+    ).toBe(false)
+  })
+
+  it('Dvorak: Cmd+X (physical B key) is cut, not the sidebar', () => {
+    expect(
+      matchShortcut(k('KeyB', { key: 'x', metaKey: true }), { code: 'KeyB', mod: true }, 'mac'),
+    ).toBe(false)
+  })
+
+  it('Dvorak: the key that types "b" toggles the sidebar', () => {
+    expect(
+      matchShortcut(k('KeyN', { key: 'b', metaKey: true }), { code: 'KeyB', mod: true }, 'mac'),
+    ).toBe(true)
+  })
+
+  it('German: Ctrl+- (physical Slash key) stays browser zoom', () => {
+    expect(
+      matchShortcut(k('Slash', { key: '-', ctrlKey: true }), { code: 'Slash', mod: true }, 'other'),
+    ).toBe(false)
+  })
+
+  it('shifted letters still match', () => {
+    expect(
+      matchShortcut(
+        k('KeyF', { key: 'F', metaKey: true, shiftKey: true }),
+        { code: 'KeyF', mod: true, shift: true },
+        'mac',
+      ),
+    ).toBe(true)
+  })
+
+  it('falls back to the physical key when the character is composed (mac Option)', () => {
+    expect(
+      matchShortcut(
+        k('KeyN', { key: '˜', ctrlKey: true, altKey: true }),
+        { code: 'KeyN', mod2: true },
+        'mac',
+      ),
+    ).toBe(true)
   })
 })
 

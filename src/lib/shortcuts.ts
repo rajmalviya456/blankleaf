@@ -17,10 +17,38 @@ export interface Shortcut {
   standaloneOnly?: boolean
 }
 
-type KeyLike = Pick<KeyboardEvent, 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'>
+type KeyLike = Pick<KeyboardEvent, 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'> &
+  Partial<Pick<KeyboardEvent, 'key'>>
+
+const PUNCT: Record<string, string> = {
+  Period: '.',
+  Comma: ',',
+  Slash: '/',
+  BracketLeft: '[',
+  BracketRight: ']',
+}
+
+/** The character a shortcut's key should type, for layout-aware matching (letters, punctuation). */
+function expectedChar(code: string): string | null {
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3).toLowerCase()
+  return PUNCT[code] ?? null
+}
+
+/**
+ * Does this key event press the shortcut's key? When the event types a plain printable
+ * character, the character decides (so on Dvorak, Cmd+V stays paste and the key that types
+ * "b" is Cmd+B). When the character is composed or absent (Option on a Mac, digits, F-keys),
+ * the physical key decides.
+ */
+function sameKey(e: KeyLike, code: string): boolean {
+  const want = expectedChar(code)
+  const key = e.key ?? ''
+  if (want && key.length === 1 && /[\x21-\x7e]/.test(key)) return key.toLowerCase() === want
+  return e.code === code
+}
 
 export function matchShortcut(e: KeyLike, s: Shortcut, p: Platform): boolean {
-  if (e.code !== s.code || e.shiftKey !== Boolean(s.shift)) return false
+  if (!sameKey(e, s.code) || e.shiftKey !== Boolean(s.shift)) return false
   const mod = Boolean(s.mod)
   const mod2 = Boolean(s.mod2)
   if (p === 'mac') {
