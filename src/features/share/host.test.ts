@@ -40,13 +40,13 @@ afterEach(async () => {
   await db.delete()
 })
 
-/** Fake Web Locks: exclusive per name, queued. */
+/** Fake Web Locks: exclusive per name, queued, granted asynchronously like the real API. */
 function fakeLocks(): LockManagerLike {
   const queues = new Map<string, Promise<void>>()
   return {
     request(name, _opts, cb) {
       const prev = queues.get(name) ?? Promise.resolve()
-      const run = prev.then(() => cb())
+      const run = prev.then(() => new Promise<void>((r) => setTimeout(r, 0))).then(() => cb())
       queues.set(
         name,
         run.then(
@@ -66,7 +66,14 @@ const note = (content = 'secret plans\nline two'): Note => ({
 })
 
 function makeHost(transport: ShareTransport, locks = fakeLocks()) {
-  const h = createShareHost({ db, transport, appUrl: 'https://x.dev/notepadz/', now, locks })
+  const h = createShareHost({
+    db,
+    transport,
+    appUrl: 'https://x.dev/notepadz/',
+    now,
+    locks,
+    closeAfterReplyMs: 10,
+  })
   hosts.push(h)
   return h
 }
@@ -299,5 +306,70 @@ describe('share host across windows', () => {
     await b.stop(created.id)
     await vi.waitFor(() => expect(a.active()).toEqual([]))
     expect(await ask(t, created.link, null)).toEqual({ type: 'stopped' })
+  })
+})
+
+describe('share host hardening', () => {
+  it('parallel wrong passwords still trigger the cool-down after 5', async () => {
+    const t = createMemoryTransport()
+    const host = makeHost(t)
+    const created = await host.create(note(), {
+      expiresInMs: 3_600_000,
+      password: 'kq7m-x3vr-p9tz',
+    })
+    const replies = await Promise.all(
+      Array.from({ length: 10 }, () => ask(t, created.link, 'wrong-guess-1')),
+    )
+    expect(replies.filter((r) => r.type === 'denied')).toHaveLength(5)
+    expect(replies.filter((r) => r.type === 'wait')).toHaveLength(5)
+    expect((await ask(t, created.link, 'kq7m-x3vr-p9tz')).type).toBe('wait')
+  })
+
+  it('a sender error still answers instead of leaving the recipient hanging', async () => {
+    const t = createMemoryTransport()
+    const host = makeHost(t)
+    const created = await host.create(note(), { expiresInMs: 300_000, password: null })
+    vi.spyOn(db.shares, 'get').mockRejectedValueOnce(new Error('db closed'))
+    expect(await ask(t, created.link, null)).toEqual({ type: 'stopped' })
+  })
+
+  it('closes a connection after answering', async () => {
+    const t = createMemoryTransport()
+    const host = makeHost(t)
+    const created = await host.create(note(), { expiresInMs: 300_000, password: null })
+    const parts = parseShareHash(new URL(created.link).hash)!
+    const s = await deriveSecrets(parts.key, parts.exp, null)
+    const conn = await t.connect(s.peerId, 500)
+    const closed = new Promise<void>((r) => conn.onClose(r))
+    conn.send({ type: 'hello', v: 1, readToken: toB64url(s.readToken) })
+    await closed
+  })
+
+  it('every window drops a share from its list once it expires', async () => {
+    const t = createMemoryTransport()
+    const locks = fakeLocks()
+    clock = Date.now()
+    const realNow = () => Date.now()
+    const a = createShareHost({
+      db,
+      transport: t,
+      appUrl: 'https://x.dev/',
+      now: realNow,
+      locks,
+      channel: null,
+    })
+    const b = createShareHost({
+      db,
+      transport: t,
+      appUrl: 'https://x.dev/',
+      now: realNow,
+      locks,
+      channel: null,
+    })
+    hosts.push(a, b)
+    await a.create(note(), { expiresInMs: 900, password: null })
+    await b.refresh()
+    expect(b.active()).toHaveLength(1)
+    await vi.waitFor(() => expect(b.active()).toEqual([]), { timeout: 3000 })
   })
 })

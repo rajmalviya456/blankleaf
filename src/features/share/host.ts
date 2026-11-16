@@ -96,6 +96,10 @@ export function createShareHost(o: {
   appUrl: string
   now?: () => number
   locks?: LockManagerLike
+  /** Close a connection this long after answering (the recipient normally closes first). */
+  closeAfterReplyMs?: number
+  /** Close a connection that never says hello within this time. */
+  helloTimeoutMs?: number
   /** Defaults to a BroadcastChannel when available. */
   channel?: ShareChannel | null
 }): ShareHost {
@@ -118,9 +122,14 @@ export function createShareHost(o: {
   const announce = (m: ShareMsg) => channel?.postMessage(m)
 
   const notify = () => listeners.forEach((cb) => cb())
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined
   const refresh = async () => {
     rows = await listActiveShares(db, now())
     notify()
+    // Drop each share from this window's list when it expires, even if another window serves it.
+    clearTimeout(refreshTimer)
+    if (rows[0] && !disposed)
+      refreshTimer = setTimeout(() => void refresh(), Math.max(0, rows[0].expiresAt - now()) + 50)
   }
 
   const linkFor = (r: ShareRow) =>
@@ -160,17 +169,42 @@ export function createShareHost(o: {
       await updateShare(db, id, patch)
       return { type: 'denied' }
     }
+    if (serving.get(id)?.tombstone || !(await getShare(db, id))) return { type: 'stopped' }
     await updateShare(db, id, { opens: row.opens + 1, lastOpenedAt: t })
     void refresh()
+    announce({ t: 'changed' })
     return { type: 'share', iv: row.iv, ciphertext: row.ciphertext }
   }
 
+  // Answers for one share run one at a time, so parallel connections can't race the
+  // wrong-password counter (each guess sees the previous one's result).
+  const queues = new Map<string, Promise<unknown>>()
+  const answerInOrder = (id: string, readToken: string): Promise<Reply> => {
+    const run = (queues.get(id) ?? Promise.resolve())
+      .then(() => answer(id, readToken))
+      .catch((): Reply => ({ type: 'stopped' })) // never leave a recipient waiting on an error
+    queues.set(
+      id,
+      run.then(() => undefined),
+    )
+    return run
+  }
+
+  const closeAfterReplyMs = o.closeAfterReplyMs ?? 15_000
+  const helloTimeoutMs = o.helloTimeoutMs ?? 20_000
+
   const onConn = (id: string) => (conn: Conn) => {
     let answered = false
+    const idle = setTimeout(() => conn.close(), helloTimeoutMs)
+    conn.onClose(() => clearTimeout(idle))
     conn.onMessage((m) => {
       if (answered || !isHello(m)) return
       answered = true
-      void answer(id, m.readToken).then((reply) => conn.send(reply))
+      clearTimeout(idle)
+      void answerInOrder(id, m.readToken).then((reply) => {
+        conn.send(reply)
+        setTimeout(() => conn.close(), closeAfterReplyMs)
+      })
     })
   }
 
@@ -210,39 +244,54 @@ export function createShareHost(o: {
       } else if (m.t === 'changed') void refresh()
     }
 
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+  /** Register the peer id, retrying once if it's still held (e.g. right after a reload). */
+  const register = async (row: ShareRow, attempt = 0): Promise<Host> => {
+    try {
+      return await transport.host(row.peerId, onConn(row.id))
+    } catch (e) {
+      if (attempt === 0 && e instanceof Error && (e as { kind?: string }).kind === 'taken') {
+        await delay(2000)
+        return register(row, 1)
+      }
+      throw e
+    }
+  }
+
   /**
-   * Serve a share while holding its lock. Resolves once registered (or immediately if another
-   * window holds the lock — we then take over automatically when it lets go).
+   * Serve a share while holding its lock (one window per share). With `wait`, resolves once
+   * the peer is registered and rejects if registration fails; otherwise it returns at once
+   * (the share may be queued behind another window's lock and takes over when that lets go).
    */
-  const serve = (row: ShareRow): Promise<void> =>
-    new Promise<void>((resolve, reject) => {
-      let release!: () => void
-      const held = new Promise<void>((r) => (release = r))
-      let started = false
-      const entry: Serving = { host: null, release, timer: undefined, tombstone: false }
-      // Register before asking for the lock: some lock managers run the callback synchronously.
-      serving.set(row.id, entry)
-      void locks
-        .request(`share:${row.id}`, { mode: 'exclusive' }, async () => {
-          if (disposed || serving.get(row.id) !== entry) return
-          started = true
-          try {
-            entry.host = await transport.host(row.peerId, onConn(row.id))
-          } catch (e) {
-            serving.delete(row.id)
-            reject(e)
-            return
-          }
-          entry.timer = setTimeout(() => void expire(row.id), Math.max(0, row.expiresAt - now()))
-          resolve()
-          await held
-        })
-        .catch(reject)
-      // Lock busy elsewhere: we're queued; report success to the caller right away.
-      queueMicrotask(() => {
-        if (!started) resolve()
-      })
+  const serve = (row: ShareRow, wait: boolean): Promise<void> => {
+    let release!: () => void
+    const held = new Promise<void>((r) => (release = r))
+    const entry: Serving = { host: null, release, timer: undefined, tombstone: false }
+    // Register before asking for the lock: some lock managers run the callback synchronously.
+    serving.set(row.id, entry)
+    let settle!: (err?: unknown) => void
+    const registered = new Promise<void>((resolve, reject) => {
+      settle = (err) => (err ? reject(err) : resolve())
     })
+    void locks
+      .request(`share:${row.id}`, { mode: 'exclusive' }, async () => {
+        if (disposed || serving.get(row.id) !== entry) return settle()
+        try {
+          entry.host = await register(row)
+        } catch (e) {
+          serving.delete(row.id)
+          return settle(e)
+        }
+        entry.timer = setTimeout(() => void expire(row.id), Math.max(0, row.expiresAt - now()))
+        settle()
+        await held
+      })
+      .catch((e) => settle(e))
+    if (wait) return registered
+    registered.catch(() => undefined)
+    return Promise.resolve()
+  }
 
   return {
     async create(note, opts) {
@@ -277,7 +326,7 @@ export function createShareHost(o: {
       }
       await putShare(db, row)
       try {
-        await serve(row)
+        await serve(row, true)
       } catch {
         await deleteShare(db, row.id)
         throw new ShareError(
@@ -307,9 +356,7 @@ export function createShareHost(o: {
     async resume() {
       await purgeEndedShares(db, now())
       const active = await listActiveShares(db, now())
-      await Promise.all(
-        active.filter((r) => !serving.has(r.id)).map((r) => serve(r).catch(() => undefined)),
-      )
+      await Promise.all(active.filter((r) => !serving.has(r.id)).map((r) => serve(r, false)))
       await refresh()
     },
 
@@ -331,6 +378,7 @@ export function createShareHost(o: {
 
     dispose() {
       disposed = true
+      clearTimeout(refreshTimer)
       channel?.close()
       for (const id of [...serving.keys()]) endServing(id)
       listeners.clear()
