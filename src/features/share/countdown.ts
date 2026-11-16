@@ -19,12 +19,18 @@ export function useCountdown(
   expiresAt: number,
   now: () => number = Date.now,
 ): { msLeft: number; label: string; expired: boolean } {
-  const [t, setT] = useState(now)
+  const [clock, setClock] = useState(() => ({ target: expiresAt, t: now() }))
+  // A new target restarts the clock from the current time (adjusting state during render).
+  let t = clock.t
+  if (clock.target !== expiresAt) {
+    t = now()
+    setClock({ target: expiresAt, t })
+  }
   useEffect(() => {
     if (expiresAt <= now()) return
     const id = setInterval(() => {
       const n = now()
-      setT(n)
+      setClock({ target: expiresAt, t: n })
       if (n >= expiresAt) clearInterval(id)
     }, 1000)
     return () => clearInterval(id)

@@ -31,4 +31,15 @@ describe('useCountdown', () => {
     act(() => void vi.advanceTimersByTime(2000))
     expect(result.current).toMatchObject({ label: '0:00', expired: true, msLeft: 0 })
   })
+
+  it('restarts from the current time when the target changes', () => {
+    const start = Date.now()
+    const { result, rerender } = renderHook(({ exp }) => useCountdown(exp), {
+      initialProps: { exp: 0 },
+    })
+    act(() => void vi.advanceTimersByTime(5000))
+    rerender({ exp: Date.now() + 247_000 })
+    expect(result.current.label).toBe('4:07')
+    expect(Date.now() - start).toBe(5000)
+  })
 })
