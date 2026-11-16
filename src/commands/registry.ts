@@ -155,6 +155,21 @@ export const COMMANDS: Command[] = [
     run: (ctx) => st(ctx).setUi({ paletteOpen: true, paletteMode: 'formats' }),
   },
   {
+    id: 'view.preview.cycle',
+    title: 'Markdown: edit / split / preview',
+    section: 'View',
+    keywords: ['markdown', 'render', 'preview'],
+    shortcuts: [{ code: 'KeyP', mod2: true }],
+    when: (s) => {
+      const id = s.session.activeTabId
+      return id !== null && s.notes[id]?.mode === 'markdown'
+    },
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) st(ctx).cyclePreview(id)
+    },
+  },
+  {
     id: 'view.wrap',
     title: 'Toggle word wrap',
     section: 'View',

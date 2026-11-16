@@ -68,6 +68,8 @@ export interface AppActions {
   setUi(p: Partial<UiState>): void
   applyRemoteNote(note: Note): void
   reveal(noteId: string, from: number, to: number): void
+  /** Markdown notes: edit → split → preview → edit. */
+  cyclePreview(id: string): void
 }
 
 export type AppStore = AppState & AppActions
@@ -357,6 +359,13 @@ export function createAppStore(
 
       setUi(p) {
         set({ ui: { ...get().ui, ...p } })
+      },
+
+      cyclePreview(id) {
+        if (get().notes[id]?.mode !== 'markdown') return
+        const order = ['edit', 'split', 'preview'] as const
+        const current = get().session.perTab[id]?.previewMode ?? 'edit'
+        get().setViewState(id, { previewMode: order[(order.indexOf(current) + 1) % order.length] })
       },
 
       reveal(noteId, from, to) {

@@ -35,6 +35,34 @@ function SaveState() {
   )
 }
 
+function PreviewSwitch({ noteId }: { noteId: string }) {
+  const view = useAppStore((s) => s.session.perTab[noteId]?.previewMode ?? 'edit')
+  const options = [
+    { value: 'edit', label: 'Edit' },
+    { value: 'split', label: 'Split' },
+    { value: 'preview', label: 'Preview' },
+  ] as const
+  return (
+    <div role="radiogroup" aria-label="View" className="flex rounded bg-bg-hover/60 p-px">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={view === o.value}
+          onClick={() => getStore().getState().setViewState(noteId, { previewMode: o.value })}
+          className={[
+            'rounded-sm px-1.5 leading-[18px]',
+            view === o.value ? 'bg-bg-elev text-fg' : 'hover:text-fg',
+          ].join(' ')}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function NoteInfo({ note }: { note: Note }) {
   const head = useAppStore((s) => s.session.perTab[note.id]?.head ?? 0)
   const content = useDeferredValue(note.content)
@@ -44,6 +72,7 @@ function NoteInfo({ note }: { note: Note }) {
   return (
     <>
       <FormatPicker noteId={note.id} />
+      {note.mode === 'markdown' && <PreviewSwitch noteId={note.id} />}
       <span>
         Ln {line}, Col {col}
       </span>
