@@ -104,4 +104,13 @@ describe('TabBar', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Move to Trash' }))
     expect(s().notes[ids[0]].deletedAt).not.toBeNull()
   })
+
+  it('hides the open-tabs menu unless there are at least two tabs to list', () => {
+    const { s } = setup(['only one'])
+    expect(screen.queryByRole('button', { name: /all open tabs/i })).toBeNull()
+    act(() => void s().newNote())
+    expect(screen.getByRole('button', { name: /all open tabs/i })).toBeInTheDocument()
+    act(() => s().closeTab(s().session.activeTabId!))
+    expect(screen.queryByRole('button', { name: /all open tabs/i })).toBeNull()
+  })
 })

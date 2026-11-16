@@ -84,7 +84,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       </button>
       <div className="flex-1" />
       <div className="mb-1 flex items-center gap-0.5">
-        <TabOverflowMenu tabs={tabs} activeId={activeId} />
+        {tabs.length > 1 && <TabOverflowMenu tabs={tabs} activeId={activeId} />}
         {actions}
       </div>
 
