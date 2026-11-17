@@ -1,0 +1,20 @@
+# Changelog
+
+## [1.0.0](https://github.com/rajmalviya456/notepadz/tree/0a24e5da13ce0b10951b4d5e7e1aec6d3b717891) (2026-11-17)
+
+First public release.
+
+### Features
+
+- **Full-window, tabbed notepad** with a sidebar (notes, search, trash) and zen mode. Tabs can be pinned, reordered, renamed and reopened after closing.
+- **Remembers your session**: open tabs, cursor and scroll position come back after a reload, and several windows stay in sync.
+- **Plain text or Markdown per note**, with edit / split / preview and highlighted code blocks in the preview.
+- **Syntax highlighting for 20+ formats** (JSON, YAML, logs, diffs, JavaScript, Python, SQL, Go, Rust…), detected as you type or picked from the format menu.
+- **Toolbar that fits the note**: formatting for Markdown; change case, sort / dedupe / trim lines and insert date for plain text, code and logs.
+- **Share a note by link**: end-to-end encrypted, password-protected by default, expiring after 5 minutes to 7 days, sent browser to browser with no server storing it.
+- **Search across all notes**, find & replace, and a trash that keeps notes for 30 days.
+- **Delete notes from the list** without opening them, with Undo.
+- **Backups**: export everything to one file, import it back, or drop text files onto the window.
+- **Command palette** (⌘K / Ctrl+K), keyboard shortcuts sheet and an About page.
+- **Light and dark themes**, accent colour, editor font, size, line numbers and tab size.
+- **Works offline** and installs as an app; new versions offer a Reload instead of refreshing on their own.

@@ -1,10 +1,9 @@
 name: Deploy
 
-# Builds on every push to main and publishes dist/ to the gh-pages branch.
-# The build output is never committed to main.
+# Builds the app and publishes dist/ to the gh-pages branch (never committed to main).
+# Runs when a release is cut (called from release.yml), or by hand from the Actions tab.
 on:
-  push:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
