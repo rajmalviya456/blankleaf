@@ -143,6 +143,28 @@ npm run build        # production build (served from /notepadz/)
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose changes.
 
+## Versions and releases
+
+Notepadz follows [Semantic Versioning](https://semver.org). Versions are worked out from the
+[Conventional Commits](https://www.conventionalcommits.org/) on `main` by
+[release-please](https://github.com/googleapis/release-please):
+
+| Commits since the last release              | Next version  |
+| ------------------------------------------- | ------------- |
+| only `fix:` / `perf:`                       | 1.0.0 → 1.0.1 |
+| at least one `feat:`                        | 1.0.0 → 1.1.0 |
+| a `!` (e.g. `feat!:`) or `BREAKING CHANGE:` | 1.0.0 → 2.0.0 |
+
+1. Every push to `main` runs CI, and release-please opens (or updates) a pull request named
+   **`chore(main): release x.y.z`** that bumps `package.json` and adds the new section to
+   [`CHANGELOG.md`](CHANGELOG.md).
+2. **Merging that pull request is the release**: it tags `vx.y.z`, publishes a GitHub Release
+   with the notes, and deploys the site.
+
+The app reads `CHANGELOG.md` at build time: **What's new** (in About or the command palette)
+shows the release notes offline, and after an update the app says _"Notepadz was updated to
+x.y.z"_ once.
+
 ## Deploy (GitHub Pages)
 
 The built app is published to a separate **`gh-pages`** branch — build output is never committed
@@ -151,8 +173,9 @@ to `main`.
 One-time setup on GitHub: **Settings → Pages → Source: Deploy from a branch → Branch:
 `gh-pages` / `(root)`**.
 
-- **Automatic:** every push to `main` runs `.github/workflows/deploy.yml` (lint, typecheck,
-  tests, build) and publishes `dist/` to `gh-pages`.
+- **Automatic:** merging a release pull request runs `.github/workflows/deploy.yml` (lint,
+  typecheck, tests, build) and publishes `dist/` to `gh-pages`.
+- **By hand:** _Actions → Deploy → Run workflow_ redeploys `main` without a new version.
 - **Manual:** `npm run deploy` builds and pushes `dist/` to `gh-pages` from your machine.
 
 Icons are generated from `public/logo.svg` with `npm run icons`.

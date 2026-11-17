@@ -88,5 +88,12 @@ Scopes follow the folders in `src/features/` (`editor`, `toolbar`, `tabs`, `shar
 
 ## Releasing
 
-Merging to `main` deploys automatically: CI builds and publishes `dist/` to the `gh-pages`
-branch. Build output is never committed to `main`.
+Releases follow [Semantic Versioning](https://semver.org), worked out from commit types — so
+the type you pick matters: `fix:` → patch, `feat:` → minor, `feat!:` or a `BREAKING CHANGE:`
+footer → major. `docs`, `test`, `chore`, `ci`, `refactor` and `style` don't trigger a release
+and stay out of the changelog.
+
+Don't edit `CHANGELOG.md` or the `version` in `package.json` by hand. release-please keeps a
+**`chore(main): release x.y.z`** pull request up to date; a maintainer merges it to publish the
+release (tag, GitHub Release, deploy to GitHub Pages). Build output is never committed to
+`main`.
