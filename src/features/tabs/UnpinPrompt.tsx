@@ -25,11 +25,11 @@ export function UnpinPrompt() {
             Pinned notes always stay open. Unpin it to close the tab — the note itself is kept.
           </AlertDialog.Description>
           <div className="mt-4 flex justify-end gap-2">
-            <AlertDialog.Cancel className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
+            <AlertDialog.Cancel className="max-sm:min-h-11 rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
               Cancel
             </AlertDialog.Cancel>
             <AlertDialog.Action
-              className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] text-accent-fg"
+              className="max-sm:min-h-11 rounded-md bg-accent px-3 py-1.5 text-[12.5px] text-accent-fg"
               onClick={() => {
                 if (!unpinId) return
                 s().togglePin(unpinId)

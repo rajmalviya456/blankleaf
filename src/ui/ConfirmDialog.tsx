@@ -35,13 +35,13 @@ export function ConfirmDialog({
             {description}
           </AlertDialog.Description>
           <div className="mt-4 flex justify-end gap-2">
-            <AlertDialog.Cancel className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
+            <AlertDialog.Cancel className="max-sm:min-h-11 rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
               Cancel
             </AlertDialog.Cancel>
             <AlertDialog.Action
               onClick={onConfirm}
               className={[
-                'rounded-md px-3 py-1.5 text-[12.5px]',
+                'max-sm:min-h-11 rounded-md px-3 py-1.5 text-[12.5px]',
                 danger ? 'bg-danger text-white' : 'bg-accent text-accent-fg',
               ].join(' ')}
             >

@@ -17,7 +17,7 @@ const PLACEMENT =
   /^(fixed|absolute|left-\S+|right-\S+|top-\S+|bottom-\S+|-?translate-[xy]-\S+|w-\S+|max-w-\S+|max-h-\S+|h-\S+|rounded-\S+|rounded|shadow(-\S+)?|border|border-border|z-\d+)$/
 
 const SHEET =
-  'np-sheet fixed inset-x-0 bottom-0 z-50 max-h-[92dvh] overflow-y-auto rounded-t-2xl border-t border-border bg-bg-elev shadow-[0_-12px_40px_rgb(0_0_0/0.25)] pb-[env(safe-area-inset-bottom)] outline-none'
+  'np-sheet fixed inset-x-0 bottom-[var(--kb,0px)] z-50 max-h-[calc(92dvh-var(--kb,0px))] overflow-y-auto rounded-t-2xl border-t border-border bg-bg-elev shadow-[0_-12px_40px_rgb(0_0_0/0.25)] pb-[env(safe-area-inset-bottom)] outline-none'
 
 function sheetClasses(laptop: string): string {
   const kept = laptop

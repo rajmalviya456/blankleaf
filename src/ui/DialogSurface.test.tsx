@@ -61,7 +61,7 @@ describe('DialogSurface', () => {
     expect(dialog).toHaveAttribute('data-surface', 'sheet')
     expect(dialog.className).toContain('p-4')
     expect(dialog.className).not.toMatch(/top-\[8vh\]|left-1\/2|-translate-x-1\/2|w-\[min/)
-    expect(dialog.className).toContain('bottom-0')
+    expect(dialog.className).toContain('bottom-[var(--kb,0px)]')
     expect(screen.getByTestId('sheet-handle')).toBeInTheDocument()
   })
 

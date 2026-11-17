@@ -39,6 +39,7 @@ function Row({ note, active }: { note: Note; active: boolean }) {
   const title = displayTitle(note)
   const s = () => getStore().getState()
   const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const longPress = useRef(false)
   const actions = () => phoneStore.getState().open({ kind: 'tabActions', noteId: note.id })
 
   return (
@@ -76,14 +77,24 @@ function Row({ note, active }: { note: Note; active: boolean }) {
           aria-label={title}
           aria-current={active ? 'true' : undefined}
           onClick={() => {
+            // The click that ends a long-press only opened the actions.
+            if (longPress.current) return void (longPress.current = false)
             s().setActive(note.id)
             phoneStore.getState().closeAll()
           }}
           onContextMenu={(e) => {
             e.preventDefault()
+            clearTimeout(press.current)
+            longPress.current = true
             actions()
           }}
-          onPointerDown={() => (press.current = setTimeout(actions, LONG_PRESS_MS))}
+          onPointerDown={() => {
+            longPress.current = false
+            press.current = setTimeout(() => {
+              longPress.current = true
+              actions()
+            }, LONG_PRESS_MS)
+          }}
           onPointerUp={() => clearTimeout(press.current)}
           onPointerLeave={() => clearTimeout(press.current)}
           className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-left text-[15px] select-none"

@@ -248,8 +248,10 @@ export const COMMANDS: Command[] = [
     keywords: ['find'],
     shortcuts: [{ code: 'KeyF', mod: true, shift: true }],
     run: (ctx) => {
-      st(ctx).setSidebar({ open: true, panel: 'search' })
       st(ctx).setUi({ paletteOpen: false, focusSearch: st(ctx).ui.focusSearch + 1 })
+      // Phones have no sidebar: open the Library's search instead.
+      if (isPhoneNow()) return openLibrary('search')
+      st(ctx).setSidebar({ open: true, panel: 'search' })
     },
   },
   {
@@ -258,7 +260,13 @@ export const COMMANDS: Command[] = [
     section: 'View',
     keywords: ['deleted', 'restore'],
     shortcuts: [],
-    run: (ctx) => st(ctx).setSidebar({ open: true, panel: 'trash' }),
+    run: (ctx) => {
+      if (isPhoneNow()) {
+        st(ctx).setUi({ paletteOpen: false })
+        return openLibrary('trash')
+      }
+      st(ctx).setSidebar({ open: true, panel: 'trash' })
+    },
   },
   {
     id: 'view.zen',
@@ -341,6 +349,13 @@ export const COMMANDS: Command[] = [
     run: (ctx) => st(ctx).setUi({ whatsNewOpen: true, paletteOpen: false }),
   },
 ]
+
+/** Phones: show a Library section (the laptop sidebar isn't on screen). */
+function openLibrary(section: 'search' | 'trash') {
+  const p = phoneStore.getState()
+  p.setLibrarySection(section)
+  p.open('library')
+}
 
 const isPhoneNow = () =>
   typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches

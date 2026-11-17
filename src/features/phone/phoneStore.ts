@@ -13,6 +13,11 @@ export type PhoneOverlay =
   | 'format'
   | 'shares'
   | { kind: 'tabActions' | 'noteActions'; noteId: string }
+  /** An app dialog (settings, share…) opened on a phone, so Back can close it. */
+  | { kind: 'app'; id: AppDialog }
+
+export type AppDialog =
+  'settings' | 'about' | 'whatsNew' | 'shortcuts' | 'palette' | 'share' | 'import' | 'unpin'
 
 export type LibrarySection = 'notes' | 'search' | 'trash'
 
@@ -32,7 +37,8 @@ export const phoneStore = createStore<PhoneState>()((set) => ({
   stack: [],
   librarySection: 'notes',
   previewByTab: {},
-  open: (o) => set((s) => ({ stack: [...s.stack, o] })),
+  // Opening what's already on top is a no-op (e.g. long-press and contextmenu both firing).
+  open: (o) => set((s) => (isTop(s.stack, o) ? s : { stack: [...s.stack, o] })),
   close: () => set((s) => ({ stack: s.stack.slice(0, -1) })),
   closeAll: () => set({ stack: [] }),
   setLibrarySection: (librarySection) => set({ librarySection }),
@@ -47,6 +53,12 @@ export function usePhone<T>(selector: (s: PhoneState) => T): T {
 export function isTop(stack: PhoneOverlay[], o: PhoneOverlay): boolean {
   const top = stack.at(-1)
   if (top === undefined) return false
-  if (typeof top === 'string' || typeof o === 'string') return top === o
-  return top.kind === o.kind && top.noteId === o.noteId
+  return sameOverlay(top, o)
+}
+
+export function sameOverlay(a: PhoneOverlay, b: PhoneOverlay): boolean {
+  if (typeof a === 'string' || typeof b === 'string') return a === b
+  if (a.kind === 'app' || b.kind === 'app')
+    return a.kind === b.kind && (a as { id: string }).id === (b as { id: string }).id
+  return a.kind === b.kind && a.noteId === b.noteId
 }

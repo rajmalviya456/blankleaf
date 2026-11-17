@@ -9,6 +9,9 @@ import { PhoneTopBar } from './PhoneTopBar'
 import { usePhone } from './phoneStore'
 import { phoneViewFor } from './phoneView'
 import { useBackToClose } from './useBackToClose'
+import { EditorView } from '@codemirror/view'
+import { getActiveView } from '../editor/activeView'
+import { useAppDialogsOnStack } from './useAppDialogsOnStack'
 import { useKeyboardInset } from './useKeyboardInset'
 import { PhoneToolbarDock } from './PhoneToolbarDock'
 import { lazy, Suspense, useEffect, type CSSProperties } from 'react'
@@ -18,6 +21,7 @@ const PhoneOverlays = lazy(() => import('./PhoneOverlays'))
 
 export function PhoneShell() {
   useBackToClose()
+  useAppDialogsOnStack()
   const zen = useAppStore((s) => s.session.zen)
   const activeId = useAppStore((s) => s.session.activeTabId)
   const saved = useAppStore((s) => (activeId ? s.session.perTab[activeId]?.previewMode : undefined))
@@ -25,6 +29,28 @@ export function PhoneShell() {
   const view = activeId ? phoneViewFor(previewByTab, activeId, saved) : 'edit'
   const showToolbar = useAppStore((s) => s.settings.showToolbar)
   const kb = useKeyboardInset()
+  // Keyboard opened or resized: keep the caret line in view above the toolbar.
+  useEffect(() => {
+    const view = getActiveView()
+    if (!view) return
+    view.dispatch({
+      effects: EditorView.scrollIntoView(view.state.selection.main.head, { y: 'nearest' }),
+    })
+  }, [kb])
+  // iOS scrolls the whole page up when the keyboard opens; keep the top bar on screen.
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const pin = () => {
+      if (window.scrollY > 0 || vv.offsetTop > 0) window.scrollTo(0, 0)
+    }
+    vv.addEventListener('scroll', pin)
+    vv.addEventListener('resize', pin)
+    return () => {
+      vv.removeEventListener('scroll', pin)
+      vv.removeEventListener('resize', pin)
+    }
+  }, [])
   // Toasts live outside the shell, so share the keyboard height on the root too.
   useEffect(() => {
     document.documentElement.style.setProperty('--kb', `${kb}px`)

@@ -39,7 +39,8 @@ export default function PhoneOverlays() {
     if (isTop(phoneStore.getState().stack, o)) phoneStore.getState().close()
   }
   const actions = stack.filter(
-    (o): o is Extract<PhoneOverlay, { kind: string }> => typeof o === 'object',
+    (o): o is Extract<PhoneOverlay, { kind: 'tabActions' | 'noteActions' }> =>
+      typeof o === 'object' && o.kind !== 'app',
   )
 
   return (
