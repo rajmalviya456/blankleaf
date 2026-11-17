@@ -11,7 +11,10 @@ import { phoneViewFor } from './phoneView'
 import { useBackToClose } from './useBackToClose'
 import { useKeyboardInset } from './useKeyboardInset'
 import { PhoneToolbarDock } from './PhoneToolbarDock'
-import type { CSSProperties } from 'react'
+import { lazy, Suspense, type CSSProperties } from 'react'
+import { UnpinPrompt } from '../tabs/UnpinPrompt'
+
+const PhoneOverlays = lazy(() => import('./PhoneOverlays'))
 
 export function PhoneShell() {
   useBackToClose()
@@ -35,6 +38,10 @@ export function PhoneShell() {
       <EditorArea viewOverride={view} showToolbar={false} />
       {dock && <PhoneToolbarDock noteId={activeId} />}
       {zen && <ZenExitHint />}
+      <Suspense fallback={null}>
+        <PhoneOverlays />
+      </Suspense>
+      <UnpinPrompt />
     </div>
   )
 }
