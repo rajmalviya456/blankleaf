@@ -313,6 +313,18 @@ input[type='search']::-webkit-search-decoration {
   max-width: 100%;
 }
 
+/* Phones: less side padding; wide tables scroll inside themselves. */
+@media (max-width: 639px) {
+  .md-preview {
+    padding: 16px 16px 40vh;
+  }
+  .md-preview table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
 /* Find widget (src/features/editor/findPanel.ts). */
 .np-find {
   display: flex;
