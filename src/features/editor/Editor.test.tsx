@@ -96,4 +96,13 @@ describe('Editor typography', () => {
     const scroller = view.dom.querySelector('.cm-scroller') as HTMLElement
     expect(getComputedStyle(scroller).fontSize).toBe('20px')
   })
+
+  it('labels only the typing area, not the wrapper (aria-label needs a role)', () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    const { container, getByRole } = render(<Editor noteId={id} />)
+    expect(getByRole('textbox', { name: 'Note text' })).toBeInTheDocument()
+    for (const el of container.querySelectorAll('[aria-label]'))
+      expect(el.getAttribute('role'), `${el.className} has aria-label but no role`).not.toBeNull()
+  })
 })
