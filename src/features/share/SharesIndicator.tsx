@@ -1,20 +1,11 @@
 import * as Popover from '@radix-ui/react-popover'
 import { Check, Copy, Share2 } from 'lucide-react'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ShareRow } from '../../db/db'
 import { toast } from '../../ui/toast'
 import { useCountdown } from './countdown'
 import { getShareHost } from './shareStore'
-
-const EMPTY: ShareRow[] = []
-
-/** Active shares from the host, re-rendering whenever they change. */
-function useActiveShares(): ShareRow[] {
-  return useSyncExternalStore(
-    (cb) => getShareHost()?.subscribe(cb) ?? (() => {}),
-    () => getShareHost()?.active() ?? EMPTY,
-  )
-}
+import { useActiveShares } from './useActiveShares'
 
 const timeOf = (ts: number) =>
   new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })

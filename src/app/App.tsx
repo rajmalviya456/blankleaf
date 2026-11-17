@@ -17,6 +17,8 @@ import { platform } from '../lib/platform'
 import { formatShortcut } from '../lib/shortcuts'
 import { getStore, useAppStore } from '../store/store'
 import { Toaster } from '../ui/Toaster'
+import { useIsPhone } from '../lib/media'
+import { PhoneShell } from '../features/phone/PhoneShell'
 import { EditorArea } from './layout/EditorArea'
 import { Rail } from './layout/Rail'
 import { SidePanel } from './layout/SidePanel'
@@ -112,6 +114,16 @@ export function App() {
   useBackupReminder()
   useUpdateNotice()
   const zen = useAppStore((s) => s.session.zen)
+  const phone = useIsPhone()
+
+  if (phone)
+    return (
+      <>
+        <PhoneShell />
+        <Dialogs />
+        <Toaster />
+      </>
+    )
 
   return (
     <div data-testid="app-root" className="flex h-dvh w-dvw flex-col overflow-hidden">
