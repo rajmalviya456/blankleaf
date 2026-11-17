@@ -33,8 +33,10 @@ makes the expiry real.
 **Non-goals (v1)**
 - Running or deploying any server. A free public signaling service is used only for introductions
   (§5.4).
-- A relay for networks that block direct connections (TURN). It costs money; v1 explains the failure
-  instead.
+- Running our own relay (TURN). *(Final-review ruling: PeerJS's default ICE config already includes its
+  free public TURN relay; it's kept because it rescues networks that block direct connections, and it
+  only ever forwards DTLS-encrypted, separately AES-encrypted bytes. If it can't help, v1 explains the
+  failure.)*
 - Live updates: the recipient gets a **frozen snapshot** taken when the link was created.
 - Burn-after-first-view, sharing several notes in one link, a "My shared links" history beyond the
   active-shares indicator, editing by the recipient, and accounts.

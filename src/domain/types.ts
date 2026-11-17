@@ -79,6 +79,7 @@ export interface Settings {
   lineNumbers: boolean
   tabSize: number
   highlightActiveLine: boolean
+  showToolbar: boolean
   /** 0 disables the reminder. */
   backupReminderDays: number
 }

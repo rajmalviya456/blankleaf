@@ -4,6 +4,7 @@
  */
 import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
+import { shareStore } from '../features/share/shareStore'
 import { nextThemePref } from '../lib/theme'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
@@ -153,6 +154,19 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    id: 'note.share',
+    title: 'Share note…',
+    section: 'Note',
+    keywords: ['link', 'send', 'password', 'expire'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) shareStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+  {
     id: 'note.format',
     title: 'Change format…',
     section: 'Note',
@@ -186,6 +200,14 @@ export const COMMANDS: Command[] = [
       const id = activeId(ctx)
       if (id) st(ctx).toggleWrap(id)
     },
+  },
+  {
+    id: 'view.toolbar',
+    title: 'Toggle toolbar',
+    section: 'View',
+    keywords: ['format', 'bold', 'buttons'],
+    shortcuts: [],
+    run: (ctx) => st(ctx).updateSettings({ showToolbar: !st(ctx).settings.showToolbar }),
   },
   {
     id: 'view.sidebar',

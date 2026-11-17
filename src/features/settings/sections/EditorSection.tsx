@@ -27,6 +27,13 @@ export function EditorSection({ settings: s, update }: Props) {
           onChange={(defaultWrap) => update({ defaultWrap })}
         />
       </Row>
+      <Row label="Show toolbar">
+        <Toggle
+          label="Show toolbar"
+          checked={s.showToolbar}
+          onChange={(showToolbar) => update({ showToolbar })}
+        />
+      </Row>
       <Row label="Line numbers">
         <Toggle
           label="Line numbers"

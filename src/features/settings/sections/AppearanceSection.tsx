@@ -1,9 +1,7 @@
 import { Minus, Plus } from 'lucide-react'
+import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../../domain/defaults'
 import type { Settings } from '../../../domain/types'
 import { buttonClass, Row, Section, Segmented } from '../controls'
-
-const EDITOR_FONT_MIN = 10
-const EDITOR_FONT_MAX = 28
 
 const ACCENTS: { value: string; label: string }[] = [
   { value: '', label: 'Default blue' },

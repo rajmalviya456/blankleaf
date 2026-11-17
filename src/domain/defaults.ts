@@ -2,6 +2,8 @@ import type { Note, Session, Settings } from './types'
 
 export const CLOSED_STACK_MAX = 20
 export const TRASH_RETENTION_DAYS = 30
+export const EDITOR_FONT_MIN = 10
+export const EDITOR_FONT_MAX = 28
 
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
   theme: 'system',
@@ -15,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   lineNumbers: true,
   tabSize: 2,
   highlightActiveLine: true,
+  showToolbar: true,
   backupReminderDays: 7,
 }) as Settings
 

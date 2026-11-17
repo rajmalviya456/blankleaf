@@ -94,6 +94,7 @@ describe('TabBar', () => {
       'Move to Trash',
       'Copy content',
       'Export',
+      'Share…',
     ])
   })
 
@@ -102,5 +103,29 @@ describe('TabBar', () => {
     fireEvent.contextMenu(tab(/first/))
     await user.click(await screen.findByRole('menuitem', { name: 'Move to Trash' }))
     expect(s().notes[ids[0]].deletedAt).not.toBeNull()
+  })
+
+  it('hides the open-tabs menu unless at least two tabs have something to list', () => {
+    const { s } = setup(['only one'])
+    const menu = () => screen.queryByRole('button', { name: /all open tabs/i })
+    expect(menu()).toBeNull()
+    let blank = ''
+    act(() => void (blank = s().newNote()))
+    expect(menu()).toBeNull() // a blank "Untitled" tab doesn't count
+    act(() => s().updateContent(blank, '   \n  '))
+    expect(menu()).toBeNull() // whitespace is still blank
+    act(() => s().updateContent(blank, 'second note'))
+    expect(menu()).toBeInTheDocument()
+    act(() => s().closeTab(blank))
+    expect(menu()).toBeNull()
+  })
+
+  it('lists only tabs with a title or text', async () => {
+    const user = userEvent.setup()
+    const { s } = setup(['alpha', 'beta'])
+    act(() => void s().newNote())
+    await user.click(screen.getByRole('button', { name: /all open tabs/i }))
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map((i) => i.textContent)).toEqual(['alpha', 'beta'])
   })
 })

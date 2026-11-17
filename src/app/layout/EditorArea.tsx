@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react'
 import { lazy, Suspense, useDeferredValue } from 'react'
 import { Editor } from '../../features/editor/Editor'
+import { Toolbar } from '../../features/toolbar/Toolbar'
 import { getStore, useAppStore } from '../../store/store'
 
 // Markdown rendering is only needed for markdown notes in split/preview, so load it on demand.
@@ -46,8 +47,10 @@ function NoteView({ noteId }: { noteId: string }) {
 /** Fills all remaining space with the active note's editor, or an empty state. */
 export function EditorArea() {
   const activeId = useAppStore((s) => s.session.activeTabId)
+  const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen)
   return (
     <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
+      {activeId && toolbar && <Toolbar noteId={activeId} />}
       {activeId ? (
         <NoteView key={activeId} noteId={activeId} />
       ) : (
