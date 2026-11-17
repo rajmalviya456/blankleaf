@@ -503,3 +503,9 @@ input[type='search']::-webkit-search-decoration {
     transition: none;
   }
 }
+
+/* Phone toolbar: 44px tap targets. */
+.np-toolbar-compact button {
+  min-width: 44px;
+  min-height: 44px;
+}

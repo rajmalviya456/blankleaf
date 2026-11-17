@@ -9,6 +9,9 @@ import { PhoneTopBar } from './PhoneTopBar'
 import { usePhone } from './phoneStore'
 import { phoneViewFor } from './phoneView'
 import { useBackToClose } from './useBackToClose'
+import { useKeyboardInset } from './useKeyboardInset'
+import { PhoneToolbarDock } from './PhoneToolbarDock'
+import type { CSSProperties } from 'react'
 
 export function PhoneShell() {
   useBackToClose()
@@ -17,14 +20,20 @@ export function PhoneShell() {
   const saved = useAppStore((s) => (activeId ? s.session.perTab[activeId]?.previewMode : undefined))
   const previewByTab = usePhone((p) => p.previewByTab)
   const view = activeId ? phoneViewFor(previewByTab, activeId, saved) : 'edit'
+  const showToolbar = useAppStore((s) => s.settings.showToolbar)
+  const kb = useKeyboardInset()
+  const markdown = useAppStore((s) => (activeId ? s.notes[activeId]?.mode === 'markdown' : false))
+  const dock = activeId && !zen && showToolbar && !(markdown && view === 'preview')
 
   return (
     <div
       data-testid="phone-shell"
-      className="flex h-dvh w-dvw flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)]"
+      style={{ '--kb': `${kb}px` } as CSSProperties}
+      className="flex h-dvh w-dvw flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)] pb-[var(--kb)]"
     >
       {!zen && <PhoneTopBar />}
       <EditorArea viewOverride={view} showToolbar={false} />
+      {dock && <PhoneToolbarDock noteId={activeId} />}
       {zen && <ZenExitHint />}
     </div>
   )

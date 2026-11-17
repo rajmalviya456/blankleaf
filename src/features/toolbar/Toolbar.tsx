@@ -229,7 +229,8 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
 }
 
 /** Row of edit and note actions above the editor; adapts to the note's format. */
-export function Toolbar({ noteId }: { noteId: string }) {
+/** `compact` (phones): text size and the note actions live in the note menu instead. */
+export function Toolbar({ noteId, compact = false }: { noteId: string; compact?: boolean }) {
   const view = useActiveView()
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
   // Plain prose (not code or logs) gets formatting too; code keeps only the text tools.
@@ -249,7 +250,12 @@ export function Toolbar({ noteId }: { noteId: string }) {
     <div
       role="toolbar"
       aria-label="Editor toolbar"
-      className="flex h-9 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-bg px-2 [scrollbar-width:none]"
+      data-compact={compact || undefined}
+      className={
+        compact
+          ? 'np-toolbar-compact flex h-11 shrink-0 items-center gap-0.5 overflow-x-auto bg-bg px-1 pr-11 [scrollbar-width:none]'
+          : 'flex h-9 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-bg px-2 [scrollbar-width:none]'
+      }
     >
       <Btn icon={Undo2} label="Undo" disabled={!canUndo} onClick={() => view && undo(view)} />
       <Btn icon={Redo2} label="Redo" disabled={!canRedo} onClick={() => view && redo(view)} />
@@ -257,27 +263,31 @@ export function Toolbar({ noteId }: { noteId: string }) {
       {(markdown || prose) && <MarkdownGroup view={view} noteId={noteId} />}
       {prose && <Sep />}
       {!markdown && <TextGroup view={view} noteId={noteId} />}
-      <Sep />
-      <Btn
-        icon={Minus}
-        label="Smaller text"
-        disabled={size <= EDITOR_FONT_MIN}
-        onClick={() => setSize(size - 1)}
-      />
-      <SizeInput
-        label="Text size"
-        value={size}
-        min={EDITOR_FONT_MIN}
-        max={EDITOR_FONT_MAX}
-        onCommit={setSize}
-        className="h-6 w-9 shrink-0 text-[11.5px]"
-      />
-      <Btn
-        icon={Plus}
-        label="Larger text"
-        disabled={size >= EDITOR_FONT_MAX}
-        onClick={() => setSize(size + 1)}
-      />
+      {!compact && (
+        <>
+          <Sep />
+          <Btn
+            icon={Minus}
+            label="Smaller text"
+            disabled={size <= EDITOR_FONT_MIN}
+            onClick={() => setSize(size - 1)}
+          />
+          <SizeInput
+            label="Text size"
+            value={size}
+            min={EDITOR_FONT_MIN}
+            max={EDITOR_FONT_MAX}
+            onCommit={setSize}
+            className="h-6 w-9 shrink-0 text-[11.5px]"
+          />
+          <Btn
+            icon={Plus}
+            label="Larger text"
+            disabled={size >= EDITOR_FONT_MAX}
+            onClick={() => setSize(size + 1)}
+          />
+        </>
+      )}
       <Sep />
       <Btn
         icon={Search}
@@ -285,26 +295,30 @@ export function Toolbar({ noteId }: { noteId: string }) {
         disabled={off}
         onClick={() => view && openSearchPanel(view)}
       />
-      <span className="min-w-2 flex-1" />
-      <Btn
-        icon={Copy}
-        label="Copy all text"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(s().notes[noteId]?.content ?? '')
-            toast('Copied note text')
-          } catch {
-            toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' })
-          }
-        }}
-      />
-      <Btn icon={Download} label="Download note" onClick={() => exportNote(noteId)} />
-      <Btn
-        icon={Share2}
-        label="Share via link"
-        onClick={() => shareStore.getState().open(noteId)}
-      />
-      <Btn icon={Trash2} label="Move to Trash" onClick={() => s().trashNote(noteId)} />
+      {!compact && (
+        <>
+          <span className="min-w-2 flex-1" />
+          <Btn
+            icon={Copy}
+            label="Copy all text"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(s().notes[noteId]?.content ?? '')
+                toast('Copied note text')
+              } catch {
+                toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' })
+              }
+            }}
+          />
+          <Btn icon={Download} label="Download note" onClick={() => exportNote(noteId)} />
+          <Btn
+            icon={Share2}
+            label="Share via link"
+            onClick={() => shareStore.getState().open(noteId)}
+          />
+          <Btn icon={Trash2} label="Move to Trash" onClick={() => s().trashNote(noteId)} />
+        </>
+      )}
     </div>
   )
 }
