@@ -308,6 +308,14 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     run: (ctx) => st(ctx).setUi({ aboutOpen: true, paletteOpen: false }),
   },
+  {
+    id: 'app.whatsNew',
+    title: 'What’s new',
+    section: 'App',
+    keywords: ['changelog', 'release', 'version', 'update'],
+    shortcuts: [],
+    run: (ctx) => st(ctx).setUi({ whatsNewOpen: true, paletteOpen: false }),
+  },
 ]
 
 export function commandEnabled(c: Command, s: AppState): boolean {

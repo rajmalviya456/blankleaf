@@ -1,3 +1,4 @@
+import { useUpdateNotice } from '../features/about/useUpdateNotice'
 import { Contrast, Settings as SettingsIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
@@ -36,6 +37,9 @@ const CommandPalette = lazy(() =>
 const ShareDialog = lazy(() =>
   import('../features/share/ShareDialog').then((m) => ({ default: m.ShareDialog })),
 )
+const WhatsNewDialog = lazy(() =>
+  import('../features/about/WhatsNewDialog').then((m) => ({ default: m.WhatsNewDialog })),
+)
 const AboutDialog = lazy(() =>
   import('../features/about/AboutDialog').then((m) => ({ default: m.AboutDialog })),
 )
@@ -49,14 +53,24 @@ function Dialogs() {
   const settings = useAppStore((s) => s.ui.settingsOpen)
   const shortcuts = useAppStore((s) => s.ui.shortcutsOpen)
   const about = useAppStore((s) => s.ui.aboutOpen)
+  const whatsNew = useAppStore((s) => s.ui.whatsNewOpen)
   const importing = useStore(importStore, (s) => s.open)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
-  const [seen, setSeen] = useState({ palette, settings, shortcuts, about, importing, sharing })
+  const [seen, setSeen] = useState({
+    palette,
+    settings,
+    shortcuts,
+    about,
+    whatsNew,
+    importing,
+    sharing,
+  })
   if (
     (palette && !seen.palette) ||
     (settings && !seen.settings) ||
     (shortcuts && !seen.shortcuts) ||
     (about && !seen.about) ||
+    (whatsNew && !seen.whatsNew) ||
     (importing && !seen.importing) ||
     (sharing && !seen.sharing)
   ) {
@@ -65,6 +79,7 @@ function Dialogs() {
       settings: seen.settings || settings,
       shortcuts: seen.shortcuts || shortcuts,
       about: seen.about || about,
+      whatsNew: seen.whatsNew || whatsNew,
       importing: seen.importing || importing,
       sharing: seen.sharing || sharing,
     })
@@ -75,6 +90,7 @@ function Dialogs() {
       {seen.shortcuts && <ShortcutsSheet />}
       {seen.settings && <SettingsDialog />}
       {seen.about && <AboutDialog />}
+      {seen.whatsNew && <WhatsNewDialog />}
       {seen.importing && <ImportDialog />}
       {seen.sharing && <ShareDialog />}
     </Suspense>
@@ -94,6 +110,7 @@ export function App() {
 
   useGlobalShortcuts()
   useBackupReminder()
+  useUpdateNotice()
   const zen = useAppStore((s) => s.session.zen)
 
   return (

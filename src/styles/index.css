@@ -157,6 +157,17 @@ input[type='search']::-webkit-search-decoration {
   line-height: 1.65;
   color: var(--fg);
 }
+.md-preview.release-notes {
+  /* Release notes read at UI size, not the editor's. */
+  font-size: 13px;
+  padding: 16px 20px 24px;
+}
+.release-notes h2 {
+  font-size: 1.15em;
+}
+.release-notes h3 {
+  font-size: 1em;
+}
 .md-preview > :first-child {
   margin-top: 0;
 }

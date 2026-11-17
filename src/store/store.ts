@@ -25,6 +25,7 @@ export interface UiState {
   paletteMode: 'commands' | 'formats'
   shortcutsOpen: boolean
   aboutOpen: boolean
+  whatsNewOpen: boolean
   /** Pinned tab whose close was requested; the tab bar asks to unpin it. */
   unpinPromptId: string | null
   /** Bumped to ask the search box to take focus. */
@@ -96,6 +97,7 @@ const initialUi = (): UiState => ({
   paletteMode: 'commands',
   shortcutsOpen: false,
   aboutOpen: false,
+  whatsNewOpen: false,
   unpinPromptId: null,
   focusSearch: 0,
 })

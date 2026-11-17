@@ -131,9 +131,14 @@ export function AboutDialog() {
             <LinkRow href={`${REPO}/issues/new`} icon={Bug}>
               Report a problem or suggest an idea
             </LinkRow>
-            <LinkRow href={`${REPO}/commits/main`} icon={Sparkles}>
+            <button
+              type="button"
+              onClick={() => s().setUi({ aboutOpen: false, whatsNewOpen: true })}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px] text-fg hover:bg-bg-hover"
+            >
+              <Sparkles size={14} className="text-fg-muted" />
               What’s new
-            </LinkRow>
+            </button>
             <button
               type="button"
               onClick={() => s().setUi({ aboutOpen: false, shortcutsOpen: true })}

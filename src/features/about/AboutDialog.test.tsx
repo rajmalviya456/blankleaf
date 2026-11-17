@@ -20,12 +20,11 @@ describe('AboutDialog', () => {
     expect(dialog).toHaveTextContent(/stored only in this browser/i)
   })
 
-  it('links to the source, issue tracker and release notes', () => {
+  it('links to the source and issue tracker', () => {
     setup()
     const href = (name: RegExp) => screen.getByRole('link', { name }).getAttribute('href')
     expect(href(/source code/i)).toBe('https://github.com/rajmalviya456/notepadz')
     expect(href(/report a problem/i)).toBe('https://github.com/rajmalviya456/notepadz/issues/new')
-    expect(href(/what.s new/i)).toBe('https://github.com/rajmalviya456/notepadz/commits/main')
   })
 
   it('opens the keyboard shortcuts from the dialog', async () => {

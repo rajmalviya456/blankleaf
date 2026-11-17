@@ -9,9 +9,18 @@ const components: Components = {
 }
 
 /** Rendered Markdown (GFM). Output is sanitized: no scripts, handlers or javascript: links. */
-export const MarkdownPreview = memo(function MarkdownPreview({ source }: { source: string }) {
+export const MarkdownPreview = memo(function MarkdownPreview({
+  source,
+  className,
+}: {
+  source: string
+  className?: string
+}) {
   return (
-    <article aria-label="Markdown preview" className="md-preview">
+    <article
+      aria-label="Markdown preview"
+      className={className ? `md-preview ${className}` : 'md-preview'}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
