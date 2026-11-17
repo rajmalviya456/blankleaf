@@ -36,9 +36,16 @@ export function nextThemePref(pref: ThemePref): ThemePref {
 const HEX = /^#[0-9a-f]{6}$/i
 
 /** Push appearance settings onto <html>: theme attribute plus CSS variables. */
+/** Browser bar colour per theme (matches --bg). */
+export const THEME_COLOR = { light: '#ffffff', dark: '#111318' } as const
+
 export function applySettingsToDocument(s: Settings, systemDark: boolean): void {
   const root = document.documentElement
-  applyTheme(resolveTheme(s.theme, systemDark))
+  const theme = resolveTheme(s.theme, systemDark)
+  applyTheme(theme)
+  document
+    .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    ?.setAttribute('content', THEME_COLOR[theme])
   root.style.setProperty('--editor-font-size', `${s.editorFontSize}px`)
   root.style.setProperty('--editor-line-height', String(s.lineHeight))
   root.style.setProperty('--ui-font-size', `${s.uiFontSize}px`)

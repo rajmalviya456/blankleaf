@@ -106,3 +106,20 @@ describe('Editor typography', () => {
       expect(el.getAttribute('role'), `${el.className} has aria-label but no role`).not.toBeNull()
   })
 })
+
+describe('Editor on a phone', () => {
+  it('uses the phone text size (16) even when the laptop size is 14', async () => {
+    const { stubMedia } = await import('../../../tests/media')
+    const media = stubMedia({ phone: true })
+    try {
+      const store = initStore(createAppStore())
+      store.getState().updateSettings({ editorFontSize: 14 })
+      const id = store.getState().newNote()
+      const { container } = render(<Editor noteId={id} />)
+      const scroller = container.querySelector('.cm-scroller') as HTMLElement
+      expect(getComputedStyle(scroller).fontSize).toBe('16px')
+    } finally {
+      media.restore()
+    }
+  })
+})

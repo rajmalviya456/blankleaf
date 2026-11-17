@@ -102,6 +102,7 @@ body,
 }
 
 body {
+  -webkit-tap-highlight-color: transparent;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
@@ -382,9 +383,11 @@ input[type='search']::-webkit-search-decoration {
   font-family: var(--font-mono);
   font-size: 11px;
 }
-.np-find-opt:hover {
-  color: var(--fg);
-  background: var(--bg-hover);
+@media (hover: hover) {
+  .np-find-opt:hover {
+    color: var(--fg);
+    background: var(--bg-hover);
+  }
 }
 .np-find-opt[aria-pressed='true'] {
   color: var(--accent);
@@ -409,9 +412,11 @@ input[type='search']::-webkit-search-decoration {
   border-radius: 6px;
   color: var(--fg-muted);
 }
-.np-find-btn:hover {
-  color: var(--fg);
-  background: var(--bg-hover);
+@media (hover: hover) {
+  .np-find-btn:hover {
+    color: var(--fg);
+    background: var(--bg-hover);
+  }
 }
 .np-find-expand svg {
   transition: transform 120ms ease;
@@ -430,8 +435,10 @@ input[type='search']::-webkit-search-decoration {
   background: var(--bg);
   color: var(--fg);
 }
-.np-find-text-btn:hover {
-  background: var(--bg-hover);
+@media (hover: hover) {
+  .np-find-text-btn:hover {
+    background: var(--bg-hover);
+  }
 }
 .np-find button:focus-visible {
   outline: 2px solid var(--accent);
@@ -460,5 +467,18 @@ input[type='search']::-webkit-search-decoration {
 @keyframes np-fade {
   from {
     opacity: 0;
+  }
+}
+
+/* Phones: 16px fields so iOS never zooms on focus; a slimmer line-number gutter. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  .cm-lineNumbers .cm-gutterElement {
+    padding: 0 4px 0 6px;
+    min-width: 2ch;
   }
 }

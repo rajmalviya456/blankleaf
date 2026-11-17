@@ -10,6 +10,8 @@ import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
+import { effectiveEditorFontSize } from '../../domain/defaults'
+import { useIsPhone } from '../../lib/media'
 import { activeViewUpdated, releaseActiveView, setActiveView } from './activeView'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
@@ -46,7 +48,13 @@ export function Editor({ noteId }: { noteId: string }) {
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const settings = useAppStore((s) => s.settings)
   const large = isLargeDoc(content.length)
-  const base = useEditorExtensions({ wrap, settings, large })
+  const phone = useIsPhone()
+  const fontSize = effectiveEditorFontSize(settings, phone)
+  const base = useEditorExtensions({
+    wrap,
+    settings: { ...settings, editorFontSize: fontSize },
+    large,
+  })
   const langExt = useLanguageExtension(lang, large)
   const extensions = useMemo(
     () => (langExt ? [...base, langExt, calmSyntax] : base),

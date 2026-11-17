@@ -1,5 +1,11 @@
 import { Minus, Plus } from 'lucide-react'
-import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../../domain/defaults'
+import {
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+  PHONE_FONT_MAX,
+  PHONE_FONT_MIN,
+} from '../../../domain/defaults'
+import { useIsPhone } from '../../../lib/media'
 import type { Settings } from '../../../domain/types'
 import { buttonClass, Row, Section, Segmented } from '../controls'
 
@@ -18,8 +24,14 @@ interface Props {
 }
 
 export function AppearanceSection({ settings: s, update }: Props) {
-  const setFont = (n: number) =>
-    update({ editorFontSize: Math.min(EDITOR_FONT_MAX, Math.max(EDITOR_FONT_MIN, n)) })
+  // Phones edit their own size so the laptop's never changes from a phone.
+  const phone = useIsPhone()
+  const [min, max] = phone ? [PHONE_FONT_MIN, PHONE_FONT_MAX] : [EDITOR_FONT_MIN, EDITOR_FONT_MAX]
+  const size = phone ? Math.max(PHONE_FONT_MIN, s.phoneEditorFontSize) : s.editorFontSize
+  const setFont = (n: number) => {
+    const v = Math.min(max, Math.max(min, n))
+    update(phone ? { phoneEditorFontSize: v } : { editorFontSize: v })
+  }
 
   return (
     <Section title="Appearance">
@@ -63,11 +75,15 @@ export function AppearanceSection({ settings: s, update }: Props) {
           ]}
         />
       </Row>
-      <Row label="Editor font size" htmlFor="editor-font-size">
+      <Row
+        label="Editor font size"
+        htmlFor="editor-font-size"
+        hint={phone ? 'On this phone' : undefined}
+      >
         <button
           type="button"
           aria-label="Decrease editor font size"
-          onClick={() => setFont(s.editorFontSize - 1)}
+          onClick={() => setFont(size - 1)}
           className={buttonClass + ' px-1.5'}
         >
           <Minus size={12} />
@@ -76,24 +92,22 @@ export function AppearanceSection({ settings: s, update }: Props) {
           id="editor-font-size"
           type="range"
           aria-label="Editor font size"
-          min={EDITOR_FONT_MIN}
-          max={EDITOR_FONT_MAX}
+          min={min}
+          max={max}
           step={1}
-          value={s.editorFontSize}
+          value={size}
           onChange={(e) => setFont(Number(e.target.value))}
           className="w-28 accent-[var(--accent)]"
         />
         <button
           type="button"
           aria-label="Increase editor font size"
-          onClick={() => setFont(s.editorFontSize + 1)}
+          onClick={() => setFont(size + 1)}
           className={buttonClass + ' px-1.5'}
         >
           <Plus size={12} />
         </button>
-        <span className="w-9 text-right text-[12px] tabular-nums text-fg-muted">
-          {s.editorFontSize}px
-        </span>
+        <span className="w-9 text-right text-[12px] tabular-nums text-fg-muted">{size}px</span>
       </Row>
       <Row label="Line height" htmlFor="line-height">
         <input

@@ -4,6 +4,9 @@ export const CLOSED_STACK_MAX = 20
 export const TRASH_RETENTION_DAYS = 30
 export const EDITOR_FONT_MIN = 10
 export const EDITOR_FONT_MAX = 28
+/** 16px is the smallest size at which iOS doesn't zoom into a focused field. */
+export const PHONE_FONT_MIN = 16
+export const PHONE_FONT_MAX = 28
 
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
   theme: 'system',
@@ -11,6 +14,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   uiFontSize: 13,
   editorFont: 'mono',
   editorFontSize: 14,
+  phoneEditorFontSize: 16,
   lineHeight: 1.6,
   defaultMode: 'plain',
   defaultWrap: true,
@@ -81,3 +85,11 @@ Shortcuts (⌘ = Ctrl on Windows/Linux, Mod2 = ⌃⌥ on Mac, Alt elsewhere)
 Back up regularly: Settings → Data → Export.
 Delete this note whenever you like — it won't come back.
 `
+
+/** Editor text size for this device: phones use their own size, never below 16px. */
+export function effectiveEditorFontSize(
+  s: Pick<Settings, 'editorFontSize' | 'phoneEditorFontSize'>,
+  phone: boolean,
+): number {
+  return phone ? Math.max(PHONE_FONT_MIN, s.phoneEditorFontSize) : s.editorFontSize
+}
