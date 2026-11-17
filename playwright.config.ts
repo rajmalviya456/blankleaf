@@ -17,7 +17,22 @@ export default defineConfig({
   // No device preset: it spoofs a Windows user agent, which would make the app (correctly)
   // expect Ctrl shortcuts on a Mac runner.
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium', viewport: { width: 1280, height: 800 } } },
+    {
+      name: 'chromium',
+      testIgnore: /\.phone\.spec\.ts$/,
+      use: { browserName: 'chromium', viewport: { width: 1280, height: 800 } },
+    },
+    // Phone layout: a 390×844 touch screen (no device preset, see above).
+    {
+      name: 'phone',
+      testMatch: /\.phone\.spec\.ts$/,
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+      },
+    },
   ],
   webServer: {
     command: `npm run build && npx vite preview --base /notepadz/ --port ${PORT} --strictPort`,

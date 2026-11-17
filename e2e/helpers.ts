@@ -15,3 +15,12 @@ export async function newNote(page: Page, text: string) {
   await editor(page).click()
   await page.keyboard.type(text)
 }
+
+/** Phone layout: the note bar is up and the editor is showing. */
+export async function openPhoneApp(page: Page) {
+  await page.goto('./')
+  await expect(page.getByRole('banner', { name: 'Note bar' })).toBeVisible()
+  await expect(page.locator('.cm-editor')).toBeVisible()
+}
+
+export const noteBar = (page: Page) => page.getByRole('banner', { name: 'Note bar' })
