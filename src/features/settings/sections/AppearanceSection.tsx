@@ -6,6 +6,7 @@ import {
   PHONE_FONT_MIN,
 } from '../../../domain/defaults'
 import { useIsPhone } from '../../../lib/media'
+import { SizeInput } from '../../../ui/SizeInput'
 import type { Settings } from '../../../domain/types'
 import { buttonClass, Row, Section, Segmented } from '../controls'
 
@@ -107,7 +108,15 @@ export function AppearanceSection({ settings: s, update }: Props) {
         >
           <Plus size={12} />
         </button>
-        <span className="w-9 text-right text-[12px] tabular-nums text-fg-muted">{size}px</span>
+        <SizeInput
+          label="Editor font size in px"
+          value={size}
+          min={min}
+          max={max}
+          onCommit={setFont}
+          className="h-7 w-11 text-[12px]"
+        />
+        <span className="text-[12px] text-fg-muted">px</span>
       </Row>
       <Row label="Line height" htmlFor="line-height">
         <input

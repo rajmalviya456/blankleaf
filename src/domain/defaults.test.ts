@@ -1,5 +1,11 @@
 import { DEFAULT_SETTINGS, emptySession, mergeSettings, newNoteDraft } from './defaults'
-import { effectiveEditorFontSize, PHONE_FONT_MAX, PHONE_FONT_MIN } from './defaults'
+import {
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+  effectiveEditorFontSize,
+  PHONE_FONT_MAX,
+  PHONE_FONT_MIN,
+} from './defaults'
 
 describe('mergeSettings', () => {
   it('returns defaults when nothing is stored', () => {
@@ -77,7 +83,8 @@ describe('phone text size', () => {
   it('defaults to 16 and survives a merge', () => {
     expect(DEFAULT_SETTINGS.phoneEditorFontSize).toBe(16)
     expect(mergeSettings({ phoneEditorFontSize: 20 }).phoneEditorFontSize).toBe(20)
-    expect([PHONE_FONT_MIN, PHONE_FONT_MAX]).toEqual([16, 28])
+    expect([PHONE_FONT_MIN, PHONE_FONT_MAX]).toEqual([16, 72])
+    expect([EDITOR_FONT_MIN, EDITOR_FONT_MAX]).toEqual([10, 72])
   })
 
   it('phones use their own size; laptops keep the shared one', () => {

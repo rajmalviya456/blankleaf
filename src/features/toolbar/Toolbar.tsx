@@ -35,6 +35,7 @@ import { useActiveView, useActiveViewValue } from '../editor/activeView'
 import { shareStore } from '../share/shareStore'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
+import { SizeInput } from '../../ui/SizeInput'
 import {
   changeCase,
   dedupeLines,
@@ -132,9 +133,26 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
 
 const Sep = () => <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border" />
 
-function MarkdownGroup({ view }: { view: EditorView | null }) {
+/** Formatting writes Markdown, so a plain-text note becomes a Markdown note (with Undo). */
+function useAsMarkdown(noteId: string) {
+  return () => {
+    const s = getStore().getState()
+    if (s.notes[noteId]?.mode === 'markdown') return
+    s.setNoteMode(noteId, 'markdown')
+    toast('Switched this note to Markdown', {
+      action: { label: 'Undo', run: () => getStore().getState().setNoteMode(noteId, 'plain') },
+    })
+  }
+}
+
+function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
-  const run = (fn: (v: EditorView) => unknown) => () => view && fn(view)
+  const asMarkdown = useAsMarkdown(noteId)
+  const run = (fn: (v: EditorView) => unknown) => () => {
+    if (!view) return
+    asMarkdown()
+    fn(view)
+  }
   return (
     <>
       <Menu icon={Heading} label="Heading" disabled={off}>
@@ -214,6 +232,11 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
 export function Toolbar({ noteId }: { noteId: string }) {
   const view = useActiveView()
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
+  // Plain prose (not code or logs) gets formatting too; code keeps only the text tools.
+  const prose = useAppStore((s) => {
+    const n = s.notes[noteId]
+    return n?.mode === 'plain' && (n.language === 'auto' || n.language === 'plaintext')
+  })
   const size = useAppStore((s) => s.settings.editorFontSize)
   const s = () => getStore().getState()
   const setSize = (n: number) =>
@@ -231,7 +254,9 @@ export function Toolbar({ noteId }: { noteId: string }) {
       <Btn icon={Undo2} label="Undo" disabled={!canUndo} onClick={() => view && undo(view)} />
       <Btn icon={Redo2} label="Redo" disabled={!canRedo} onClick={() => view && redo(view)} />
       <Sep />
-      {markdown ? <MarkdownGroup view={view} /> : <TextGroup view={view} noteId={noteId} />}
+      {(markdown || prose) && <MarkdownGroup view={view} noteId={noteId} />}
+      {prose && <Sep />}
+      {!markdown && <TextGroup view={view} noteId={noteId} />}
       <Sep />
       <Btn
         icon={Minus}
@@ -239,12 +264,14 @@ export function Toolbar({ noteId }: { noteId: string }) {
         disabled={size <= EDITOR_FONT_MIN}
         onClick={() => setSize(size - 1)}
       />
-      <span
-        aria-label={`Text size ${size}`}
-        className="w-6 shrink-0 text-center text-[11.5px] tabular-nums text-fg-muted"
-      >
-        {size}
-      </span>
+      <SizeInput
+        label="Text size"
+        value={size}
+        min={EDITOR_FONT_MIN}
+        max={EDITOR_FONT_MAX}
+        onCommit={setSize}
+        className="h-6 w-9 shrink-0 text-[11.5px]"
+      />
       <Btn
         icon={Plus}
         label="Larger text"

@@ -94,4 +94,14 @@ describe('SettingsDialog', () => {
       media.restore()
     }
   })
+
+  it('the editor font size can be typed, up to 72', async () => {
+    const { s, user } = setup()
+    open(s)
+    const field = await screen.findByRole('spinbutton', { name: 'Editor font size in px' })
+    await user.clear(field)
+    await user.type(field, '60{Enter}')
+    expect(s().settings.editorFontSize).toBe(60)
+    expect(screen.getByRole('slider', { name: /editor font size/i })).toHaveAttribute('max', '72')
+  })
 })
