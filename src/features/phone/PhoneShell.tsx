@@ -11,7 +11,7 @@ import { phoneViewFor } from './phoneView'
 import { useBackToClose } from './useBackToClose'
 import { useKeyboardInset } from './useKeyboardInset'
 import { PhoneToolbarDock } from './PhoneToolbarDock'
-import { lazy, Suspense, type CSSProperties } from 'react'
+import { lazy, Suspense, useEffect, type CSSProperties } from 'react'
 import { UnpinPrompt } from '../tabs/UnpinPrompt'
 
 const PhoneOverlays = lazy(() => import('./PhoneOverlays'))
@@ -25,6 +25,13 @@ export function PhoneShell() {
   const view = activeId ? phoneViewFor(previewByTab, activeId, saved) : 'edit'
   const showToolbar = useAppStore((s) => s.settings.showToolbar)
   const kb = useKeyboardInset()
+  // Toasts live outside the shell, so share the keyboard height on the root too.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--kb', `${kb}px`)
+    return () => {
+      document.documentElement.style.removeProperty('--kb')
+    }
+  }, [kb])
   const markdown = useAppStore((s) => (activeId ? s.notes[activeId]?.mode === 'markdown' : false))
   const dock = activeId && !zen && showToolbar && !(markdown && view === 'preview')
 

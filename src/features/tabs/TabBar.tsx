@@ -1,8 +1,10 @@
+import { useIsTouch } from '../../lib/media'
 import {
   closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -30,8 +32,15 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
   const activeId = useAppStore((s) => s.session.activeTabId)
   const s = () => getStore().getState()
 
+  // Touch: press-and-hold to drag, so a swipe still scrolls the tab strip.
+  const touch = useIsTouch()
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(
+      touch ? TouchSensor : PointerSensor,
+      touch
+        ? { activationConstraint: { delay: 200, tolerance: 5 } }
+        : { activationConstraint: { distance: 5 } },
+    ),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 

@@ -6,6 +6,9 @@ import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
 import { nextThemePref } from '../lib/theme'
+import { PHONE_QUERY } from '../lib/media'
+import { phoneStore } from '../features/phone/phoneStore'
+import { phoneViewFor } from '../features/phone/phoneView'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
 
@@ -25,6 +28,8 @@ export interface Command {
   when?: (s: AppState) => boolean
   /** Show in the command palette (tab jumps are shortcut-only). */
   palette?: boolean
+  /** Only on phones (< 640px) or only in the laptop layout. */
+  only?: 'phone' | 'laptop'
   run(ctx: CommandContext): void
 }
 
@@ -187,7 +192,13 @@ export const COMMANDS: Command[] = [
     },
     run: (ctx) => {
       const id = activeId(ctx)
-      if (id) st(ctx).cyclePreview(id)
+      if (!id) return
+      // Phones toggle edit ⇄ preview in phone-only state; the laptop's view is left alone.
+      if (isPhoneNow()) {
+        const phone = phoneStore.getState()
+        const shown = phoneViewFor(phone.previewByTab, id, st(ctx).session.perTab[id]?.previewMode)
+        phone.setPreview(id, shown !== 'preview')
+      } else st(ctx).cyclePreview(id)
     },
   },
   {
@@ -215,7 +226,20 @@ export const COMMANDS: Command[] = [
     section: 'View',
     keywords: ['notes', 'panel'],
     shortcuts: [{ code: 'KeyB', mod: true }],
+    only: 'laptop',
     run: (ctx) => st(ctx).toggleSidebar(),
+  },
+  {
+    id: 'library.open',
+    title: 'Open Library',
+    section: 'View',
+    keywords: ['notes', 'search', 'trash', 'sidebar'],
+    shortcuts: [],
+    only: 'phone',
+    run: (ctx) => {
+      st(ctx).setUi({ paletteOpen: false })
+      phoneStore.getState().open('library')
+    },
   },
   {
     id: 'view.search',
@@ -318,6 +342,10 @@ export const COMMANDS: Command[] = [
   },
 ]
 
+const isPhoneNow = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches
+
 export function commandEnabled(c: Command, s: AppState): boolean {
+  if (c.only && (c.only === 'phone') !== isPhoneNow()) return false
   return c.when ? c.when(s) : true
 }
