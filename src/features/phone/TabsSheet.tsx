@@ -89,9 +89,7 @@ function Row({ note, active }: { note: Note; active: boolean }) {
           className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-left text-[15px] select-none"
         >
           {note.pinned && <Pin size={13} className="shrink-0 text-warn" aria-hidden />}
-          <span
-            className={['truncate', active ? 'font-semibold text-accent' : 'text-fg'].join(' ')}
-          >
+          <span className={['truncate', active ? 'font-semibold text-fg' : 'text-fg'].join(' ')}>
             {title}
           </span>
         </button>

@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { stubMedia } from '../../../tests/media'
 import { App } from '../../app/App'
@@ -70,5 +70,28 @@ describe('toasts on phones', () => {
     expect(region.className).toContain(
       'bottom-[calc(var(--kb,0px)+56px+env(safe-area-inset-bottom))]',
     )
+  })
+})
+
+describe('toasts over an open sheet', () => {
+  it('tapping a toast button does not close the Library behind it', async () => {
+    media = stubMedia({ phone: true, touch: true })
+    const store = initStore(createAppStore())
+    render(<App />)
+    act(() => void store.getState().newNote())
+    act(() => phoneStore.getState().open('library'))
+    await screen.findByRole('dialog', { name: 'Library' })
+    let undone = false
+    act(
+      () => void toast('Moved to Trash', { action: { label: 'Undo', run: () => (undone = true) } }),
+    )
+    const undo = [...document.querySelectorAll('[data-toaster] button')].find(
+      (b) => b.textContent === 'Undo',
+    ) as HTMLElement
+    fireEvent.pointerDown(undo, { pointerType: 'touch' })
+    fireEvent.click(undo)
+    expect(undone).toBe(true)
+    expect(screen.getByRole('dialog', { name: 'Library' })).toBeInTheDocument()
+    expect(phoneStore.getState().stack).toEqual(['library'])
   })
 })
