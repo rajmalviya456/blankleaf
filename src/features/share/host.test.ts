@@ -203,7 +203,9 @@ describe('share host', () => {
     await second.resume()
     expect(second.active().map((r) => r.id)).toEqual([live.id])
     expect(await db.shares.get(old.id)).toBeUndefined()
-    expect((await ask(t, live.link, null)).type).toBe('share')
+    // resume() re-registers in the background; a real recipient retries while it's offline.
+    const reply = await vi.waitFor(() => ask(t, live.link, null), { timeout: 2000, interval: 20 })
+    expect(reply.type).toBe('share')
   })
 
   it('only one host serves a share (lock)', async () => {
