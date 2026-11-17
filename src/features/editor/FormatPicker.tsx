@@ -1,9 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronUp } from 'lucide-react'
-import { detectLanguage } from '../../domain/detectLanguage'
-import { LANGUAGE_GROUPS, LANGUAGES, languageMeta } from '../../domain/languages'
-import type { LanguageId } from '../../domain/types'
-import { getStore, useAppStore } from '../../store/store'
+import { LANGUAGE_GROUPS, LANGUAGES } from '../../domain/languages'
+import { chooseFormat, formatLabel } from './format'
+import { useAppStore } from '../../store/store'
 
 /** One row: [check] [label ............ .ext] — fixed columns so everything lines up. */
 function Item({ value, label, ext }: { value: string; label: string; ext?: string }) {
@@ -29,21 +28,8 @@ function Item({ value, label, ext }: { value: string; label: string; ext?: strin
 export function FormatPicker({ noteId }: { noteId: string }) {
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const mode = useAppStore((s) => s.notes[noteId]?.mode ?? 'plain')
-  const isAuto = lang === 'auto'
-  const label = isAuto
-    ? `${mode === 'markdown' ? 'Markdown' : 'Plain text'} (auto)`
-    : languageMeta(lang).label
-
-  const choose = (value: string) => {
-    const s = getStore().getState()
-    const next = value as LanguageId
-    s.setLanguage(noteId, next)
-    // Picking auto re-detects right away so the label doesn't lag behind.
-    if (next === 'auto') {
-      const guess = detectLanguage(s.notes[noteId]?.content ?? '')
-      if (guess !== 'plaintext') s.setLanguage(noteId, guess)
-    }
-  }
+  const label = formatLabel(lang, mode)
+  const choose = (value: string) => chooseFormat(noteId, value)
 
   return (
     <DropdownMenu.Root>

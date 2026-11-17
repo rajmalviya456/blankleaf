@@ -6,6 +6,8 @@ import { isTop, phoneStore, usePhone, type PhoneOverlay } from './phoneStore'
 import { tabActionItems } from './tabActions'
 import { TabsSheet } from './TabsSheet'
 import { Library } from './Library'
+import { NoteMenu } from './NoteMenu'
+import { FormatSheet } from './FormatSheet'
 import * as Dialog from '@radix-ui/react-dialog'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { ActiveSharesList } from '../share/ActiveSharesList'
@@ -45,6 +47,8 @@ export default function PhoneOverlays() {
       <Library open={has(stack, 'library')} onClose={closer('library')} />
       <TabsSheet open={has(stack, 'tabs')} onClose={closer('tabs')} />
       <SharesSheet open={has(stack, 'shares')} onClose={closer('shares')} />
+      <NoteMenu open={has(stack, 'menu')} onClose={closer('menu')} />
+      <FormatSheet open={has(stack, 'format')} onClose={closer('format')} />
       {actions.map((o) => {
         const note = getStore().getState().notes[o.noteId]
         if (!note) return null

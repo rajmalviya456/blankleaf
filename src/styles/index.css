@@ -527,3 +527,29 @@ input[type='search']::-webkit-search-decoration {
     animation: none;
   }
 }
+
+/* Find & replace on phones: full-width fields, 16px text, 40px buttons. */
+@media (max-width: 639px) {
+  .np-find {
+    width: calc(100vw - 16px);
+  }
+  .np-find-row {
+    flex-wrap: wrap;
+  }
+  .np-find-field,
+  .np-find-field-solo {
+    width: auto;
+    flex: 1 1 100%;
+    height: 40px;
+  }
+  .np-find-input,
+  .np-find-field-solo {
+    font-size: 16px;
+  }
+  .np-find-opt,
+  .np-find-btn,
+  .np-find-text-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
