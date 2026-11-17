@@ -10,7 +10,7 @@ import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
-import { releaseActiveView, setActiveView } from './activeView'
+import { activeViewUpdated, releaseActiveView, setActiveView } from './activeView'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
 function useLanguageExtension(lang: LanguageId, large: boolean): Extension | null {
@@ -116,6 +116,7 @@ export function Editor({ noteId }: { noteId: string }) {
 
   const onUpdate = useCallback(
     (u: ViewUpdate) => {
+      if (u.docChanged || u.transactions.length) activeViewUpdated(u.view)
       if (!u.selectionSet) return
       const { anchor, head } = u.state.selection.main
       const prev = s().session.perTab[noteId]

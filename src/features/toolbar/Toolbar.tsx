@@ -1,4 +1,4 @@
-import { redo, undo } from '@codemirror/commands'
+import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands'
 import { openSearchPanel } from '@codemirror/search'
 import type { EditorView } from '@codemirror/view'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
@@ -31,7 +31,7 @@ import {
 import type { ReactNode } from 'react'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
-import { useActiveView } from '../editor/activeView'
+import { useActiveView, useActiveViewValue } from '../editor/activeView'
 import { shareStore } from '../share/shareStore'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -219,6 +219,8 @@ export function Toolbar({ noteId }: { noteId: string }) {
   const setSize = (n: number) =>
     s().updateSettings({ editorFontSize: Math.min(EDITOR_FONT_MAX, Math.max(EDITOR_FONT_MIN, n)) })
   const off = !view
+  const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0)
+  const canRedo = useActiveViewValue((v) => !!v && redoDepth(v.state) > 0)
 
   return (
     <div
@@ -226,8 +228,8 @@ export function Toolbar({ noteId }: { noteId: string }) {
       aria-label="Editor toolbar"
       className="flex h-9 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-bg px-2 [scrollbar-width:none]"
     >
-      <Btn icon={Undo2} label="Undo" disabled={off} onClick={() => view && undo(view)} />
-      <Btn icon={Redo2} label="Redo" disabled={off} onClick={() => view && redo(view)} />
+      <Btn icon={Undo2} label="Undo" disabled={!canUndo} onClick={() => view && undo(view)} />
+      <Btn icon={Redo2} label="Redo" disabled={!canRedo} onClick={() => view && redo(view)} />
       <Sep />
       {markdown ? <MarkdownGroup view={view} /> : <TextGroup view={view} noteId={noteId} />}
       <Sep />
