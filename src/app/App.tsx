@@ -36,6 +36,9 @@ const CommandPalette = lazy(() =>
 const ShareDialog = lazy(() =>
   import('../features/share/ShareDialog').then((m) => ({ default: m.ShareDialog })),
 )
+const AboutDialog = lazy(() =>
+  import('../features/about/AboutDialog').then((m) => ({ default: m.AboutDialog })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -45,13 +48,15 @@ function Dialogs() {
   const palette = useAppStore((s) => s.ui.paletteOpen)
   const settings = useAppStore((s) => s.ui.settingsOpen)
   const shortcuts = useAppStore((s) => s.ui.shortcutsOpen)
+  const about = useAppStore((s) => s.ui.aboutOpen)
   const importing = useStore(importStore, (s) => s.open)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
-  const [seen, setSeen] = useState({ palette, settings, shortcuts, importing, sharing })
+  const [seen, setSeen] = useState({ palette, settings, shortcuts, about, importing, sharing })
   if (
     (palette && !seen.palette) ||
     (settings && !seen.settings) ||
     (shortcuts && !seen.shortcuts) ||
+    (about && !seen.about) ||
     (importing && !seen.importing) ||
     (sharing && !seen.sharing)
   ) {
@@ -59,6 +64,7 @@ function Dialogs() {
       palette: seen.palette || palette,
       settings: seen.settings || settings,
       shortcuts: seen.shortcuts || shortcuts,
+      about: seen.about || about,
       importing: seen.importing || importing,
       sharing: seen.sharing || sharing,
     })
@@ -68,6 +74,7 @@ function Dialogs() {
       {seen.palette && <CommandPalette />}
       {seen.shortcuts && <ShortcutsSheet />}
       {seen.settings && <SettingsDialog />}
+      {seen.about && <AboutDialog />}
       {seen.importing && <ImportDialog />}
       {seen.sharing && <ShareDialog />}
     </Suspense>

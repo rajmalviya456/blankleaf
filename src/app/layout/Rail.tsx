@@ -1,4 +1,4 @@
-import { FileText, Search, Trash2 } from 'lucide-react'
+import { FileText, Info, Search, Trash2 } from 'lucide-react'
 import type { SidePanel } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 
@@ -53,6 +53,15 @@ export function Rail() {
           </button>
         )
       })}
+      <button
+        type="button"
+        aria-label="About Notepadz"
+        title="About Notepadz"
+        onClick={() => getStore().getState().setUi({ aboutOpen: true })}
+        className="mb-2 mt-auto grid size-8 place-items-center rounded-md text-fg-muted hover:bg-bg-hover hover:text-fg"
+      >
+        <Info size={16} strokeWidth={1.75} />
+      </button>
     </nav>
   )
 }

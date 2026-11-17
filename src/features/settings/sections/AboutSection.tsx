@@ -1,17 +1,18 @@
-import { Section } from '../controls'
+import { getStore } from '../../../store/store'
+import { buttonClass, Row, Section } from '../controls'
 
 export function AboutSection() {
   return (
     <Section title="About">
-      <div className="space-y-1 px-3 py-3 text-[12px] text-fg-muted">
-        <p>
-          <span className="text-fg">Notepadz</span> {__APP_VERSION__}
-        </p>
-        <p>
-          Your notes live only in this browser’s storage. No account, no server, nothing is sent
-          anywhere.
-        </p>
-      </div>
+      <Row label={`Notepadz ${__APP_VERSION__}`} hint="Notes are stored only in this browser.">
+        <button
+          type="button"
+          className={buttonClass}
+          onClick={() => getStore().getState().setUi({ settingsOpen: false, aboutOpen: true })}
+        >
+          About Notepadz…
+        </button>
+      </Row>
     </Section>
   )
 }

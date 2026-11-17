@@ -300,6 +300,14 @@ export const COMMANDS: Command[] = [
     shortcuts: [{ code: 'Slash', mod: true }],
     run: (ctx) => st(ctx).setUi({ shortcutsOpen: true, paletteOpen: false }),
   },
+  {
+    id: 'app.about',
+    title: 'About Notepadz',
+    section: 'App',
+    keywords: ['version', 'help', 'privacy', 'github', 'feedback', 'bug'],
+    shortcuts: [],
+    run: (ctx) => st(ctx).setUi({ aboutOpen: true, paletteOpen: false }),
+  },
 ]
 
 export function commandEnabled(c: Command, s: AppState): boolean {
