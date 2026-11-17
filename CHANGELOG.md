@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/rajmalviya456/notepadz/compare/v1.0.0...v1.1.0) (2026-11-17)
+
+
+### Features
+
+* **about:** show release notes in the app ([5b7b882](https://github.com/rajmalviya456/notepadz/commit/5b7b8826dfdb8b64560e584060e54e669d919fa6))
+
+
+### Bug Fixes
+
+* **editor:** drop the invalid label on the editor wrapper ([#3](https://github.com/rajmalviya456/notepadz/issues/3)) ([2d574ba](https://github.com/rajmalviya456/notepadz/commit/2d574ba68e7192a02e4f18037864004ad7b90b08))
+
 ## [1.0.0](https://github.com/rajmalviya456/notepadz/tree/0a24e5da13ce0b10951b4d5e7e1aec6d3b717891) (2026-11-17)
 
 First public release.
