@@ -25,6 +25,8 @@ import { TabOverflowMenu } from './TabOverflowMenu'
 
 export function TabBar({ actions }: { actions?: ReactNode }) {
   const tabs = useAppStore(useShallow(orderedTabs))
+  // Blank "Untitled" tabs are nothing to pick from, so the ⌄ menu skips them.
+  const listed = tabs.filter((n) => n.title?.trim() || /\S/.test(n.content))
   const activeId = useAppStore((s) => s.session.activeTabId)
   const unpinId = useAppStore((s) => s.ui.unpinPromptId)
   const setUnpinId = (id: string | null) => getStore().getState().setUi({ unpinPromptId: id })
@@ -84,7 +86,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       </button>
       <div className="flex-1" />
       <div className="mb-1 flex items-center gap-0.5">
-        {tabs.length > 1 && <TabOverflowMenu tabs={tabs} activeId={activeId} />}
+        {listed.length > 1 && <TabOverflowMenu tabs={listed} activeId={activeId} />}
         {actions}
       </div>
 
