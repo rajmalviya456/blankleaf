@@ -1,4 +1,4 @@
-import { Pin, Plus } from 'lucide-react'
+import { Pin, Plus, Trash2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
 import { relativeTime } from '../../lib/relativeTime'
@@ -7,6 +7,18 @@ import { liveNotesSorted } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
 import { rowClass } from './rowClass'
+import { toast } from '../../ui/toast'
+
+/** Move a note to Trash from the list (it stays closed) and offer an Undo. */
+function trashFromList(id: string) {
+  const s = getStore().getState()
+  const note = s.notes[id]
+  if (!note) return
+  s.trashNote(id)
+  toast(`Moved “${displayTitle(note)}” to Trash`, {
+    action: { label: 'Undo', run: () => getStore().getState().restoreNote(id) },
+  })
+}
 
 function preview(content: string): string {
   const lines = content.split('\n', 6).filter((l) => l.trim())
@@ -41,10 +53,16 @@ export function NotesList() {
         {notes.map((n) => {
           const sub = preview(n.content)
           return (
-            <li key={n.id}>
+            <li key={n.id} className="group relative">
               <button
                 type="button"
                 onClick={() => s().openNote(n.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Delete' || (e.key === 'Backspace' && (e.metaKey || e.ctrlKey))) {
+                    e.preventDefault()
+                    trashFromList(n.id)
+                  }
+                }}
                 aria-current={n.id === activeId ? 'true' : undefined}
                 className={rowClass(n.id === activeId)}
               >
@@ -53,15 +71,24 @@ export function NotesList() {
                   <span className="min-w-0 flex-1 truncate text-fg">{displayTitle(n)}</span>
                   {openIds.includes(n.id) && (
                     <span
-                      className="size-1.5 shrink-0 rounded-full bg-accent"
+                      className="size-1.5 shrink-0 rounded-full bg-accent group-focus-within:invisible group-hover:invisible"
                       title="Open in a tab"
                     />
                   )}
-                  <span className="shrink-0 text-[10.5px] tabular-nums text-fg-faint">
+                  <span className="shrink-0 text-[10.5px] tabular-nums text-fg-faint group-focus-within:invisible group-hover:invisible">
                     {relativeTime(n.updatedAt, now)}
                   </span>
                 </span>
                 {sub && <span className="block truncate text-[11.5px] text-fg-faint">{sub}</span>}
+              </button>
+              <button
+                type="button"
+                aria-label={`Move “${displayTitle(n)}” to Trash`}
+                title="Move to Trash (Delete)"
+                onClick={() => trashFromList(n.id)}
+                className="absolute right-1 top-1 grid size-6 place-items-center rounded text-fg-muted opacity-0 hover:bg-bg-hover outline-none hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+              >
+                <Trash2 size={13} />
               </button>
             </li>
           )

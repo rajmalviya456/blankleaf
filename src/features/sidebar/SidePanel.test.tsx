@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { Rail } from '../../app/layout/Rail'
 import { SidePanel } from '../../app/layout/SidePanel'
 import { createAppStore, initStore } from '../../store/store'
+import { toastStore } from '../../ui/toast'
 
 function setup() {
   const store = initStore(createAppStore())
@@ -109,5 +110,32 @@ describe('Rail + SidePanel', () => {
     await user.click(screen.getByRole('button', { name: /clear search/i }))
     expect(box).toHaveValue('')
     expect(box).toHaveFocus()
+  })
+
+  it('moves a note to Trash from the list without opening it, with undo', async () => {
+    const { s, mk, user } = setup()
+    const keep = mk('keep me')
+    const gone = mk('delete me')
+    act(() => s().closeTab(gone))
+    act(() => s().setActive(keep))
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    await user.click(screen.getByRole('button', { name: 'Move “delete me” to Trash' }))
+    expect(s().notes[gone].deletedAt).not.toBeNull()
+    expect(s().session.openTabIds).not.toContain(gone) // never opened
+    expect(s().session.activeTabId).toBe(keep)
+    const t = toastStore.getState().toasts.at(-1)!
+    expect(t.msg).toBe('Moved “delete me” to Trash')
+    act(() => t.action!.run())
+    expect(s().notes[gone].deletedAt).toBeNull()
+  })
+
+  it('Delete key on a focused note row moves it to Trash', async () => {
+    const { s, mk, user } = setup()
+    const id = mk('press delete')
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    const list = screen.getByRole('list', { name: 'Notes' })
+    within(list).getByText('press delete').closest('button')!.focus()
+    await user.keyboard('{Delete}')
+    expect(s().notes[id].deletedAt).not.toBeNull()
   })
 })
