@@ -1,4 +1,5 @@
 import { Pin, Plus, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
 import { relativeTime } from '../../lib/relativeTime'
@@ -8,6 +9,8 @@ import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
 import { rowClass } from './rowClass'
 import { toast } from '../../ui/toast'
+import { useIsTouch } from '../../lib/media'
+import { NoteRowMenu } from './NoteRowMenu'
 
 /** Move a note to Trash from the list (it stays closed) and offer an Undo. */
 function trashFromList(id: string) {
@@ -25,7 +28,16 @@ function preview(content: string): string {
   return (lines[1] ?? '').trim().slice(0, 80)
 }
 
-export function NotesList() {
+/**
+ * All notes, newest first. `onOpened` runs after a note is opened (the phone Library closes);
+ * on touch screens each row has a ⋯ menu instead of the hover-only trash button.
+ */
+export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
+  const touch = useIsTouch()
+  // Touch: ⋯ or a long-press (500ms) on a row opens its menu.
+  const [menuFor, setMenuFor] = useState<string | null>(null)
+  const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const longPress = useRef(false)
   const notes = useAppStore(useShallow(liveNotesSorted))
   const activeId = useAppStore((s) => s.session.activeTabId)
   const openIds = useAppStore((s) => s.session.openTabIds)
@@ -56,7 +68,32 @@ export function NotesList() {
             <li key={n.id} className="group relative">
               <button
                 type="button"
-                onClick={() => s().openNote(n.id)}
+                onClick={() => {
+                  if (longPress.current) return void (longPress.current = false)
+                  s().openNote(n.id)
+                  onOpened?.()
+                }}
+                onContextMenu={
+                  touch
+                    ? (e) => {
+                        e.preventDefault()
+                        setMenuFor(n.id)
+                      }
+                    : undefined
+                }
+                onPointerDown={
+                  touch
+                    ? () => {
+                        longPress.current = false
+                        press.current = setTimeout(() => {
+                          longPress.current = true
+                          setMenuFor(n.id)
+                        }, 500)
+                      }
+                    : undefined
+                }
+                onPointerUp={touch ? () => clearTimeout(press.current) : undefined}
+                onPointerLeave={touch ? () => clearTimeout(press.current) : undefined}
                 onKeyDown={(e) => {
                   if (e.key === 'Delete' || (e.key === 'Backspace' && (e.metaKey || e.ctrlKey))) {
                     e.preventDefault()
@@ -64,7 +101,7 @@ export function NotesList() {
                   }
                 }}
                 aria-current={n.id === activeId ? 'true' : undefined}
-                className={rowClass(n.id === activeId)}
+                className={rowClass(n.id === activeId) + (touch ? ' min-h-12 pr-12' : '')}
               >
                 <span className="flex items-center gap-1.5">
                   {n.pinned && <Pin size={10} className="shrink-0 text-warn" aria-label="Pinned" />}
@@ -81,15 +118,29 @@ export function NotesList() {
                 </span>
                 {sub && <span className="block truncate text-[11.5px] text-fg-faint">{sub}</span>}
               </button>
-              <button
-                type="button"
-                aria-label={`Move “${displayTitle(n)}” to Trash`}
-                title="Move to Trash (Delete)"
-                onClick={() => trashFromList(n.id)}
-                className="absolute right-1 top-1 grid size-6 place-items-center rounded text-fg-muted opacity-0 hover:bg-bg-hover outline-none hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
-              >
-                <Trash2 size={13} />
-              </button>
+              {touch ? (
+                <NoteRowMenu
+                  note={n}
+                  title={displayTitle(n)}
+                  onOpen={() => {
+                    s().openNote(n.id)
+                    onOpened?.()
+                  }}
+                  onTrash={() => trashFromList(n.id)}
+                  open={menuFor === n.id}
+                  onOpenChange={(o) => setMenuFor(o ? n.id : null)}
+                />
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Move “${displayTitle(n)}” to Trash`}
+                  title="Move to Trash (Delete)"
+                  onClick={() => trashFromList(n.id)}
+                  className="absolute right-1 top-1 grid size-6 place-items-center rounded text-fg-muted opacity-0 hover:bg-bg-hover outline-none hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <Trash2 size={13} />
+                </button>
+              )}
             </li>
           )
         })}

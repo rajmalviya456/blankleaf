@@ -1,3 +1,4 @@
+import { useIsTouch } from '../../lib/media'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
@@ -17,6 +18,7 @@ export function TrashPanel() {
   const [pending, setPending] = useState<Pending>(null)
   const s = () => getStore().getState()
   const now = useNow()
+  const btnSize = useIsTouch() ? 'size-11' : 'size-6'
 
   return (
     <>
@@ -58,7 +60,7 @@ export function TrashPanel() {
                 aria-label={`Restore ${title}`}
                 title="Restore"
                 onClick={() => s().restoreNote(n.id)}
-                className="grid size-6 place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-fg"
+                className={`grid ${btnSize} place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-fg`}
               >
                 <RotateCcw size={13} />
               </button>
@@ -67,7 +69,7 @@ export function TrashPanel() {
                 aria-label={`Delete ${title} permanently`}
                 title="Delete permanently"
                 onClick={() => setPending({ kind: 'one', id: n.id, title })}
-                className="grid size-6 place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-danger"
+                className={`grid ${btnSize} place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-danger`}
               >
                 <Trash2 size={13} />
               </button>

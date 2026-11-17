@@ -70,8 +70,11 @@ describe('PhoneShell', () => {
         name: 'Library',
       }),
     )
+    expect(phoneStore.getState().stack).toEqual(['library'])
+    // The Library covers the screen; close it, then open the note menu.
+    act(() => phoneStore.getState().closeAll())
     await user.click(within(topBar()).getByRole('button', { name: 'Note menu' }))
-    expect(phoneStore.getState().stack).toEqual(['library', 'menu'])
+    expect(phoneStore.getState().stack).toEqual(['menu'])
   })
 
   it('Preview toggle is markdown-only and never changes the saved (laptop) view', async () => {

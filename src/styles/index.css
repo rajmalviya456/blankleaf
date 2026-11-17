@@ -509,3 +509,21 @@ input[type='search']::-webkit-search-decoration {
   min-width: 44px;
   min-height: 44px;
 }
+
+/* Phone library: slides in from the left; roomier list rows. */
+@keyframes np-library-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+.np-library {
+  animation: np-library-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.np-library-panel input[type='search'] {
+  font-size: 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .np-library {
+    animation: none;
+  }
+}
