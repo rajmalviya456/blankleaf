@@ -482,3 +482,24 @@ input[type='search']::-webkit-search-decoration {
     min-width: 2ch;
   }
 }
+
+/* Bottom sheets (phones): slide up, roomy close buttons. */
+@keyframes np-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+.np-sheet {
+  animation: np-sheet-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 150ms ease-out;
+}
+.np-sheet :is(button[aria-label^='Close'], [role='button'][aria-label^='Close']) {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .np-sheet {
+    animation: none;
+    transition: none;
+  }
+}

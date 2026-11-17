@@ -22,6 +22,7 @@ import { orderedTabs } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { TabItem } from './TabItem'
 import { TabOverflowMenu } from './TabOverflowMenu'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 export function TabBar({ actions }: { actions?: ReactNode }) {
   const tabs = useAppStore(useShallow(orderedTabs))
@@ -93,7 +94,10 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       <AlertDialog.Root open={unpinId !== null} onOpenChange={(o) => !o && setUnpinId(null)}>
         <AlertDialog.Portal>
           <AlertDialog.Overlay className="np-overlay fixed inset-0 z-40" />
-          <AlertDialog.Content className="fixed left-1/2 top-1/3 z-50 w-80 -translate-x-1/2 rounded-lg border border-border bg-bg-elev p-4 shadow-xl">
+          <DialogSurface
+            kind="alert"
+            className="fixed left-1/2 top-1/3 z-50 w-80 -translate-x-1/2 rounded-lg border border-border bg-bg-elev p-4 shadow-xl"
+          >
             <AlertDialog.Title className="text-sm font-medium text-fg">
               Unpin “{unpinNote ? displayTitle(unpinNote) : ''}”?
             </AlertDialog.Title>
@@ -115,7 +119,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
                 Unpin and close
               </AlertDialog.Action>
             </div>
-          </AlertDialog.Content>
+          </DialogSurface>
         </AlertDialog.Portal>
       </AlertDialog.Root>
     </header>

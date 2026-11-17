@@ -4,6 +4,7 @@ import { useStore } from 'zustand'
 import { toast } from '../../ui/toast'
 import { applyImport } from './actions'
 import { importStore } from './importStore'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
 
@@ -26,7 +27,7 @@ export function ImportDialog() {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[20vh] z-50 w-[min(400px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-bg-elev p-4 shadow-2xl outline-none"
         >
@@ -97,7 +98,7 @@ export function ImportDialog() {
               </button>
             )}
           </div>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )
