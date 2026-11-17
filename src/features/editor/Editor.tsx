@@ -141,7 +141,6 @@ export function Editor({ noteId }: { noteId: string }) {
           '--editor-font': settings.editorFont === 'mono' ? 'var(--font-mono)' : 'var(--font-ui)',
         } as React.CSSProperties
       }
-      aria-label="Note editor"
     />
   )
 }
