@@ -30,6 +30,8 @@ export interface UiState {
   unpinPromptId: string | null
   /** Bumped to ask the search box to take focus. */
   focusSearch: number
+  /** The tag the notes list is filtered by, if any. */
+  tagFilter: string | null
 }
 
 export interface AppState {
@@ -58,6 +60,7 @@ export interface AppActions {
   setLanguage(id: string, lang: LanguageId): void
   toggleWrap(id: string): void
   toggleSpellcheck(id: string): void
+  setNoteTags(id: string, tags: string[]): void
   trashNote(id: string): void
   restoreNote(id: string): void
   purgeNote(id: string): void
@@ -101,6 +104,7 @@ const initialUi = (): UiState => ({
   whatsNewOpen: false,
   unpinPromptId: null,
   focusSearch: 0,
+  tagFilter: null,
 })
 
 /** Keep pinned tabs first, preserving relative order inside each group. */
@@ -283,6 +287,7 @@ export function createAppStore(
           language: src.language,
           wrap: src.wrap,
           spellcheck: src.spellcheck,
+          tags: src.tags,
           title: `${displayTitle(src)} (copy)`,
         })
       },
@@ -310,6 +315,9 @@ export function createAppStore(
         if (!note) return
         patchNote(id, { wrap: !note.wrap })
         get().setViewState(id, { wrapTouched: true })
+      },
+      setNoteTags(id, tags) {
+        if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })
       },
       toggleSpellcheck(id) {
         const note = get().notes[id]

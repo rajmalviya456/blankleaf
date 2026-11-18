@@ -8,6 +8,7 @@ import { shareStore } from '../features/share/shareStore'
 import { exportNoteAs } from '../features/export/exportNote'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
+import { tagsStore } from '../features/tags/tagsStore'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
@@ -176,6 +177,19 @@ export const COMMANDS: Command[] = [
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) shareStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+  {
+    id: 'note.tags',
+    title: 'Tags…',
+    section: 'Note',
+    keywords: ['label', 'folder'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) tagsStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
   },

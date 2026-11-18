@@ -88,6 +88,7 @@ describe('TabBar', () => {
       'Rename',
       'Pin',
       'Duplicate',
+      'Tags…',
       'Close',
       'Close others',
       'Close to the right',

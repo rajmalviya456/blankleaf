@@ -1,6 +1,7 @@
 import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
 import { useDeferredValue } from 'react'
 import type { Note } from '../../domain/types'
+import { tagsStore } from '../../features/tags/tagsStore'
 import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
@@ -92,6 +93,14 @@ function NoteInfo({ note }: { note: Note }) {
         className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
       >
         Wrap: {note.wrap ? 'on' : 'off'}
+      </button>
+      <button
+        type="button"
+        title="Edit this note's tags"
+        onClick={() => tagsStore.getState().open(note.id)}
+        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+      >
+        {note.tags?.length ? `Tags: ${note.tags.length}` : 'Add tags'}
       </button>
       <button
         type="button"

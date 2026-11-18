@@ -6,6 +6,7 @@ import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
+import { tagsStore } from '../tags/tagsStore'
 import { shareStore } from '../share/shareStore'
 
 interface Props {
@@ -40,6 +41,12 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           </ContextMenu.Item>
           <ContextMenu.Item className={itemClass} onSelect={() => s().duplicateNote(note.id)}>
             Duplicate
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            className={itemClass}
+            onSelect={() => tagsStore.getState().open(note.id)}
+          >
+            Tags…
           </ContextMenu.Item>
           <ContextMenu.Separator className="my-1 h-px bg-border" />
           <ContextMenu.Item className={itemClass} onSelect={() => onClose(note.id)}>

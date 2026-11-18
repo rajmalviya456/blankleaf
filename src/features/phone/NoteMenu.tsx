@@ -19,6 +19,7 @@ import {
   Plus,
   Search,
   Share2,
+  Tag,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
@@ -34,6 +35,7 @@ import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
+import { tagsStore } from '../tags/tagsStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -226,6 +228,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   icon={Printer}
                   label="Print / save as PDF"
                   onSelect={() => printStore.getState().open(noteId)}
+                />
+                <Action
+                  icon={Tag}
+                  label="Tags…"
+                  onSelect={() => tagsStore.getState().open(noteId)}
                 />
                 <Action
                   icon={History}

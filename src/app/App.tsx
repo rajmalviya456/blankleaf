@@ -6,6 +6,7 @@ import { importStore } from '../features/backup/importStore'
 import { shareStore } from '../features/share/shareStore'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
+import { tagsStore } from '../features/tags/tagsStore'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
@@ -53,6 +54,9 @@ const HistoryDialog = lazy(() =>
 const PrintView = lazy(() =>
   import('../features/print/PrintView').then((m) => ({ default: m.PrintView })),
 )
+const TagsDialog = lazy(() =>
+  import('../features/tags/TagsDialog').then((m) => ({ default: m.TagsDialog })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -68,7 +72,9 @@ function Dialogs() {
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
   const history = useStore(historyStore, (s) => s.noteId !== null)
   const printing = useStore(printStore, (s) => s.noteId !== null)
+  const tagging = useStore(tagsStore, (s) => s.noteId !== null)
   const [seen, setSeen] = useState({
+    tagging,
     printing,
     history,
     palette,
@@ -88,9 +94,11 @@ function Dialogs() {
     (importing && !seen.importing) ||
     (sharing && !seen.sharing) ||
     (history && !seen.history) ||
-    (printing && !seen.printing)
+    (printing && !seen.printing) ||
+    (tagging && !seen.tagging)
   ) {
     setSeen({
+      tagging: seen.tagging || tagging,
       printing: seen.printing || printing,
       history: seen.history || history,
       palette: seen.palette || palette,
@@ -113,6 +121,7 @@ function Dialogs() {
       {seen.sharing && <ShareDialog />}
       {seen.history && <HistoryDialog />}
       {seen.printing && <PrintView />}
+      {seen.tagging && <TagsDialog />}
     </Suspense>
   )
 }

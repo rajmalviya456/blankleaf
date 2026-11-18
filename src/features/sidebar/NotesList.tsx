@@ -1,5 +1,6 @@
 import { Pin, Plus, Trash2 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { noteHasTag, sameTag, tagCounts } from '../../domain/tags'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
 import { relativeTime } from '../../lib/relativeTime'
@@ -39,7 +40,12 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const longPress = useRef(false)
-  const notes = useAppStore(useShallow(liveNotesSorted))
+  const allNotes = useAppStore(useShallow(liveNotesSorted))
+  const tags = useMemo(() => tagCounts(allNotes), [allNotes])
+  const wanted = useAppStore((s) => s.ui.tagFilter)
+  // A filter on a tag that no longer exists shows everything.
+  const filter = tags.find((t) => wanted !== null && sameTag(t.tag, wanted))?.tag ?? null
+  const notes = filter ? allNotes.filter((n) => noteHasTag(n, filter)) : allNotes
   const activeId = useAppStore((s) => s.session.activeTabId)
   const openIds = useAppStore((s) => s.session.openTabIds)
   const s = () => getStore().getState()
@@ -65,6 +71,26 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
           </>
         }
       />
+      {tags.length > 0 && (
+        <div
+          role="group"
+          aria-label="Filter by tag"
+          className="flex shrink-0 gap-1 overflow-x-auto px-2 pb-1.5 [scrollbar-width:none]"
+        >
+          {tags.map(({ tag, count }) => (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={tag === filter}
+              aria-label={`${tag}, ${count} ${count === 1 ? 'note' : 'notes'}`}
+              onClick={() => s().setUi({ tagFilter: tag === filter ? null : tag })}
+              className="max-w-40 shrink-0 truncate rounded-full border border-border px-2 py-0.5 text-[11.5px] text-fg-muted hover:bg-bg-hover hover:text-fg aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-fg max-sm:min-h-9 max-sm:px-3 max-sm:text-[13px]"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
       <ul aria-label="Notes" className="flex-1 overflow-y-auto px-1.5 pb-2">
         {notes.map((n) => {
           const sub = preview(n.content)
@@ -121,6 +147,11 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
                   </span>
                 </span>
                 {sub && <span className="block truncate text-[11.5px] text-fg-faint">{sub}</span>}
+                {!!n.tags?.length && (
+                  <span className="block truncate text-[11px] text-fg-muted">
+                    {n.tags.map((t) => `#${t}`).join(' ')}
+                  </span>
+                )}
               </button>
               {touch ? (
                 <NoteRowMenu

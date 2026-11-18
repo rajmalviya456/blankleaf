@@ -23,7 +23,7 @@ function countMatches(hay: string, needle: string): number {
   return count
 }
 
-/** Case-insensitive search over titles and content of non-trashed notes. */
+/** Case-insensitive search over titles, tags and content of non-trashed notes. */
 export function searchNotes(notes: Note[], query: string, limit = 50): SearchResult[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
@@ -35,9 +35,11 @@ export function searchNotes(notes: Note[], query: string, limit = 50): SearchRes
     const titleHit = title.toLowerCase().includes(q)
     const lower = note.content.toLowerCase()
     const first = lower.indexOf(q)
-    if (!titleHit && first === -1) continue
+    const tag = q.replace(/^#+/, '')
+    const tagHit = !!tag && (note.tags ?? []).some((t) => t.toLowerCase().includes(tag))
+    if (!titleHit && !tagHit && first === -1) continue
 
-    let snippet = ''
+    let snippet = first === -1 && tagHit ? note.tags!.map((t) => `#${t}`).join(' ') : ''
     const matchRanges: [number, number][] = []
     if (first !== -1) {
       const start = Math.max(0, first - Math.floor((SNIPPET - q.length) / 2))
@@ -51,7 +53,11 @@ export function searchNotes(notes: Note[], query: string, limit = 50): SearchRes
     }
     const count = first === -1 ? 0 : countMatches(lower, q)
     const score =
-      (titleHit ? 1000 : 0) + Math.min(count, 50) + (note.pinned ? 5 : 0) + note.updatedAt / 1e13
+      (titleHit ? 1000 : 0) +
+      (tagHit ? 500 : 0) +
+      Math.min(count, 50) +
+      (note.pinned ? 5 : 0) +
+      note.updatedAt / 1e13
     results.push({ id: note.id, title, snippet, matchRanges, firstMatch: first, count, score })
   }
 

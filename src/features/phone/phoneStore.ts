@@ -28,6 +28,7 @@ export type AppDialog =
   | 'import'
   | 'unpin'
   | 'history'
+  | 'tags'
 
 export type LibrarySection = 'notes' | 'search' | 'trash'
 

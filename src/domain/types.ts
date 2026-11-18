@@ -39,6 +39,8 @@ export interface Note {
   wrap: boolean
   /** Browser spell check for this note. Off unless turned on. */
   spellcheck?: boolean
+  /** Labels for organizing notes (see domain/tags). */
+  tags?: string[]
   pinned: boolean
   createdAt: number
   updatedAt: number
