@@ -349,8 +349,7 @@ input[type='search']::-webkit-search-decoration {
 .np-find-row[hidden] {
   display: none;
 }
-.np-find-field,
-.np-find-field-solo {
+.np-find-field {
   display: flex;
   align-items: center;
   width: 260px;
@@ -360,8 +359,7 @@ input[type='search']::-webkit-search-decoration {
   border: 1px solid var(--border);
   border-radius: 6px;
 }
-.np-find-field:focus-within,
-.np-find-field-solo:focus {
+.np-find-field:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
@@ -377,9 +375,6 @@ input[type='search']::-webkit-search-decoration {
   outline: none;
   color: var(--fg);
   font: inherit;
-}
-.np-find-field-solo {
-  padding: 0 8px;
 }
 .np-find-input::placeholder {
   color: var(--fg-faint);
@@ -440,7 +435,8 @@ input[type='search']::-webkit-search-decoration {
   width: 26px;
 }
 .np-find-text-btn {
-  height: 26px;
+  flex: 1;
+  height: 28px;
   padding: 0 10px;
   border-radius: 6px;
   border: 1px solid var(--border);
@@ -540,29 +536,54 @@ input[type='search']::-webkit-search-decoration {
   }
 }
 
-/* Find & replace on phones: full-width fields, 16px text, 40px buttons. */
+/*
+ * Find & replace on phones, 16px text and 40px buttons:
+ *   [v] [ Find          Aa ab .* ]
+ *       3 of 12         [^] [v] [x]
+ *       [ Replace                ]
+ *       [ Replace ]     [  All   ]
+ */
 @media (max-width: 639px) {
+  .cm-editor .cm-panels.cm-panels-top {
+    right: 8px !important;
+  }
   .np-find {
+    box-sizing: border-box;
     width: calc(100vw - 16px);
+    max-width: 100%;
   }
   .np-find-row {
     flex-wrap: wrap;
   }
-  .np-find-field,
-  .np-find-field-solo {
+  .np-find-field {
     width: auto;
-    flex: 1 1 100%;
+    min-width: 0;
+    flex: 1 1 calc(100% - 44px);
     height: 40px;
   }
-  .np-find-input,
-  .np-find-field-solo {
+  .np-find-input {
     font-size: 16px;
   }
-  .np-find-opt,
+  .np-find-opt {
+    min-width: 32px;
+    min-height: 40px;
+  }
   .np-find-btn,
   .np-find-text-btn {
     min-width: 40px;
     min-height: 40px;
+  }
+  .np-find-spacer {
+    width: 40px;
+  }
+  .np-find-count {
+    flex: 1;
+    min-width: 0;
+    margin-left: 44px;
+    text-align: left;
+  }
+  .np-find-replace .np-find-text-btn:first-of-type {
+    margin-left: 44px;
   }
 }
 
