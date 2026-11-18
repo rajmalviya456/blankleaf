@@ -5,6 +5,7 @@
 import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
+import { exportNoteAs } from '../features/export/exportNote'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
@@ -343,6 +344,31 @@ export const COMMANDS: Command[] = [
       if (id) exportNote(id)
     },
   },
+  {
+    id: 'data.exportHtml',
+    title: 'Export as web page (.html)',
+    section: 'Data',
+    keywords: ['download', 'html', 'save'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) void exportNoteAs(id, 'html')
+    },
+  },
+  {
+    id: 'data.exportDocx',
+    title: 'Export as Word (.docx)',
+    section: 'Data',
+    keywords: ['download', 'word', 'docx', 'document', 'save'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) void exportNoteAs(id, 'docx')
+    },
+  },
+
   {
     id: 'data.export',
     title: 'Export all notes (backup)',

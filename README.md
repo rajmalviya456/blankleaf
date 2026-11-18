@@ -34,6 +34,8 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
   and URLs, on the selection or the whole note.
 - **Clickable checklists.** Tick `- [ ]` items right in the Markdown preview.
 - **Print or save as PDF.** A clean copy of any note, with Markdown formatted.
+- **Export to HTML or Word.** Download any note as a web page or a real `.docx`, with Markdown
+  formatting kept.
 - **Note templates.** Start a daily journal, meeting notes, checklist or to-do list in one click.
 - **Spell check per note**, using your browser's own checker.
 - **Sort your notes** by last edited, date created or name.

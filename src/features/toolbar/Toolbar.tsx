@@ -33,6 +33,7 @@ import {
 import { Fragment, type ReactNode } from 'react'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
+import { exportNoteAs } from '../export/exportNote'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
 import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
@@ -335,7 +336,11 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
               }
             }}
           />
-          <Btn icon={Download} label="Download note" onClick={() => exportNote(noteId)} />
+          <Menu icon={Download} label="Download note">
+            <Item onSelect={() => exportNote(noteId)}>Original format</Item>
+            <Item onSelect={() => void exportNoteAs(noteId, 'html')}>Web page (.html)</Item>
+            <Item onSelect={() => void exportNoteAs(noteId, 'docx')}>Word document (.docx)</Item>
+          </Menu>
           <Btn
             icon={Printer}
             label="Print or save as PDF"

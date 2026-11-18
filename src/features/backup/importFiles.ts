@@ -1,6 +1,6 @@
 import { newNoteDraft } from '../../domain/defaults'
 import { LANGUAGES, languageMeta } from '../../domain/languages'
-import { displayTitle } from '../../domain/title'
+import { documentTitle } from '../../domain/title'
 import type { LanguageId, Note, Settings } from '../../domain/types'
 
 const EXT_ALIASES: Record<string, LanguageId> = {
@@ -52,16 +52,21 @@ const MIME: Record<string, string> = {
   js: 'text/javascript',
 }
 
+/** The note's title, safe to use as a file name. */
+export function noteFileBase(note: Note): string {
+  return (
+    documentTitle(note)
+      .replace(/[/\\:*?"<>|]/g, '-')
+      .trim() || 'Untitled'
+  )
+}
+
 /** File name, type and text for exporting a single note. */
 export function noteExportFile(note: Note): { name: string; mime: string; text: string } {
   const lang = note.language === 'auto' && note.mode === 'markdown' ? 'markdown' : note.language
   const ext = languageMeta(lang).ext
-  const base =
-    displayTitle(note)
-      .replace(/[/\\:*?"<>|]/g, '-')
-      .trim() || 'Untitled'
   return {
-    name: `${base}.${ext}`,
+    name: `${noteFileBase(note)}.${ext}`,
     mime: `${MIME[ext] ?? 'text/plain'};charset=utf-8`,
     text: note.content,
   }

@@ -13,3 +13,12 @@ export function displayTitle(note: Pick<Note, 'title' | 'content'>): string {
   }
   return UNTITLED
 }
+
+/** The title for a file or printed page: without the first line's Markdown heading marks. */
+export function documentTitle(note: Pick<Note, 'title' | 'content'>): string {
+  return (
+    displayTitle(note)
+      .replace(/^#{1,6}\s+/, '')
+      .trim() || displayTitle(note)
+  )
+}
