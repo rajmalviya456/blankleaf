@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/rajmalviya456/blankleaf/compare/v1.3.0...v1.3.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **pwa:** serve the sitemap and other files, not the app, once installed ([#20](https://github.com/rajmalviya456/blankleaf/issues/20)) ([d8043a5](https://github.com/rajmalviya456/blankleaf/commit/d8043a52fcf4f6686b1298194e5300e8339ca94e))
+
 ## [1.3.0](https://github.com/rajmalviya456/blankleaf/compare/v1.2.0...v1.3.0) (2026-11-18)
 
 
