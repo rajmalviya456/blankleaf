@@ -32,3 +32,23 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     permissions:
       contents: write
+
+  # GitHub holds CI on pull requests opened by the Actions bot until someone approves it. A manual
+  # run isn't held, and it reports the same required checks on the release branch.
+  release-pr-checks:
+    needs: release-please
+    if: needs.release-please.outputs.release_created != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_BRANCH: release-please--branches--main--components--blankleaf
+    steps:
+      - name: Start CI on the open release pull request
+        run: |
+          open=$(gh pr list --head "$RELEASE_BRANCH" --state open --json number --jq 'length')
+          if [ "$open" -gt 0 ]; then gh workflow run ci.yml --ref "$RELEASE_BRANCH"; fi
