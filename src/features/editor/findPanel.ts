@@ -126,7 +126,7 @@ export function createFindPanel(view: EditorView): Panel {
   row1.append(toggleReplace, field, count, prev, next, close)
 
   const replace = el('input', {
-    class: 'np-find-input np-find-field-solo',
+    class: 'np-find-input',
     'aria-label': 'Replace',
     placeholder: 'Replace',
     spellcheck: 'false',
@@ -154,7 +154,9 @@ export function createFindPanel(view: EditorView): Panel {
     'All',
   )
   const row2 = el('div', { class: 'np-find-row np-find-replace', hidden: '' })
-  row2.append(el('span', { class: 'np-find-spacer' }), replace, replaceOne, replaceEvery)
+  const replaceField = el('div', { class: 'np-find-field' })
+  replaceField.append(replace)
+  row2.append(el('span', { class: 'np-find-spacer' }), replaceField, replaceOne, replaceEvery)
   dom.append(row1, row2)
 
   const pressed = (b: HTMLButtonElement) => b.getAttribute('aria-pressed') === 'true'
