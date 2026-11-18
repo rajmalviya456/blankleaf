@@ -23,9 +23,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
+      # Lint, types and tests already passed on this commit (pull request + CI on main),
+      # and `build` type-checks again before bundling.
       - run: npm run build
       - uses: peaceiris/actions-gh-pages@v4
         with:
