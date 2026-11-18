@@ -33,8 +33,8 @@ jobs:
     permissions:
       contents: write
 
-  # GitHub holds CI on pull requests opened by the Actions bot until someone approves it. A manual
-  # run isn't held, and it reports the same required checks on the release branch.
+  # GitHub holds CI on pull requests opened by the Actions bot until someone approves the run.
+  # Approve it here, for the release pull request only, so releases need no manual step.
   release-pr-checks:
     needs: release-please
     if: needs.release-please.outputs.release_created != 'true'
@@ -48,11 +48,18 @@ jobs:
       GH_REPO: ${{ github.repository }}
       RELEASE_BRANCH: release-please--branches--main--components--blankleaf
     steps:
-      - name: Start CI on the open release pull request
+      - name: Approve the held CI run on the release pull request
         run: |
-          open=$(gh pr list --head "$RELEASE_BRANCH" --state open --json number --jq 'length')
-          if [ "$open" -gt 0 ]; then
-            # A release branch cut before this workflow existed can't be started; the next
-            # merge to main rebuilds it.
-            gh workflow run ci.yml --ref "$RELEASE_BRANCH" || echo "::warning::Could not start CI on $RELEASE_BRANCH"
-          fi
+          # The run can take a moment to appear after release-please pushes.
+          for attempt in $(seq 1 18); do
+            head=$(gh pr list --head "$RELEASE_BRANCH" --state open --json headRefOid --jq '.[0].headRefOid // ""')
+            if [ -z "$head" ]; then exit 0; fi
+            run=$(gh run list --workflow ci.yml --branch "$RELEASE_BRANCH" --commit "$head" --event pull_request \
+              --json databaseId,conclusion --jq '[.[] | select(.conclusion == "action_required")][0].databaseId // ""')
+            if [ -n "$run" ]; then
+              gh api --method POST "repos/$GH_REPO/actions/runs/$run/approve" || true
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::No held CI run found for the release pull request."
