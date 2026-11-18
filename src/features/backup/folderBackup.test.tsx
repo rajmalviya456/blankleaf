@@ -266,7 +266,7 @@ describe('the setting', () => {
     const store = initStore(createAppStore())
     stop = await startFolderBackup(store, db, mem)
     render(<FolderBackupRow />)
-    expect(screen.getByText(/Chrome and Edge on a computer/)).toBeInTheDocument()
+    expect(screen.getByText(/Your browser doesn’t support automatic backup/)).toBeInTheDocument()
     expect(screen.queryByRole('button')).toBeNull()
   })
 
