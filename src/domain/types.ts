@@ -73,6 +73,8 @@ export interface Settings {
   uiFontSize: number
   editorFont: 'mono' | 'sans'
   editorFontSize: number
+  /** Phones keep their own text size so the laptop's never changes from a phone. */
+  phoneEditorFontSize: number
   lineHeight: number
   defaultMode: NoteMode
   defaultWrap: boolean

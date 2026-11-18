@@ -162,4 +162,15 @@ describe('ShareView', () => {
     )
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('fits a phone: the banner gets its own line and every action is a 44px target', async () => {
+    const t = createMemoryTransport()
+    const created = await host(t).create(note(), { expiresInMs: 300_000, password: null })
+    view(t, created.link)
+    await screen.findByRole('button', { name: /save to my notes/i })
+    const banner = document.querySelector('[data-banner]') as HTMLElement
+    expect(banner.className).toContain('max-sm:basis-full')
+    for (const name of [/download/i, /save to my notes/i, /close/i])
+      expect(screen.getByRole('button', { name }).className).toContain('max-sm:h-11')
+  })
 })

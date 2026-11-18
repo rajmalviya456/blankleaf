@@ -6,6 +6,9 @@ import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
 import { nextThemePref } from '../lib/theme'
+import { PHONE_QUERY } from '../lib/media'
+import { phoneStore } from '../features/phone/phoneStore'
+import { phoneViewFor } from '../features/phone/phoneView'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
 
@@ -25,6 +28,10 @@ export interface Command {
   when?: (s: AppState) => boolean
   /** Show in the command palette (tab jumps are shortcut-only). */
   palette?: boolean
+  /** Only on phones (< 640px) or only in the laptop layout. */
+  only?: 'phone' | 'laptop'
+  /** Palette title on phones, when the command does something different there. */
+  phoneTitle?: string
   run(ctx: CommandContext): void
 }
 
@@ -178,6 +185,7 @@ export const COMMANDS: Command[] = [
   {
     id: 'view.preview.cycle',
     title: 'Markdown: edit / split / preview',
+    phoneTitle: 'Markdown: edit / preview', // phones have no split view
     section: 'View',
     keywords: ['markdown', 'render', 'preview'],
     shortcuts: [{ code: 'KeyP', mod2: true }],
@@ -187,7 +195,13 @@ export const COMMANDS: Command[] = [
     },
     run: (ctx) => {
       const id = activeId(ctx)
-      if (id) st(ctx).cyclePreview(id)
+      if (!id) return
+      // Phones toggle edit ⇄ preview in phone-only state; the laptop's view is left alone.
+      if (isPhoneNow()) {
+        const phone = phoneStore.getState()
+        const shown = phoneViewFor(phone.previewByTab, id, st(ctx).session.perTab[id]?.previewMode)
+        phone.setPreview(id, shown !== 'preview')
+      } else st(ctx).cyclePreview(id)
     },
   },
   {
@@ -215,7 +229,20 @@ export const COMMANDS: Command[] = [
     section: 'View',
     keywords: ['notes', 'panel'],
     shortcuts: [{ code: 'KeyB', mod: true }],
+    only: 'laptop',
     run: (ctx) => st(ctx).toggleSidebar(),
+  },
+  {
+    id: 'library.open',
+    title: 'Open Library',
+    section: 'View',
+    keywords: ['notes', 'search', 'trash', 'sidebar'],
+    shortcuts: [],
+    only: 'phone',
+    run: (ctx) => {
+      st(ctx).setUi({ paletteOpen: false })
+      phoneStore.getState().open('library')
+    },
   },
   {
     id: 'view.search',
@@ -224,8 +251,10 @@ export const COMMANDS: Command[] = [
     keywords: ['find'],
     shortcuts: [{ code: 'KeyF', mod: true, shift: true }],
     run: (ctx) => {
-      st(ctx).setSidebar({ open: true, panel: 'search' })
       st(ctx).setUi({ paletteOpen: false, focusSearch: st(ctx).ui.focusSearch + 1 })
+      // Phones have no sidebar: open the Library's search instead.
+      if (isPhoneNow()) return openLibrary('search')
+      st(ctx).setSidebar({ open: true, panel: 'search' })
     },
   },
   {
@@ -234,7 +263,13 @@ export const COMMANDS: Command[] = [
     section: 'View',
     keywords: ['deleted', 'restore'],
     shortcuts: [],
-    run: (ctx) => st(ctx).setSidebar({ open: true, panel: 'trash' }),
+    run: (ctx) => {
+      if (isPhoneNow()) {
+        st(ctx).setUi({ paletteOpen: false })
+        return openLibrary('trash')
+      }
+      st(ctx).setSidebar({ open: true, panel: 'trash' })
+    },
   },
   {
     id: 'view.zen',
@@ -318,6 +353,22 @@ export const COMMANDS: Command[] = [
   },
 ]
 
+/** Phones: show a Library section (the laptop sidebar isn't on screen). */
+function openLibrary(section: 'search' | 'trash') {
+  const p = phoneStore.getState()
+  p.setLibrarySection(section)
+  p.open('library')
+}
+
+const isPhoneNow = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches
+
+/** The command's palette title for the current layout. */
+export function commandTitle(c: Command): string {
+  return c.phoneTitle && isPhoneNow() ? c.phoneTitle : c.title
+}
+
 export function commandEnabled(c: Command, s: AppState): boolean {
+  if (c.only && (c.only === 'phone') !== isPhoneNow()) return false
   return c.when ? c.when(s) : true
 }

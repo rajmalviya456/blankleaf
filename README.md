@@ -37,6 +37,10 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
   files onto the window to open them. A gentle reminder nudges you to back up.
 - **Command palette (⌘K / Ctrl+K)** for every action, and a shortcuts sheet (⌘/ / Ctrl+/).
 - **Light and dark themes**, accent colour, editor font and size, line numbers, tab size.
+- **Works on phones.** Below 640px wide the note fills the screen under a slim top bar: tap
+  the title to switch tabs, ☰ for notes / search / trash, ⋯ for everything else. The toolbar
+  sits above the on-screen keyboard and every dialog opens as a bottom sheet (drag down or press
+  Back to close). Phones keep their own text size.
 - **Installable PWA** that works offline. New versions offer a _Reload_ — never a surprise
   refresh.
 

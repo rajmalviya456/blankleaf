@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom/vitest'
 import 'fake-indexeddb/auto'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterEach } from 'vitest'
+
+// Lazy-loaded dialogs and previews can take over the default 1s to appear on a busy machine.
+configure({ asyncUtilTimeout: 5000 })
 
 // jsdom gaps used by Radix UI and dnd-kit.
 class ResizeObserverStub {

@@ -1,3 +1,4 @@
+import { useIsTouch } from '../../lib/media'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Pin, X } from 'lucide-react'
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function TabItem({ note, active, onRequestClose }: Props) {
+  const touch = useIsTouch()
   const renaming = useAppStore((s) => s.ui.renamingId === note.id)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: note.id,
@@ -101,7 +103,10 @@ export function TabItem({ note, active, onRequestClose }: Props) {
             }}
             className={[
               'grid size-4.5 shrink-0 place-items-center rounded text-fg-faint hover:bg-bg-hover hover:text-fg',
-              active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100',
+              // No hover on touch screens: keep every close button visible.
+              active || touch
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100 focus:opacity-100',
             ].join(' ')}
           >
             <X size={12} strokeWidth={2} />

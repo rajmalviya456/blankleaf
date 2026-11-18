@@ -17,11 +17,13 @@ function Preview({ source }: { source: string }) {
   )
 }
 
-function NoteView({ noteId }: { noteId: string }) {
+function NoteView({ noteId, viewOverride }: { noteId: string; viewOverride?: 'edit' | 'preview' }) {
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
-  const view = useAppStore((s) =>
+  const saved = useAppStore((s) =>
     markdown ? (s.session.perTab[noteId]?.previewMode ?? 'edit') : 'edit',
   )
+  // Phones pass their own Edit/Preview choice; it never changes the saved (laptop) view.
+  const view = markdown && viewOverride ? viewOverride : saved
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const deferred = useDeferredValue(content)
 
@@ -44,15 +46,24 @@ function NoteView({ noteId }: { noteId: string }) {
   )
 }
 
-/** Fills all remaining space with the active note's editor, or an empty state. */
-export function EditorArea() {
+/**
+ * Fills all remaining space with the active note's editor, or an empty state. Phones render
+ * the toolbar themselves (above the keyboard) and pass their own Edit/Preview view.
+ */
+export function EditorArea({
+  viewOverride,
+  showToolbar = true,
+}: {
+  viewOverride?: 'edit' | 'preview'
+  showToolbar?: boolean
+} = {}) {
   const activeId = useAppStore((s) => s.session.activeTabId)
   const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen)
   return (
     <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
-      {activeId && toolbar && <Toolbar noteId={activeId} />}
+      {activeId && toolbar && showToolbar && <Toolbar noteId={activeId} />}
       {activeId ? (
-        <NoteView key={activeId} noteId={activeId} />
+        <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
       ) : (
         <div className="grid flex-1 place-items-center">
           <button

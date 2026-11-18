@@ -77,4 +77,31 @@ describe('SettingsDialog', () => {
     expect(content.dataset.side).toBe('bottom')
     expect(content.style.width || content.className).toMatch(/radix-select-trigger-width/)
   })
+
+  it('on a phone, the font size row edits the phone size and leaves the laptop size alone', async () => {
+    const { stubMedia } = await import('../../../tests/media')
+    const media = stubMedia({ phone: true })
+    try {
+      const { s, user } = setup()
+      open(s)
+      const slider = await screen.findByRole('slider', { name: /editor font size/i })
+      expect(slider).toHaveAttribute('min', '16')
+      await user.click(screen.getByRole('button', { name: /increase editor font size/i }))
+      expect(s().settings.phoneEditorFontSize).toBe(17)
+      expect(s().settings.editorFontSize).toBe(14)
+      expect(screen.getByText('On this phone')).toBeInTheDocument()
+    } finally {
+      media.restore()
+    }
+  })
+
+  it('the editor font size can be typed, up to 72', async () => {
+    const { s, user } = setup()
+    open(s)
+    const field = await screen.findByRole('spinbutton', { name: 'Editor font size in px' })
+    await user.clear(field)
+    await user.type(field, '60{Enter}')
+    expect(s().settings.editorFontSize).toBe(60)
+    expect(screen.getByRole('slider', { name: /editor font size/i })).toHaveAttribute('max', '72')
+  })
 })

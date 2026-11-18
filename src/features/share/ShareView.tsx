@@ -47,9 +47,9 @@ interface Props {
 }
 
 const button =
-  'flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-[12.5px] text-fg hover:bg-bg-hover'
+  'flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-[12.5px] text-fg hover:bg-bg-hover max-sm:h-11 max-sm:text-[14px]'
 const primary =
-  'flex h-8 items-center gap-1.5 rounded-md bg-accent px-4 text-[12.5px] font-medium text-accent-fg disabled:opacity-40'
+  'flex h-8 items-center gap-1.5 rounded-md bg-accent px-4 text-[12.5px] font-medium text-accent-fg disabled:opacity-40 max-sm:h-11 max-sm:text-[14px]'
 
 function asNote(s: Snapshot): Note {
   return {
@@ -161,9 +161,12 @@ function ReadyView({
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="flex flex-wrap items-center gap-3 border-b border-border bg-accent-soft px-4 py-2.5 text-[12.5px]">
+      <header className="flex flex-wrap items-center gap-3 border-b border-border bg-accent-soft px-4 py-2.5 pt-[max(10px,env(safe-area-inset-top))] text-[12.5px] max-sm:gap-2">
         <Lock size={13} className="text-accent" />
-        <span data-banner className="min-w-0 flex-1 truncate text-fg">
+        <span
+          data-banner
+          className="min-w-0 flex-1 truncate text-fg max-sm:basis-full max-sm:whitespace-normal"
+        >
           <b className="font-semibold">Shared note</b> · {title} ·{' '}
           {expired ? (
             <span className="text-warn">This link has expired · you can still save your copy</span>

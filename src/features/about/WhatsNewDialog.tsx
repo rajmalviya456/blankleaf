@@ -4,6 +4,7 @@ import { MarkdownPreview } from '../editor/MarkdownPreview'
 import { getStore, useAppStore } from '../../store/store'
 import changelog from '../../../CHANGELOG.md?raw'
 import { releaseNotes } from './whatsNew'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const NOTES = releaseNotes(changelog)
 
@@ -16,7 +17,7 @@ export function WhatsNewDialog() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[8vh] z-50 flex max-h-[84vh] w-[min(620px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
@@ -45,7 +46,7 @@ export function WhatsNewDialog() {
               All releases on GitHub <ExternalLink size={11} aria-hidden />
             </a>
           </footer>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )

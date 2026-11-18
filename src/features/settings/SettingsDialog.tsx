@@ -6,6 +6,7 @@ import { AboutSection } from './sections/AboutSection'
 import { AppearanceSection } from './sections/AppearanceSection'
 import { DataSection } from './sections/DataSection'
 import { EditorSection } from './sections/EditorSection'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 /** Settings sheet (⌘,). Every change applies live and is saved. */
 export function SettingsDialog() {
@@ -18,7 +19,7 @@ export function SettingsDialog() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[8vh] z-50 flex max-h-[84vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
@@ -37,7 +38,7 @@ export function SettingsDialog() {
             <DataSection settings={settings} update={update} />
             <AboutSection />
           </div>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )

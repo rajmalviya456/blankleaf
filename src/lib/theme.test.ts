@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS } from '../domain/defaults'
-import { applySettingsToDocument, applyTheme, resolveTheme } from './theme'
+import { applySettingsToDocument, applyTheme, resolveTheme, THEME_COLOR } from './theme'
 
 describe('resolveTheme', () => {
   it('follows the system preference when set to system', () => {
@@ -48,5 +48,18 @@ describe('applySettingsToDocument', () => {
   it('ignores an accent that is not a hex colour', () => {
     applySettingsToDocument({ ...DEFAULT_SETTINGS, accent: 'red;}body{' }, false)
     expect(root.style.getPropertyValue('--accent')).toBe('')
+  })
+})
+
+describe('browser bar colour', () => {
+  it('theme-color follows the resolved theme', () => {
+    const meta = document.createElement('meta')
+    meta.name = 'theme-color'
+    document.head.append(meta)
+    applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: 'dark' }, false)
+    expect(meta.content).toBe(THEME_COLOR.dark)
+    applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: 'light' }, true)
+    expect(meta.content).toBe(THEME_COLOR.light)
+    meta.remove()
   })
 })

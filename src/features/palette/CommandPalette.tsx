@@ -3,7 +3,12 @@ import { Command } from 'cmdk'
 import { ChevronLeft, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { COMMANDS, commandEnabled, type CommandSection } from '../../commands/registry'
+import {
+  COMMANDS,
+  commandEnabled,
+  commandTitle,
+  type CommandSection,
+} from '../../commands/registry'
 import { detectLanguage } from '../../domain/detectLanguage'
 import { LANGUAGES } from '../../domain/languages'
 import { displayTitle } from '../../domain/title'
@@ -12,6 +17,7 @@ import { platform } from '../../lib/platform'
 import { formatShortcut } from '../../lib/shortcuts'
 import { liveNotesSorted } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const SECTIONS: CommandSection[] = ['Note', 'Tabs', 'View', 'Data', 'App']
 
@@ -64,7 +70,7 @@ export function CommandPalette() {
     <Dialog.Root open={open} onOpenChange={(o) => (o ? undefined : close())}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[14vh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
@@ -136,7 +142,7 @@ export function CommandPalette() {
                         {items.map((c) => (
                           <Command.Item
                             key={c.id}
-                            value={`${c.title} ${c.id}`}
+                            value={`${commandTitle(c)} ${c.id}`}
                             keywords={c.keywords}
                             onSelect={() =>
                               c.id === 'note.format'
@@ -145,7 +151,7 @@ export function CommandPalette() {
                             }
                             className={itemClass}
                           >
-                            {c.title}
+                            {commandTitle(c)}
                             {c.shortcuts[0] && <Kbd>{formatShortcut(c.shortcuts[0], p)}</Kbd>}
                           </Command.Item>
                         ))}
@@ -171,7 +177,7 @@ export function CommandPalette() {
               )}
             </Command.List>
           </Command>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )

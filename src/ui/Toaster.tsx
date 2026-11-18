@@ -1,3 +1,4 @@
+import { useIsPhone } from '../lib/media'
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useStore } from 'zustand'
@@ -31,7 +32,7 @@ function ToastView({ t }: { t: ToastItem }) {
             t.action?.run()
             dismiss()
           }}
-          className="shrink-0 font-medium text-accent hover:underline"
+          className="shrink-0 font-medium text-accent hover:underline max-sm:-my-2 max-sm:min-h-11 max-sm:px-2"
         >
           {t.action.label}
         </button>
@@ -51,8 +52,21 @@ function ToastView({ t }: { t: ToastItem }) {
 /** Bottom-right stack of toasts. Mount once at the app root. */
 export function Toaster() {
   const toasts = useStore(toastStore, (s) => s.toasts)
+  // Phones: full width, above the toolbar and the on-screen keyboard.
+  const phone = useIsPhone()
   return (
-    <div className="pointer-events-none fixed bottom-9 right-3 z-50 flex flex-col items-end gap-2">
+    <div
+      data-toaster
+      // A modal dialog hides the rest of the page from screen readers but leaves aria-live
+      // elements alone, so this keeps toasts (and their Undo) reachable. "off": the toasts'
+      // own status/alert roles do the announcing.
+      aria-live="off"
+      className={
+        phone
+          ? 'pointer-events-none fixed inset-x-3 bottom-[calc(var(--kb,0px)+56px+env(safe-area-inset-bottom))] z-50 flex flex-col items-stretch gap-2'
+          : 'pointer-events-none fixed bottom-9 right-3 z-50 flex flex-col items-end gap-2'
+      }
+    >
       {toasts.map((t) => (
         <ToastView key={t.id} t={t} />
       ))}

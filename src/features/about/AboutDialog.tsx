@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { getStore, useAppStore } from '../../store/store'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const REPO = 'https://github.com/rajmalviya456/notepadz'
 
@@ -84,7 +85,7 @@ export function AboutDialog() {
     <Dialog.Root open={open} onOpenChange={(o) => s().setUi({ aboutOpen: o })}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby="about-tagline"
           className="fixed left-1/2 top-[8vh] z-50 max-h-[84vh] w-[min(440px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-xl border border-border bg-bg-elev p-5 shadow-2xl outline-none"
         >
@@ -152,7 +153,7 @@ export function AboutDialog() {
           <p className="mt-3 text-[11px] leading-snug text-fg-faint">
             Built with React, CodeMirror, Dexie, Radix UI and PeerJS.
           </p>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )

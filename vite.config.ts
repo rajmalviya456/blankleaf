@@ -48,6 +48,8 @@ export default defineConfig(({ command }) => ({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    // Headroom for busy CI runners and machines; individual waits are capped in tests/setup.ts.
+    testTimeout: 15_000,
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
   },

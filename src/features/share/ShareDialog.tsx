@@ -11,6 +11,7 @@ import { packSnapshot } from './crypto'
 import { MAX_SNAPSHOT_BYTES, type CreatedShare } from './host'
 import { generatePassword, isPasswordValid } from './password'
 import { getShareHost, shareStore } from './shareStore'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const EXPIRIES = [
   { label: '5 min', ms: 5 * 60_000 },
@@ -325,7 +326,7 @@ export function ShareDialog() {
     <Dialog.Root open={noteId !== null} onOpenChange={(o) => !o && shareStore.getState().close()}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[14vh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
@@ -350,7 +351,7 @@ export function ShareDialog() {
               noteId && <Options key={noteId} noteId={noteId} />
             )}
           </div>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )

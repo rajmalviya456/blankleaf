@@ -21,7 +21,8 @@ function Highlighted({ text, ranges }: { text: string; ranges: [number, number][
   return <>{parts}</>
 }
 
-export function SearchPanel() {
+/** Search across all notes. `onOpened` runs after a result is opened (phone Library closes). */
+export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
   const [query, setQuery] = useState('')
   const deferred = useDeferredValue(query)
   const notes = useAppStore((s) => s.notes)
@@ -38,6 +39,7 @@ export function SearchPanel() {
     const s = getStore().getState()
     s.openNote(r.id)
     if (r.firstMatch >= 0) s.reveal(r.id, r.firstMatch, r.firstMatch + deferred.trim().length)
+    onOpened?.()
   }
 
   return (

@@ -4,6 +4,7 @@ import { COMMANDS, type CommandSection } from '../../commands/registry'
 import { platform } from '../../lib/platform'
 import { formatShortcut } from '../../lib/shortcuts'
 import { getStore, useAppStore } from '../../store/store'
+import { DialogSurface } from '../../ui/DialogSurface'
 
 const SECTIONS: CommandSection[] = ['Note', 'Tabs', 'View', 'App']
 
@@ -18,7 +19,7 @@ export function ShortcutsSheet() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <Dialog.Content
+        <DialogSurface
           aria-describedby={undefined}
           className="fixed left-1/2 top-[10vh] z-50 max-h-[80vh] w-[min(520px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-xl border border-border bg-bg-elev p-4 shadow-2xl outline-none"
         >
@@ -70,7 +71,7 @@ export function ShortcutsSheet() {
               ? '⌃⌥ is Control+Option. Option alone is left alone so you can type [ ] | @.'
               : 'Alt shortcuts ignore AltGr, so you can still type [ ] | @ on any layout.'}
           </p>
-        </Dialog.Content>
+        </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
   )
