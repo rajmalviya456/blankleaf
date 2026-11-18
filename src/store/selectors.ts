@@ -1,4 +1,5 @@
-import type { Note } from '../domain/types'
+import { displayTitle } from '../domain/title'
+import type { Note, NotesSort } from '../domain/types'
 import type { AppState } from './store'
 
 /** Open tabs in display order (session order is already pinned-first). */
@@ -11,11 +12,20 @@ export function activeNote(s: AppState): Note | null {
   return (id && s.notes[id]) || null
 }
 
-/** Non-trashed notes: pinned first, then most recently edited. */
+const byName = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+
+const ORDER: Record<NotesSort, (a: Note, b: Note) => number> = {
+  edited: (a, b) => b.updatedAt - a.updatedAt,
+  created: (a, b) => b.createdAt - a.createdAt,
+  title: (a, b) => byName.compare(displayTitle(a), displayTitle(b)),
+}
+
+/** Non-trashed notes: pinned first, then in the order chosen for the notes list. */
 export function liveNotesSorted(s: AppState): Note[] {
+  const order = ORDER[s.settings.notesSort] ?? ORDER.edited
   return Object.values(s.notes)
     .filter((n) => n.deletedAt === null)
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || order(a, b))
 }
 
 /** Trashed notes, most recently trashed first. */

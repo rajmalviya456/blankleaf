@@ -26,6 +26,9 @@ export type LanguageId =
   | 'rust'
   | 'php'
 
+/** How the notes list is ordered (pinned notes always come first). */
+export type NotesSort = 'edited' | 'created' | 'title'
+
 export interface Note {
   id: string
   /** Explicit name; null means "derive from first line" (see displayTitle). */
@@ -34,6 +37,8 @@ export interface Note {
   mode: NoteMode
   language: LanguageId
   wrap: boolean
+  /** Browser spell check for this note. Off unless turned on. */
+  spellcheck?: boolean
   pinned: boolean
   createdAt: number
   updatedAt: number
@@ -84,4 +89,5 @@ export interface Settings {
   showToolbar: boolean
   /** 0 disables the reminder. */
   backupReminderDays: number
+  notesSort: NotesSort
 }

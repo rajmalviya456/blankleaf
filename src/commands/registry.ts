@@ -233,6 +233,18 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    id: 'view.spellcheck',
+    title: 'Toggle spell check',
+    section: 'View',
+    keywords: ['spelling', 'typos', 'proofread'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) st(ctx).toggleSpellcheck(id)
+    },
+  },
+  {
     id: 'view.toolbar',
     title: 'Toggle toolbar',
     section: 'View',

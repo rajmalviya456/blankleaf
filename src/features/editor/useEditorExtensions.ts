@@ -16,6 +16,8 @@ import { createFindPanel } from './findPanel'
 
 interface Options {
   wrap: boolean
+  /** Let the browser underline misspelled words. */
+  spellcheck?: boolean
   /** Very large document: drop per-line decorations to stay responsive. */
   large?: boolean
   settings: Pick<
@@ -29,7 +31,12 @@ interface Options {
   >
 }
 
-export function useEditorExtensions({ wrap, settings, large = false }: Options): Extension[] {
+export function useEditorExtensions({
+  wrap,
+  spellcheck = false,
+  settings,
+  large = false,
+}: Options): Extension[] {
   const {
     lineNumbers: showNumbers,
     highlightActiveLine: activeLine,
@@ -47,7 +54,10 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
-      EditorView.contentAttributes.of({ 'aria-label': 'Note text' }),
+      EditorView.contentAttributes.of({
+        'aria-label': 'Note text',
+        spellcheck: spellcheck ? 'true' : 'false',
+      }),
     ]
     if (showNumbers) ext.push(lineNumbers(), highlightActiveLineGutter())
     if (activeLine && !large) ext.push(highlightActiveLine())
@@ -65,5 +75,15 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
       }),
     )
     return ext
-  }, [wrap, showNumbers, activeLine, tabSize, large, editorFontSize, lineHeight, editorFont])
+  }, [
+    wrap,
+    spellcheck,
+    showNumbers,
+    activeLine,
+    tabSize,
+    large,
+    editorFontSize,
+    lineHeight,
+    editorFont,
+  ])
 }

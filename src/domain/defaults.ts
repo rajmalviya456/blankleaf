@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   highlightActiveLine: true,
   showToolbar: true,
   backupReminderDays: 7,
+  notesSort: 'edited',
 }) as Settings
 
 /** Merge stored settings over defaults, keeping only known keys with matching types. */
@@ -34,6 +35,7 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
     const value = (stored as Record<string, unknown>)[key]
     if (value !== undefined && typeof value === typeof DEFAULT_SETTINGS[key]) target[key] = value
   }
+  if (!['edited', 'created', 'title'].includes(out.notesSort)) out.notesSort = 'edited'
   return out
 }
 

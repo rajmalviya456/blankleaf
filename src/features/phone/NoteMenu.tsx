@@ -73,6 +73,30 @@ const Group = ({ children }: { children: ReactNode }) => (
   <div className="border-b border-border py-1 last:border-b-0">{children}</div>
 )
 
+function SwitchRow({ label, on, onToggle }: { label: string; on: boolean; onToggle(): void }) {
+  return (
+    <label className={row + ' justify-between'}>
+      <span className="pl-[30px]">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-label={label}
+        aria-checked={on}
+        onClick={onToggle}
+        className="relative h-7 w-12 rounded-full bg-bg-hover transition-colors aria-checked:bg-accent"
+      >
+        <span
+          aria-hidden
+          className={[
+            'absolute top-0.5 size-6 rounded-full bg-white shadow transition-[left]',
+            on ? 'left-[22px]' : 'left-0.5',
+          ].join(' ')}
+        />
+      </button>
+    </label>
+  )
+}
+
 function Stats({ noteId }: { noteId: string }) {
   const content = useDeferredValue(useAppStore((s) => s.notes[noteId]?.content ?? ''))
   const head = useAppStore((s) => s.session.perTab[noteId]?.head ?? 0)
@@ -117,25 +141,16 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   keepOpen
                   onSelect={() => phoneStore.getState().open('format')}
                 />
-                <label className={row + ' justify-between'}>
-                  <span className="pl-[30px]">Wrap lines</span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-label="Wrap lines"
-                    aria-checked={note.wrap}
-                    onClick={() => s().toggleWrap(noteId)}
-                    className="relative h-7 w-12 rounded-full bg-bg-hover transition-colors aria-checked:bg-accent"
-                  >
-                    <span
-                      aria-hidden
-                      className={[
-                        'absolute top-0.5 size-6 rounded-full bg-white shadow transition-[left]',
-                        note.wrap ? 'left-[22px]' : 'left-0.5',
-                      ].join(' ')}
-                    />
-                  </button>
-                </label>
+                <SwitchRow
+                  label="Wrap lines"
+                  on={note.wrap}
+                  onToggle={() => s().toggleWrap(noteId)}
+                />
+                <SwitchRow
+                  label="Spell check"
+                  on={!!note.spellcheck}
+                  onToggle={() => s().toggleSpellcheck(noteId)}
+                />
               </Group>
               <Group>
                 <div className={row + ' justify-between'}>

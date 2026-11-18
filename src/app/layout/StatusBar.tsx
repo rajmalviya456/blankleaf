@@ -93,6 +93,14 @@ function NoteInfo({ note }: { note: Note }) {
       >
         Wrap: {note.wrap ? 'on' : 'off'}
       </button>
+      <button
+        type="button"
+        title="Toggle spell check for this note"
+        onClick={() => getStore().getState().toggleSpellcheck(note.id)}
+        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+      >
+        Spelling: {note.spellcheck ? 'on' : 'off'}
+      </button>
       {isLargeDoc(content.length) && (
         <span className="text-warn" title="Syntax highlighting is off to keep typing fast">
           Large file · highlighting off
