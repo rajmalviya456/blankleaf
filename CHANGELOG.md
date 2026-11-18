@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/rajmalviya456/blankleaf/compare/v1.3.1...v1.4.0) (2026-11-18)
+
+
+### Features
+
+* version history, text tools and clickable checklists ([#23](https://github.com/rajmalviya456/blankleaf/issues/23)) ([d64df35](https://github.com/rajmalviya456/blankleaf/commit/d64df3516ff8fa25f9ae57a83952880f4c2f9f4d))
+
 ## [1.3.1](https://github.com/rajmalviya456/blankleaf/compare/v1.3.0...v1.3.1) (2026-11-18)
 
 
