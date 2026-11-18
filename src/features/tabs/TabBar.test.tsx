@@ -89,6 +89,7 @@ describe('TabBar', () => {
       'Pin',
       'Duplicate',
       'Tags…',
+      'Open beside',
       'Close',
       'Close others',
       'Close to the right',

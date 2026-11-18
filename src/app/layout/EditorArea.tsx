@@ -1,4 +1,6 @@
-import { Plus } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
+import { displayTitle } from '../../domain/title'
+import { useIsWide } from '../../lib/media'
 import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { Editor } from '../../features/editor/Editor'
@@ -59,6 +61,38 @@ function NoteView({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
   )
 }
 
+/** A second note beside the active one, on screens wide enough for two. */
+function SideNote({ activeId }: { activeId: string }) {
+  const wide = useIsWide()
+  const zen = useAppStore((s) => s.session.zen)
+  const note = useAppStore((s) => {
+    const id = s.session.splitNoteId
+    return id && id !== activeId ? s.notes[id] : undefined
+  })
+  if (!wide || zen || !note || note.deletedAt !== null) return null
+  const title = displayTitle(note)
+  return (
+    <section
+      aria-label={`Side note: ${title}`}
+      className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-border"
+    >
+      <div className="flex h-8 shrink-0 items-center gap-2 border-b border-border bg-bg-sunken pl-3 pr-1 text-[12.5px] text-fg-muted">
+        <span className="min-w-0 flex-1 truncate">{title}</span>
+        <button
+          type="button"
+          aria-label="Close side note"
+          title="Close side note"
+          onClick={() => getStore().getState().setSplitNote(null)}
+          className="grid size-6 place-items-center rounded hover:bg-bg-hover hover:text-fg"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      <Editor key={note.id} noteId={note.id} side />
+    </section>
+  )
+}
+
 /**
  * Fills all remaining space with the active note's editor, or an empty state. Phones render
  * the toolbar themselves (above the keyboard) and pass their own Edit/Preview view.
@@ -76,7 +110,12 @@ export function EditorArea({
     <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
       {activeId && toolbar && showToolbar && <Toolbar noteId={activeId} />}
       {activeId ? (
-        <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
+        <div className="flex min-h-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
+          </div>
+          {!viewOverride && <SideNote activeId={activeId} />}
+        </div>
       ) : (
         <div className="grid flex-1 place-items-center">
           <button

@@ -566,6 +566,24 @@ input[type='search']::-webkit-search-decoration {
   }
 }
 
+.md-diagram {
+  margin: 1em 0;
+  overflow-x: auto;
+  text-align: center;
+}
+.md-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.md-diagram-error {
+  color: var(--warn);
+  font-size: 0.9em;
+}
+.md-preview math[display='block'] {
+  margin: 0.8em 0;
+  overflow-x: auto;
+}
+
 /* Print / save as PDF: only the note, always on white. */
 #print-root {
   display: none;

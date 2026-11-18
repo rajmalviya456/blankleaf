@@ -42,6 +42,7 @@ function sanitizeSession(stored: Session | undefined, notes: Record<string, Note
     perTab,
     closedStack: (base.closedStack ?? []).filter((id) => live(id) && !openTabIds.includes(id)),
     sidebar: { ...emptySession().sidebar, ...base.sidebar },
+    splitNoteId: base.splitNoteId && live(base.splitNoteId) ? base.splitNoteId : null,
   }
 }
 

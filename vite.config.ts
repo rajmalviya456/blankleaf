@@ -25,6 +25,9 @@ function sitePages(): Plugin {
 
 const pageSlugs = PAGES.map((p) => p.slug).join('|')
 
+const DIAGRAM_MODULES =
+  /node_modules\/(@mermaid-js|mermaid|cytoscape[^/]*|d3[^/]*|dagre-d3-es|khroma|langium|chevrotain[^/]*|roughjs|@iconify|stylis|vscode-[^/]*)\//
+
 // GitHub Pages serves the app from /blankleaf/; dev server stays at /.
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/blankleaf/' : '/',
@@ -63,8 +66,16 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        // Link previews and landing pages aren't part of the offline app.
-        globIgnores: ['**/og-image.png', ...PAGES.map((p) => `${p.slug}/**`)],
+        // Link previews and landing pages aren't part of the offline app. Diagrams are a large
+        // download only some notes need, so they're cached the first time a note uses them.
+        globIgnores: ['**/og-image.png', 'assets/diagrams/**', ...PAGES.map((p) => `${p.slug}/**`)],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/diagrams\//,
+            handler: 'CacheFirst',
+            options: { cacheName: 'diagrams', expiration: { maxEntries: 120 } },
+          },
+        ],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
         // Real files and landing pages opened directly (sitemap, preview image, FAQ…) must come from the
@@ -76,6 +87,17 @@ export default defineConfig(({ command }) => ({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep the diagram library apart, so it isn't downloaded for offline use by everyone.
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some((id) => DIAGRAM_MODULES.test(id))
+            ? 'assets/diagrams/[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   test: {
     environment: 'jsdom',
