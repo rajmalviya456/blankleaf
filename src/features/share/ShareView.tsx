@@ -321,7 +321,8 @@ export function ShareView({ parts, transport, onSave, onClose, onDownload }: Pro
       return (
         <Card icon={<WifiOff size={18} />} title="Waiting for the sender to come online…">
           <p>
-            The note is sent straight from the sender’s browser, so their Notepadz needs to be open.
+            The note is sent straight from the sender’s browser, so their Blankleaf needs to be
+            open.
           </p>
           <p className="tabular-nums">Link expires in {left.label}.</p>
           {close}

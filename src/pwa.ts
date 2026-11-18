@@ -6,13 +6,13 @@ export function setupPwa(): void {
   if (!('serviceWorker' in navigator)) return
   const update = registerSW({
     onNeedRefresh() {
-      toast('A new version of Notepadz is ready.', {
+      toast('A new version of Blankleaf is ready.', {
         durationMs: 0,
         action: { label: 'Reload', run: () => void update(true) },
       })
     },
     onOfflineReady() {
-      toast('Notepadz now works offline.')
+      toast('Blankleaf now works offline.')
     },
   })
 }

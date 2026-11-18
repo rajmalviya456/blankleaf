@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, newNoteDraft } from '../domain/defaults'
 import type { Note } from '../domain/types'
-import { openDb, type NotepadzDB } from './db'
+import { openDb, type BlankleafDB } from './db'
 import {
   hardDeleteNote,
   insertNote,
@@ -12,7 +12,7 @@ import {
 } from './notesRepo'
 
 const DAY = 86_400_000
-let db: NotepadzDB
+let db: BlankleafDB
 let n = 0
 
 beforeEach(() => {

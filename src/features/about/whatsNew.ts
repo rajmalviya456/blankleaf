@@ -5,7 +5,7 @@ export function releaseNotes(changelog: string): string {
   return changelog.replace(/^# Changelog\s*/, '').trim()
 }
 
-const KEY = 'notepadz:seen-version'
+const KEY = 'blankleaf:seen-version'
 
 /**
  * Compare the running version with the one this browser last saw, and remember it.

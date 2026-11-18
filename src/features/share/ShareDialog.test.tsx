@@ -9,7 +9,7 @@ import { setShareHost, shareStore } from './shareStore'
 function fakeHost(over: Partial<ShareHost> = {}) {
   const created: CreatedShare = {
     id: 's1',
-    link: 'https://x.dev/notepadz/#/s/KEY.exp.p',
+    link: 'https://x.dev/blankleaf/#/s/KEY.exp.p',
     password: null,
     expiresAt: Date.now() + 300_000,
     message: 'MESSAGE',
@@ -113,11 +113,11 @@ describe('ShareDialog', () => {
     expect(await within(dialog).findByText(/message copied/i)).toBeInTheDocument()
     expect(writeText).toHaveBeenCalledWith(`MSG with Password: ${pw}`)
     expect(
-      within(dialog).getByDisplayValue('https://x.dev/notepadz/#/s/KEY.exp.p'),
+      within(dialog).getByDisplayValue('https://x.dev/blankleaf/#/s/KEY.exp.p'),
     ).toBeInTheDocument()
     expect(within(dialog).getByDisplayValue(pw)).toBeInTheDocument()
     expect(within(dialog).getByText(/expires in/i)).toHaveTextContent(/1:00:00|59:59/)
-    expect(within(dialog).getByText(/keep notepadz open/i)).toBeInTheDocument()
+    expect(within(dialog).getByText(/keep blankleaf open/i)).toBeInTheDocument()
   })
 
   it('countdown ticks every second and the bar shrinks', async () => {

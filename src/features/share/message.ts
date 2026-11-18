@@ -28,7 +28,7 @@ export function formatShareMessage(o: MessageOptions): string {
   const time = plainSpaces(
     new Intl.DateTimeFormat(o.locale, { timeStyle: 'short', timeZone: o.timeZone }).format(when),
   )
-  const lines = ['Hey! A note was shared with you on Notepadz.', '', `Open it: ${o.link}`]
+  const lines = ['Hey! A note was shared with you on Blankleaf.', '', `Open it: ${o.link}`]
   if (o.password) lines.push(`Password: ${o.password}`)
   lines.push('', `This link expires on ${date} at ${time} (${relative(o.expiresAt - o.now)}).`)
   return lines.join('\n')

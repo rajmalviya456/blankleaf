@@ -49,7 +49,7 @@ export function DropZone() {
         <FileDown size={28} className="text-accent" />
         <p className="text-sm font-medium">Drop to import</p>
         <p className="text-[12px] text-fg-muted">
-          Text files open as notes · Notepadz backups can be merged
+          Text files open as notes · Blankleaf backups can be merged
         </p>
       </div>
     </div>

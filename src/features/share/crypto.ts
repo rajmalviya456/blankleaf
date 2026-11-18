@@ -104,6 +104,8 @@ export async function deriveSecrets(
   password: string | null,
 ): Promise<Secrets> {
   const flag = password ? 'p' : 'n'
+  // Wire format, kept from the app's former name (Notepadz) so links made before the rename
+  // (and by tabs still running the old build) keep opening.
   const info = (what: string) => `notepadz-share-v1|${what}|${exp}|${flag}`
   const peerId = 'npz-' + base32(await hkdf(key, info('peer'), 16))
   let ikm: Uint8Array = key
@@ -157,7 +159,7 @@ export async function unpackSnapshot(bytes: Uint8Array): Promise<Snapshot> {
     !LANGUAGE_IDS.has(json.language) ||
     (json.mode !== 'plain' && json.mode !== 'markdown')
   )
-    throw new Error('not a Notepadz share')
+    throw new Error('not a Blankleaf share')
   return {
     v: 1,
     title: json.title,

@@ -1,11 +1,11 @@
-# Notepadz — Design
+# Blankleaf — Design
 
 Date: 2026-11-16
 Status: Draft, awaiting approval
 
 ## 1. Intent
 
-Notepadz is a browser notepad that uses the **whole window** for writing, has **tabs**, and
+Blankleaf is a browser notepad that uses the **whole window** for writing, has **tabs**, and
 **restores your session** exactly as you left it. There is **no backend and no database server**.
 Every note stays on the user's machine.
 
@@ -19,7 +19,7 @@ Why it exists: existing online notepads (onlinenotepad.org, edit-pad, dontpad, n
 protectedtext) share the same problems. They waste space with ads and small textareas, have no
 real tabs or clunky ones, store data fragilely in `localStorage` (about a 5MB cap, silent loss), can't
 undo a closed tab, can't search across notes, and look dated with weak dark mode and few shortcuts.
-Notepadz should feel like a modern, calm, fast desktop tool that lives in a browser tab.
+Blankleaf should feel like a modern, calm, fast desktop tool that lives in a browser tab.
 
 ## 2. Goals, non-goals, anti-goals
 
@@ -55,7 +55,7 @@ Notepadz should feel like a modern, calm, fast desktop tool that lives in a brow
 
 ## 3. Constraints
 
-- Static SPA only. Hosted on GitHub Pages under a sub-path (`/notepadz/`). It must work with that
+- Static SPA only. Hosted on GitHub Pages under a sub-path (`/blankleaf/`). It must work with that
   base path and offline.
 - Storage is per origin (`localhost:5173` ≠ `*.github.io`). Export/import is the bridge between them.
 - Browser storage can be evicted or cleared by the user. Mitigations: `navigator.storage.persist()`,
@@ -206,7 +206,7 @@ doesn't show it again. There's no onboarding modal.
 
 ## 7. Data and persistence
 
-### 7.1 Dexie schema (database `notepadz`, versioned)
+### 7.1 Dexie schema (database `blankleaf`, versioned)
 ```ts
 notes:    id (uuid), title (string|null), content (string), mode ('plain'|'markdown'),
           language (string), wrap (boolean), pinned (boolean),
@@ -229,8 +229,8 @@ Migrations go through Dexie `version().upgrade()`. Never drop user data in a mig
   now". The in-memory text is kept and saving is retried.
 - On start, call `navigator.storage.persist()` and show the result in Settings → Data.
 
-### 7.3 Multiple windows or tabs of Notepadz
-- `BroadcastChannel('notepadz')` announces note changes, and other windows apply them live when
+### 7.3 Multiple windows or tabs of Blankleaf
+- `BroadcastChannel('blankleaf')` announces note changes, and other windows apply them live when
   they have no unsaved local edits to that note.
 - **No version is ever silently lost** *(builder-check call)*: each note carries a `rev` counter.
   A save is a compare-and-set in a Dexie transaction (`rev` must match what this window last loaded).
@@ -243,7 +243,7 @@ Migrations go through Dexie `version().upgrade()`. Never drop user data in a mig
   always added. *(Builder-check call.)*
 
 ### 7.4 Export and import
-- **Export all:** one `notepadz-backup-YYYY-MM-DD.json` file `{ app: 'notepadz', schemaVersion,
+- **Export all:** one `blankleaf-backup-YYYY-MM-DD.json` file `{ app: 'blankleaf', schemaVersion,
   exportedAt, notes, settings }`. Trash is included and flagged.
 - **Export one note:** a `.txt` or `.md` file (by mode), or one with the language's extension.
 - **Import:** a `.json` backup (merge by id, keeping the newer `updatedAt`, with a summary dialog
@@ -320,7 +320,7 @@ or a mixed bag.
 ## 10a. Planned after v1: share a note by link (user request, 2026-11-16)
 The user wants to share a note easily via a link. Direction so far: no server. The note (content,
 title, format) is compressed into the link's `#fragment`, so it never reaches any server. Opening the
-link in Notepadz creates a **copy** as a new note for the recipient, with an option to download it as a
+link in Blankleaf creates a **copy** as a new note for the recipient, with an option to download it as a
 file instead. This needs its own short spec before building (link length limits, very large notes,
 wording that makes clear that anyone with the link can read the note).
 

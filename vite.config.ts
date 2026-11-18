@@ -5,9 +5,9 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import pkg from './package.json' with { type: 'json' }
 
-// GitHub Pages serves the app from /notepadz/; dev server stays at /.
+// GitHub Pages serves the app from /blankleaf/; dev server stays at /.
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/notepadz/' : '/',
+  base: command === 'build' ? '/blankleaf/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -16,9 +16,13 @@ export default defineConfig(({ command }) => ({
       registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'logo.svg'],
       manifest: {
-        name: 'Notepadz',
-        short_name: 'Notepadz',
-        description: 'A full-window, tabbed notepad that keeps everything in your browser.',
+        id: './',
+        name: 'Blankleaf — Online Notepad',
+        short_name: 'Blankleaf',
+        description:
+          'A free online notepad with tabs, Markdown and code highlighting that keeps everything in your browser.',
+        categories: ['productivity', 'utilities'],
+        lang: 'en',
         start_url: '.',
         scope: '.',
         display: 'standalone',
@@ -38,6 +42,7 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        globIgnores: ['**/og-image.png'], // link previews only; not needed offline
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
       },

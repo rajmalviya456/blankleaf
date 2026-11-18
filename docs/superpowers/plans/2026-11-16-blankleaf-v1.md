@@ -1,20 +1,20 @@
-# Notepadz v1 Implementation Plan
+# Blankleaf v1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build Notepadz, a full-window, tabbed, offline-first browser notepad with session restore, stored only in IndexedDB, deployed to GitHub Pages as a PWA.
+**Goal:** Build Blankleaf, a full-window, tabbed, offline-first browser notepad with session restore, stored only in IndexedDB, deployed to GitHub Pages as a PWA.
 
 **Architecture:** A Vite + React 19 SPA. A single Zustand store holds notes, the session, settings and UI state. A persistence bridge mirrors the store into Dexie (IndexedDB) with debounced writes that flush on page hide. CodeMirror 6 is the editor. One command registry drives the shortcuts, the `cmdk` palette and the menus. A BroadcastChannel keeps windows in sync, with compare-and-set saves that turn a lost race into a "conflict copy" note.
 
 **Tech Stack:** Vite, React 19, TypeScript (strict), Zustand, Dexie + dexie-react-hooks, CodeMirror 6 (`@uiw/react-codemirror`, `@codemirror/language-data`, `@codemirror/legacy-modes`), Tailwind CSS v4, Radix UI primitives, cmdk, @dnd-kit, lucide-react, react-markdown + remark-gfm + rehype-sanitize, vite-plugin-pwa, Vitest + Testing Library + fake-indexeddb, Playwright.
 
-**Spec:** `docs/superpowers/specs/2026-11-16-notepadz-design.md`. Read it before starting any task. Section references (§) point there.
+**Spec:** `docs/superpowers/specs/2026-11-16-blankleaf-design.md`. Read it before starting any task. Section references (§) point there.
 
 ## Global Constraints
 
 - Node 24, npm. Install the latest stable version of each library listed above at scaffold time, and commit `package-lock.json`.
 - TypeScript `strict: true`. No `any` in exported signatures.
-- Vite `base: '/notepadz/'` for production builds, `/` for dev.
+- Vite `base: '/blankleaf/'` for production builds, `/` for dev.
 - No network requests carry note content. No analytics. Fonts (Inter, JetBrains Mono) are self-hosted via `@fontsource-variable/*`.
 - Debounce: content writes **300ms**, session/view-state writes **1000ms**. Flush on `visibilitychange→hidden`, `pagehide`, tab switch and note close.
 - The closed-tab stack holds at most **20**. Trash keeps notes for **30 days**. The backup reminder default is **7 days**.
@@ -94,7 +94,7 @@ it('renders the app root', () => {
 })
 ```
 - [ ] **Step 3:** Run `npm test`. Expected: FAIL (no `app-root`).
-- [ ] **Step 4:** Make `App` render `<div data-testid="app-root" className="h-dvh w-dvw">Notepadz</div>`.
+- [ ] **Step 4:** Make `App` render `<div data-testid="app-root" className="h-dvh w-dvw">Blankleaf</div>`.
 - [ ] **Step 5:** Run `npm test && npm run lint && npm run typecheck && npm run build`. Expected: all pass.
 - [ ] **Step 6:** Add CI workflow `ci.yml` (on push and PR: `npm ci`, lint, typecheck, test, build), and a README covering purpose, scripts and the privacy note "notes never leave your browser".
 - [ ] **Step 7: Commit** in two commits:
@@ -312,12 +312,12 @@ expect(textStats('hello  world\nfoo')).toEqual({ words: 3, chars: 16 })
 **Interfaces:**
 - Produces:
 ```ts
-class NotepadzDB extends Dexie {
+class BlankleafDB extends Dexie {
   notes: Table<Note, string>          // '&id, updatedAt, deletedAt, pinned'
   kv: Table<{ key: 'session'|'settings'|'meta'; value: unknown }, string>   // '&key'
   tombstones: Table<{ id: string; purgedAt: number }, string>             // '&id'
 }
-function openDb(name?: string): NotepadzDB            // default 'notepadz'; tests pass unique names
+function openDb(name?: string): BlankleafDB            // default 'blankleaf'; tests pass unique names
 type SaveResult = { ok: true; rev: number } | { ok: false; current: Note }
 saveNote(db, note: Note, expectedRev: number): Promise<SaveResult>   // CAS in rw transaction; on ok stores rev = expectedRev+1
 insertNote(db, note: Note): Promise<void>
@@ -355,9 +355,9 @@ putKv(db, key, value): Promise<void>
 ```ts
 createDebouncedWriter<V>(write: (key: string, v: V) => Promise<void>, delayMs: number):
   { schedule(key: string, v: V): void; flush(): Promise<void>; hasPending(key?: string): boolean; cancel(key: string): void }
-startPersistence(store: StoreApi<AppStore>, db: NotepadzDB, opts?: { contentDelay?: number; sessionDelay?: number; target?: Window }):
+startPersistence(store: StoreApi<AppStore>, db: BlankleafDB, opts?: { contentDelay?: number; sessionDelay?: number; target?: Window }):
   { flush(): Promise<void>; stop(): void; onConflict(cb: (local: Note, current: Note) => void): void; hasPendingFor(id: string): boolean }
-loadInitialState(db: NotepadzDB, now: number): Promise<Partial<AppState>>
+loadInitialState(db: BlankleafDB, now: number): Promise<Partial<AppState>>
 requestPersistentStorage(): Promise<boolean | 'unsupported'>
 toast(msg: string, opts?: { action?: { label: string; run(): void }; tone?: 'info'|'warn'|'error'; durationMs?: number }): void
 ```
@@ -583,10 +583,10 @@ expect(formatShortcut({ code: 'KeyF', mod: true, shift: true }, 'other')).toBe('
 - Consumes: `LANGUAGES[].ext` (Task 11), and `insertNote`/`saveNote`/`putKv`/`tombstones` (Task 7).
 - Produces:
 ```ts
-interface Backup { app: 'notepadz'; schemaVersion: 1; exportedAt: number; notes: Note[]; settings: Settings }
+interface Backup { app: 'blankleaf'; schemaVersion: 1; exportedAt: number; notes: Note[]; settings: Settings }
 buildBackup(notes: Note[], settings: Settings, now: number): Backup          // includes trashed notes as-is
-backupFileName(now: number): string                                           // 'notepadz-backup-2026-11-16.json' (local date)
-parseBackup(text: string): Backup                                             // throws BackupError('not-json'|'not-notepadz'|'bad-schema')
+backupFileName(now: number): string                                           // 'blankleaf-backup-2026-11-16.json' (local date)
+parseBackup(text: string): Backup                                             // throws BackupError('not-json'|'not-blankleaf'|'bad-schema')
 interface ImportPlan { add: Note[]; update: Note[]; unchanged: number; olderSkipped: number; deletedRestorable: Note[] }
 planImport(existing: Record<string, Note>, tombstoneIds: Set<string>, backup: Backup): ImportPlan
 applyImport(db, store, plan, opts: { restoreDeleted: boolean }): Promise<void>  // also removes tombstones for restored ids
@@ -599,7 +599,7 @@ shouldRemindBackup(lastBackupAt: number|null, intervalDays: number, hasNonEmptyN
 
 - [ ] **Step 1: Failing tests:**
   - `buildBackup → JSON → parseBackup round-trips equal`
-  - `parseBackup rejects foreign json`: `{"foo":1}` throws `not-notepadz`, `"abc"` throws `not-json`
+  - `parseBackup rejects foreign json`: `{"foo":1}` throws `not-blankleaf`, `"abc"` throws `not-json`
   - `planImport: newer updatedAt → update, older → olderSkipped, equal → unchanged, unknown id → add`
   - `planImport: tombstoned ids go to deletedRestorable, not add`
   - `import of invalid file leaves db unchanged` (ImportDialog shows the error text and the db note count is the same)
@@ -635,7 +635,7 @@ shouldRemindBackup(lastBackupAt: number|null, intervalDays: number, hasNonEmptyN
 - Produces:
 ```ts
 type SyncMsg = { t: 'note'; id: string; rev: number; from: string } | { t: 'deleted'; id: string; from: string }
-startSync(store, db, persistence, channel: BroadcastChannel = new BroadcastChannel('notepadz')): { stop(): void }
+startSync(store, db, persistence, channel: BroadcastChannel = new BroadcastChannel('blankleaf')): { stop(): void }
 resolveConflict(store, local: Note, current: Note, now: number): string   // returns new conflict-copy note id
 ```
   - On receiving a `note` message from another window:
@@ -668,10 +668,10 @@ resolveConflict(store, local: Note, current: Note, now: number): string   // ret
 - Test: `npm run build && npm run preview` manual check, plus an e2e check in Task 17.
 
 **Interfaces:**
-- Produces: the manifest `{ name: 'Notepadz', short_name: 'Notepadz', start_url: '/notepadz/', scope: '/notepadz/', display: 'standalone', theme_color, background_color }`. Deploy model (user decision, like `gitname/react-gh-pages`): the build output is **never committed to `main`**. It is published to a separate **`gh-pages` branch** that holds only `dist/` contents (plus `.nojekyll` and a `404.html` copy of `index.html`). Two ways to publish, same result: `npm run deploy` (the `gh-pages` npm package: `predeploy: npm run build`, `deploy: gh-pages -d dist --dotfiles`) for a manual release from a laptop, and `deploy.yml`, which on push to `main` runs CI, then `peaceiris/actions-gh-pages@v4` with `publish_dir: ./dist` and `publish_branch: gh-pages`.
+- Produces: the manifest `{ name: 'Blankleaf', short_name: 'Blankleaf', start_url: '/blankleaf/', scope: '/blankleaf/', display: 'standalone', theme_color, background_color }`. Deploy model (user decision, like `gitname/react-gh-pages`): the build output is **never committed to `main`**. It is published to a separate **`gh-pages` branch** that holds only `dist/` contents (plus `.nojekyll` and a `404.html` copy of `index.html`). Two ways to publish, same result: `npm run deploy` (the `gh-pages` npm package: `predeploy: npm run build`, `deploy: gh-pages -d dist --dotfiles`) for a manual release from a laptop, and `deploy.yml`, which on push to `main` runs CI, then `peaceiris/actions-gh-pages@v4` with `publish_dir: ./dist` and `publish_branch: gh-pages`.
 
-- [ ] **Step 1:** Add the plugin config and icons. Run `npm run build`. Expected: `dist/manifest.webmanifest` and `dist/sw.js` exist, and the asset URLs are prefixed `/notepadz/`.
-- [ ] **Step 2:** Run `npm run preview -- --base /notepadz/`, load the app, go offline in DevTools and reload. Expected: the app loads offline and the notes persist.
+- [ ] **Step 1:** Add the plugin config and icons. Run `npm run build`. Expected: `dist/manifest.webmanifest` and `dist/sw.js` exist, and the asset URLs are prefixed `/blankleaf/`.
+- [ ] **Step 2:** Run `npm run preview -- --base /blankleaf/`, load the app, go offline in DevTools and reload. Expected: the app loads offline and the notes persist.
 - [ ] **Step 3:** Add the `gh-pages` dev dependency, the `predeploy`/`deploy` scripts and `deploy.yml` (with `permissions: contents: write`). Expected: `git ls-tree main` never contains `dist/`. In the README, document the one-time GitHub setup: Settings → Pages → Source = "Deploy from a branch", Branch = `gh-pages` / root.
 - [ ] **Step 4: Commit:**
   - `feat(pwa): make app installable and offline-capable`
@@ -721,10 +721,10 @@ Each of these would get its own spec when it's picked up. Ordered by value for t
 | 4 | **Log helpers**: filter or highlight lines matching a pattern, jump to the next ERROR | Logs use case |
 | 5 | **Split editor**: two notes side by side | Comparing logs or snippets |
 | 6 | **Optional encryption** per note or for the whole app (WebCrypto AES-GCM + passphrase) | Privacy on shared machines |
-| 7 | **Share via link** — **requested by the user (2026-11-16), next after v1.** The note is compressed into the URL `#hash` (no server). Opening the link in Notepadz imports it as a **new note (a copy)** for the recipient; also offer "download as file". Needs its own spec: size limits of links in chat apps, what metadata travels (title, format), privacy wording. | Send a note to someone without a backend |
+| 7 | **Share via link** — **requested by the user (2026-11-16), next after v1.** The note is compressed into the URL `#hash` (no server). Opening the link in Blankleaf imports it as a **new note (a copy)** for the recipient; also offer "download as file". Needs its own spec: size limits of links in chat apps, what metadata travels (title, format), privacy wording. | Send a note to someone without a backend |
 | 8 | **Tab colors / tags** and saved tab groups ("workspaces") | Organizing many long-lived notes |
 | 9 | **Scratch auto-expire** (a note flagged to move to Trash after N days of no edits) | Keeps scratch clutter down |
-| 10 | **PWA extras**: app shortcuts ("New note"), Share Target (share text into Notepadz), file handler for `.txt`/`.md` | Quick capture from the OS |
+| 10 | **PWA extras**: app shortcuts ("New note"), Share Target (share text into Blankleaf), file handler for `.txt`/`.md` | Quick capture from the OS |
 | 11 | **Vim / Emacs keymaps** (`@replit/codemirror-vim`) | Power users |
 | 12 | **Typewriter / focus line mode**, word-count goal | Long writing |
 | 13 | **Print / PDF export** for Markdown notes | Sharing long notes |

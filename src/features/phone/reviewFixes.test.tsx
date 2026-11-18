@@ -55,7 +55,7 @@ describe('Back closes app dialogs on phones', () => {
   it('closing a dialog itself removes it from the Back stack', async () => {
     const { s } = setup()
     act(() => s().setUi({ aboutOpen: true }))
-    await screen.findByRole('dialog', { name: /about notepadz/i })
+    await screen.findByRole('dialog', { name: /about blankleaf/i })
     act(() => s().setUi({ aboutOpen: false }))
     expect(phoneStore.getState().stack).toEqual([])
   })

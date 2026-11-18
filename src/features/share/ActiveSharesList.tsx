@@ -81,7 +81,7 @@ export function ActiveSharesList({ shares }: { shares: ShareRow[] }) {
         ))}
       </ul>
       <p className="border-t border-border px-3 py-2 text-[11px] leading-snug text-fg-faint">
-        Keep Notepadz open until each link is opened — notes are sent from this browser.
+        Keep Blankleaf open until each link is opened — notes are sent from this browser.
       </p>
     </>
   )

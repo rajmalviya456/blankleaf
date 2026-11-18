@@ -1,8 +1,8 @@
-# Notepadz on phones — design
+# Blankleaf on phones — design
 
 ## Intent
 
-Notepadz should be fully usable on a phone: everything you can do on the laptop, with touch
+Blankleaf should be fully usable on a phone: everything you can do on the laptop, with touch
 only, and it should feel crisp — large enough targets, no clipped bars, no zooming or jumping,
 nothing that needs a hover, right-click, double-click or keyboard shortcut. Today a phone gets
 the laptop layout squeezed: the sidebar covers ~75% of the screen, the toolbar and status bar
@@ -101,7 +101,7 @@ open and simply re-render as dialog vs sheet.
   is kept per tab in phone-only UI state and never overwrites the saved laptop view (edit /
   split / preview). A tab opens on the phone in Preview if its saved view is preview, else Edit.
 - **⋯** opens the Note menu.
-- With no note open: title area shows "Notepadz"; ⌄ still opens the Tabs sheet (with New note
+- With no note open: title area shows "Blankleaf"; ⌄ still opens the Tabs sheet (with New note
   and Reopen closed tab); the empty state shows a big "New note" button.
 - When a share is active, a small accent dot sits on ⋯ / ☰ (see Library footer).
 

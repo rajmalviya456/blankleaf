@@ -15,7 +15,7 @@ function setup() {
 describe('AboutDialog', () => {
   it('shows the name, version and what makes the app private', () => {
     setup()
-    const dialog = screen.getByRole('dialog', { name: 'About Notepadz' })
+    const dialog = screen.getByRole('dialog', { name: 'About Blankleaf' })
     expect(dialog).toHaveTextContent(`Version ${__APP_VERSION__}`)
     expect(dialog).toHaveTextContent(/stored only in this browser/i)
   })
@@ -23,8 +23,8 @@ describe('AboutDialog', () => {
   it('links to the source and issue tracker', () => {
     setup()
     const href = (name: RegExp) => screen.getByRole('link', { name }).getAttribute('href')
-    expect(href(/source code/i)).toBe('https://github.com/rajmalviya456/notepadz')
-    expect(href(/report a problem/i)).toBe('https://github.com/rajmalviya456/notepadz/issues/new')
+    expect(href(/source code/i)).toBe('https://github.com/rajmalviya456/blankleaf')
+    expect(href(/report a problem/i)).toBe('https://github.com/rajmalviya456/blankleaf/issues/new')
   })
 
   it('opens the keyboard shortcuts from the dialog', async () => {
@@ -46,7 +46,7 @@ describe('opening About', () => {
     const user = userEvent.setup()
     const store = initStore(createAppStore())
     render(<Rail />)
-    await user.click(screen.getByRole('button', { name: 'About Notepadz' }))
+    await user.click(screen.getByRole('button', { name: 'About Blankleaf' }))
     expect(store.getState().ui.aboutOpen).toBe(true)
   })
 })

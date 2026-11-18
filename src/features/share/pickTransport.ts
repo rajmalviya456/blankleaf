@@ -2,7 +2,7 @@ import { createChannelTransport } from './channelTransport'
 import { createPeerTransport } from './peerTransport'
 import type { ShareTransport } from './transport'
 
-export const TRANSPORT_FLAG = 'notepadz:share-transport'
+export const TRANSPORT_FLAG = 'blankleaf:share-transport'
 
 /**
  * PeerJS normally. End-to-end tests set localStorage[TRANSPORT_FLAG] = 'channel' to keep

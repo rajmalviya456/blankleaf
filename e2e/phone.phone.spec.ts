@@ -72,7 +72,7 @@ test('markdown preview toggle, and Back closes the open sheet only', async ({ pa
 })
 
 test('share dialog opens as a sheet and creates a link', async ({ page, context }) => {
-  await context.addInitScript(() => localStorage.setItem('notepadz:share-transport', 'channel'))
+  await context.addInitScript(() => localStorage.setItem('blankleaf:share-transport', 'channel'))
   await openPhoneApp(page)
   await noteBar(page).getByRole('button', { name: 'Note menu' }).tap()
   await noteMenu(page).getByRole('button', { name: 'Share…' }).tap()

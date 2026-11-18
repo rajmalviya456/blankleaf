@@ -20,7 +20,7 @@ function setup() {
 describe('dialogs on a phone are bottom sheets', () => {
   it.each([
     ['settingsOpen', /settings/i],
-    ['aboutOpen', /about notepadz/i],
+    ['aboutOpen', /about blankleaf/i],
     ['whatsNewOpen', /what’s new/i],
     ['shortcutsOpen', /keyboard shortcuts/i],
     ['paletteOpen', /command palette/i],

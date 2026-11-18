@@ -137,7 +137,7 @@ function Created({
         </p>
       )}
       <p className="text-[11.5px] leading-snug text-fg-muted">
-        Keep Notepadz open until they’ve opened it — the note is sent straight from this browser.
+        Keep Blankleaf open until they’ve opened it — the note is sent straight from this browser.
       </p>
       <div className="flex items-center gap-2 pt-1">
         <button

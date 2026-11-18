@@ -1,4 +1,4 @@
-import { openDb, type NotepadzDB } from '../../db/db'
+import { openDb, type BlankleafDB } from '../../db/db'
 import { DEFAULT_SETTINGS, newNoteDraft } from '../../domain/defaults'
 import { __setPbkdf2Iterations, PBKDF2_ITERATIONS } from './crypto'
 import { createShareHost, type ShareHost } from './host'
@@ -10,7 +10,7 @@ import type { ShareTransport } from './transport'
 beforeAll(() => __setPbkdf2Iterations(1000))
 afterAll(() => __setPbkdf2Iterations(PBKDF2_ITERATIONS))
 
-let db: NotepadzDB
+let db: BlankleafDB
 const cleanups: (() => void)[] = []
 beforeEach(() => {
   db = openDb(`recv-${Math.random()}`)
@@ -24,7 +24,7 @@ afterEach(async () => {
 const note = { ...newNoteDraft(1, DEFAULT_SETTINGS), title: 'plans', content: 'the plan' }
 
 function host(t: ShareTransport): ShareHost {
-  const h = createShareHost({ db, transport: t, appUrl: 'https://x.dev/notepadz/' })
+  const h = createShareHost({ db, transport: t, appUrl: 'https://x.dev/blankleaf/' })
   cleanups.push(() => h.dispose())
   return h
 }
@@ -46,7 +46,7 @@ describe('receiver', () => {
   it('expired link never connects', () => {
     const t = createMemoryTransport()
     const spy = vi.spyOn(t, 'connect')
-    const link = 'https://x.dev/notepadz/#/s/' + 'A'.repeat(43) + '.1.n'
+    const link = 'https://x.dev/blankleaf/#/s/' + 'A'.repeat(43) + '.1.n'
     const { r } = receive(t, link)
     expect(r.state()).toEqual({ s: 'expired' })
     expect(spy).not.toHaveBeenCalled()
@@ -121,7 +121,7 @@ describe('receiver', () => {
   it('switches waiting → expired at expiry', async () => {
     const t = createMemoryTransport()
     const exp = Math.ceil((Date.now() + 400) / 1000)
-    const link = `https://x.dev/notepadz/#/s/${'A'.repeat(43)}.${exp.toString(36)}.n`
+    const link = `https://x.dev/blankleaf/#/s/${'A'.repeat(43)}.${exp.toString(36)}.n`
     const { until } = receive(t, link, { retryMs: 50 })
     await until('waiting')
     await until('expired')

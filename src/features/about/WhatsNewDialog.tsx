@@ -38,7 +38,7 @@ export function WhatsNewDialog() {
           </div>
           <footer className="border-t border-border px-4 py-2.5 text-[11.5px] text-fg-muted">
             <a
-              href="https://github.com/rajmalviya456/notepadz/releases"
+              href="https://github.com/rajmalviya456/blankleaf/releases"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 hover:text-fg"

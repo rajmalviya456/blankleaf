@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let a user share a frozen snapshot of a note through a password-protected link that really expires (default 5 minutes), delivered peer-to-peer from their open Notepadz with no server of their own.
+**Goal:** Let a user share a frozen snapshot of a note through a password-protected link that really expires (default 5 minutes), delivered peer-to-peer from their open Blankleaf with no server of their own.
 
 **Architecture:** The sender's browser encrypts the snapshot (WebCrypto, AES-256-GCM) once, stores it in a new Dexie `shares` table, and serves it over WebRTC (PeerJS) under a peer id derived from the link key. A recipient who opens `#/s/<key>.<exp>.<p|n>` gets a lightweight share view. It derives a read token (with the password if set), proves it to the sender, receives the ciphertext and decrypts locally. Expiry, stop, the password check and the cool-down are all enforced by the sender. Transport sits behind an interface: PeerJS in production, in-memory and BroadcastChannel versions for tests.
 
 **Tech Stack:** Existing stack (React 19, TS, Zustand, Dexie, CodeMirror, Radix, Vitest, Playwright) + `peerjs`. WebCrypto + `CompressionStream` (no crypto libraries).
 
-**Spec:** `docs/superpowers/specs/2026-11-17-share-by-link-design.md` (read it first; § references point there). It builds on `docs/superpowers/specs/2026-11-16-notepadz-design.md`.
+**Spec:** `docs/superpowers/specs/2026-11-17-share-by-link-design.md` (read it first; § references point there). It builds on `docs/superpowers/specs/2026-11-16-blankleaf-design.md`.
 
 ## Global Constraints
 
@@ -22,7 +22,7 @@
   - Minimum 8 characters after normalisation.
   - On by default.
 - **Key derivation:** `K` = 32 random bytes. PBKDF2-SHA256 600000 iterations, with the 16-byte salt derived from `K`. HKDF-SHA256 derivations bind `exp` and the password flag.
-- **Encryption:** AES-256-GCM with a 96-bit random IV, AAD = `notepadz-share-v1|<exp>|<p|n>`.
+- **Encryption:** AES-256-GCM with a 96-bit random IV, AAD = `blankleaf-share-v1|<exp>|<p|n>`.
 - **Link format:** `<origin><base>#/s/<base64url(K)>.<exp base36 seconds>.<p|n>`.
 - **Cool-down:** after 5 wrong passwords, refuse all attempts for 30 s, doubling each time (sender-enforced).
 - **Copied message:** the exact format in spec §5.1, locale date and time; the title is never included.
@@ -43,7 +43,7 @@
 
 1. **Recipient opens the link after expiry while the sender is offline.** Expected: "expired" immediately (from the link), not an endless "waiting". Test: Task 6 `expired link never connects`.
 2. **Someone with the link but no password.** Expected: never receives ciphertext, and repeated guesses hit the cool-down. Tests: Task 5 `wrong token gets denied and no ciphertext`, `5 failures start a 30s cool-down that doubles`.
-3. **The sender reloads or closes and reopens Notepadz mid-share.** Expected: the same link keeps working until expiry; expired rows are wiped on start. Test: Task 5 `resumes serving after restart; expired rows deleted`.
+3. **The sender reloads or closes and reopens Blankleaf mid-share.** Expected: the same link keeps working until expiry; expired rows are wiped on start. Test: Task 5 `resumes serving after restart; expired rows deleted`.
 4. **Two sender windows open.** Expected: exactly one serves; Stop in either window ends the share. Tests: Task 5 `only one host serves a share (lock)`, Task 8 `stop from another window ends serving`.
 5. **A recipient's first visit.** Expected: no Welcome note, no DB writes until Save. Test: Task 9 `opening a share link creates no notes`.
 
@@ -111,11 +111,11 @@ formatShareMessage(o: { link: string; password: string | null; expiresAt: number
   - `generates 12 chars from the alphabet grouped 4-4-4`: `/^[a-hj-km-np-z2-9]{4}-…{4}-…{4}$/` over 200 runs, and no `0 o 1 l i`.
   - `normalizes spaces and hyphens, keeps case`: `normalizePassword(' Kq7m-x3vr p9tz ')` → `'Kq7mx3vrp9tz'`.
   - `rejects passwords shorter than 8 after normalising`: `isPasswordValid('ab-cd-ef')` → false.
-  - `round-trips link parts`: random 32-byte key, `exp: 1794900000`, `hasPassword: true`. The link starts with `'https://x.dev/notepadz/#/s/'` and `parseShareHash(new URL(link).hash)` deep-equals the parts.
+  - `round-trips link parts`: random 32-byte key, `exp: 1794900000`, `hasPassword: true`. The link starts with `'https://x.dev/blankleaf/#/s/'` and `parseShareHash(new URL(link).hash)` deep-equals the parts.
   - `rejects malformed hashes`: wrong prefix, a key that isn't 32 bytes, bad base36, a flag not in `p|n`, extra segments → `null`.
   - `formats the message with password`, at `locale 'en-US'`, `timeZone 'UTC'`, `expiresAt = now + 300000`:
 ```
-Hey! A note was shared with you on Notepadz.
+Hey! A note was shared with you on Blankleaf.
 
 Open it: <link>
 Password: kq7m-x3vr-p9tz
@@ -155,7 +155,7 @@ export const PBKDF2_ITERATIONS = 600_000
 ```
 - `peerId` = `'npz-' + base32(lower, no pad)` of 16 HKDF bytes (info `'peer'`). The salt = 16 HKDF bytes (info `'salt'`).
 - With a password: `pw = PBKDF2(normalizePassword(password), salt, 600000, 256 bits)`, and the IKM for `'read'`/`'enc'` = `K ‖ pw`.
-- HKDF info strings include `exp` and the flag: `` `notepadz-share-v1|${info}|${exp}|${flag}` ``.
+- HKDF info strings include `exp` and the flag: `` `blankleaf-share-v1|${info}|${exp}|${flag}` ``.
 - Tests may pass a lower iteration count via an exported `__setPbkdf2Iterations` hook (test-only, documented).
 
 - [ ] **Step 1: Failing tests.**
@@ -192,7 +192,7 @@ updateShare(db, id, patch: Partial<ShareRow>): Promise<void>
 deleteShare(db, id): Promise<void>
 purgeEndedShares(db, now): Promise<string[]>          // deletes stopped or expired rows
 ```
-- `NotepadzDB.shares: Table<ShareRow, string>`.
+- `BlankleafDB.shares: Table<ShareRow, string>`.
 
 - [ ] **Step 1: Failing tests.**
   - `upgrades a v1 database to v2 without touching notes`: create a v1 DB by hand (Dexie with `version(1)`), insert a note, close it, open with `openDb` → the note is intact and `shares` is empty.
@@ -232,7 +232,7 @@ class TransportError extends Error { kind: 'offline' | 'blocked' | 'unavailable'
 createMemoryTransport(): ShareTransport          // shared registry per factory instance
 createChannelTransport(name?: string): ShareTransport   // BroadcastChannel; works across tabs
 createPeerTransport(): ShareTransport            // PeerJS cloud; maps peer errors to TransportError kinds
-pickTransport(): ShareTransport                  // channel if localStorage['notepadz:share-transport']==='channel', else PeerJS
+pickTransport(): ShareTransport                  // channel if localStorage['blankleaf:share-transport']==='channel', else PeerJS
 ```
 - PeerJS error mapping:
   - `peer-unavailable` → `offline`;
@@ -247,7 +247,7 @@ pickTransport(): ShareTransport                  // channel if localStorage['not
   - `hosting an id twice rejects taken`;
   - `host.stop closes connections and frees the id`.
 - [ ] **Step 2:** Run. Expected: FAIL.
-- [ ] **Step 3:** Implement. The channel transport uses message envelopes `{to, from, connId, kind, payload}` on one `BroadcastChannel('notepadz-share-test')`.
+- [ ] **Step 3:** Implement. The channel transport uses message envelopes `{to, from, connId, kind, payload}` on one `BroadcastChannel('blankleaf-share-test')`.
 - [ ] **Step 4:** Run. Expected: PASS.
 - [ ] **Step 5: Commit:** `feat(share): add share transports (PeerJS, BroadcastChannel, in-memory)`
 
@@ -271,7 +271,7 @@ interface ShareHost {
   subscribe(cb: () => void): () => void
   dispose(): void
 }
-createShareHost(o: { db: NotepadzDB; transport: ShareTransport; appUrl: string;
+createShareHost(o: { db: BlankleafDB; transport: ShareTransport; appUrl: string;
   now?: () => number; locks?: LockManagerLike; onStoppedElsewhere?: (id: string) => void }): ShareHost
 export const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 export const COOL_DOWN_START_MS = 30_000
@@ -349,7 +349,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
   - `getShareHost(): ShareHost | null` and `setShareHost(h)`, a module singleton set in `main.tsx`. In memory mode it's null, and the dialog explains that sharing needs browser storage.
 - **Dialog per spec §5.1:**
   - Radix Dialog, Segmented expiry, Toggle "Protect with password" (default on), password field + ↻, size line, Create link.
-  - After creation: link + Copy link, password + Copy password, "✓ Message copied", countdown + bar, tip, "Keep Notepadz open until they've opened it", Stop sharing, Done.
+  - After creation: link + Copy link, password + Copy password, "✓ Message copied", countdown + bar, tip, "Keep Blankleaf open until they've opened it", Stop sharing, Done.
   - Auto-copy writes `message` via `navigator.clipboard.writeText`. If that fails, show "Couldn't copy automatically — use the buttons".
 
 - [ ] **Step 1: Failing tests** (fake host and clipboard spy):
@@ -439,7 +439,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
 **Files:**
 - Create: `e2e/share.spec.ts`
 
-- [ ] **Step 1: Specs** (both pages set `localStorage['notepadz:share-transport']='channel'` before load):
+- [ ] **Step 1: Specs** (both pages set `localStorage['blankleaf:share-transport']='channel'` before load):
   - `share with password: copy message, open in second tab, enter password, save`. Use clipboard permissions, or read the dialog's link and password fields.
   - `wrong password then right password`.
   - `stop sharing makes the link say stopped`.
@@ -451,7 +451,7 @@ createReceiver(o: { parts: ShareLinkParts; transport: ShareTransport; now?: () =
 ### Task 11: Real PeerJS check, docs
 
 **Files:**
-- Modify: `README.md` (a Sharing section: how it works, the privacy wording from the spec, "keep Notepadz open", the blocked-network note).
+- Modify: `README.md` (a Sharing section: how it works, the privacy wording from the spec, "keep Blankleaf open", the blocked-network note).
 
 - [ ] **Step 1: Manual check** with real PeerJS. Use `npm run preview`, or the deployed site once the user approves pushing.
   - **Same machine:** share between two browser windows (Chrome + Safari).

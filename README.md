@@ -1,18 +1,20 @@
-# Notepadz
+# Blankleaf — Online Notepad
 
-A full-window, tabbed notepad that lives in your browser. No account, no server, no database —
-your notes stay on your machine.
+A free online notepad that opens straight to a blank page: full-window, tabbed, and saved in your
+browser as you type. No account, no server, no database — your notes stay on your machine.
 
-**▶ Open it: [rajmalviya456.github.io/notepadz](https://rajmalviya456.github.io/notepadz/)** — works offline and
+_Formerly Notepadz._
+
+**▶ Open it: [rajmalviya456.github.io/blankleaf](https://rajmalviya456.github.io/blankleaf/)** — works offline and
 installs as an app after the first visit.
 
-[![CI](https://github.com/rajmalviya456/notepadz/actions/workflows/ci.yml/badge.svg)](https://github.com/rajmalviya456/notepadz/actions/workflows/ci.yml)
-[![Deploy](https://github.com/rajmalviya456/notepadz/actions/workflows/deploy.yml/badge.svg)](https://github.com/rajmalviya456/notepadz/actions/workflows/deploy.yml)
+[![CI](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml/badge.svg)](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml)
+[![Deploy](https://github.com/rajmalviya456/blankleaf/actions/workflows/deploy.yml/badge.svg)](https://github.com/rajmalviya456/blankleaf/actions/workflows/deploy.yml)
 
 ## Why
 
 Most online notepads are a single text box, lose your work when the tab closes, or want you to
-sign up. Notepadz is for quick scratch text, code snippets and logs, and long-lived notes — in
+sign up. Blankleaf is for quick scratch text, code snippets and logs, and long-lived notes — in
 one calm, keyboard-friendly window that remembers exactly where you left off.
 
 ## Features
@@ -91,8 +93,8 @@ How it works, and what to know:
   link's `#fragment`, password stretched with PBKDF2) and sent directly to the recipient's
   browser over WebRTC. A free public PeerJS server only introduces the two browsers; it never
   sees the note, key or password.
-- **Keep Notepadz open** until the link has been opened. If you close it, the link waits;
-  reopen Notepadz before the expiry and the same link works again.
+- **Keep Blankleaf open** until the link has been opened. If you close it, the link waits;
+  reopen Blankleaf before the expiry and the same link works again.
 - **Expiry is real**: when it passes (or you click _Stop sharing_), your browser stops answering
   and forgets the key — the link can never deliver the note again. Anyone who opened it before
   then can keep their copy.
@@ -142,14 +144,14 @@ npm run e2e          # end-to-end + accessibility tests (Playwright)
 npm run lint         # ESLint
 npm run typecheck    # TypeScript
 npm run format       # Prettier
-npm run build        # production build (served from /notepadz/)
+npm run build        # production build (served from /blankleaf/)
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose changes.
 
 ## Versions and releases
 
-Notepadz follows [Semantic Versioning](https://semver.org). Versions are worked out from the
+Blankleaf follows [Semantic Versioning](https://semver.org). Versions are worked out from the
 [Conventional Commits](https://www.conventionalcommits.org/) on `main` by
 [release-please](https://github.com/googleapis/release-please):
 
@@ -166,7 +168,7 @@ Notepadz follows [Semantic Versioning](https://semver.org). Versions are worked 
    with the notes, and deploys the site.
 
 The app reads `CHANGELOG.md` at build time: **What's new** (in About or the command palette)
-shows the release notes offline, and after an update the app says _"Notepadz was updated to
+shows the release notes offline, and after an update the app says _"Blankleaf was updated to
 x.y.z"_ once.
 
 ## Deploy (GitHub Pages)
@@ -186,7 +188,7 @@ Icons are generated from `public/logo.svg` with `npm run icons`.
 
 ## Docs
 
-- App design: [`docs/superpowers/specs/2026-11-16-notepadz-design.md`](docs/superpowers/specs/2026-11-16-notepadz-design.md)
+- App design: [`docs/superpowers/specs/2026-11-16-blankleaf-design.md`](docs/superpowers/specs/2026-11-16-blankleaf-design.md)
 - Sharing design: [`docs/superpowers/specs/2026-11-17-share-by-link-design.md`](docs/superpowers/specs/2026-11-17-share-by-link-design.md)
 - Toolbar design: [`docs/superpowers/specs/2026-11-17-toolbar-design.md`](docs/superpowers/specs/2026-11-17-toolbar-design.md)
 - Implementation plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)

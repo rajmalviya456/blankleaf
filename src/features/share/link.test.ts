@@ -5,12 +5,12 @@ const key = () => crypto.getRandomValues(new Uint8Array(32))
 describe('share links', () => {
   it('round-trips link parts', () => {
     const parts = { key: key(), exp: 1794900000, hasPassword: true }
-    const link = buildShareLink('https://x.dev/notepadz/', parts)
-    expect(link.startsWith('https://x.dev/notepadz/#/s/')).toBe(true)
+    const link = buildShareLink('https://x.dev/blankleaf/', parts)
+    expect(link.startsWith('https://x.dev/blankleaf/#/s/')).toBe(true)
     expect(parseShareHash(new URL(link).hash)).toEqual(parts)
     expect(
       parseShareHash(
-        new URL(buildShareLink('https://x.dev/notepadz/', { ...parts, hasPassword: false })).hash,
+        new URL(buildShareLink('https://x.dev/blankleaf/', { ...parts, hasPassword: false })).hash,
       )?.hasPassword,
     ).toBe(false)
   })

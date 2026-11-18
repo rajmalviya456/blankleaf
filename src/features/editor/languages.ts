@@ -55,7 +55,7 @@ export function loadLanguage(id: LanguageId): Promise<Extension | null> {
   if (!p) {
     p = loader().catch((e) => {
       cache.delete(id)
-      console.error(`Notepadz: failed to load ${id} highlighting`, e)
+      console.error(`Blankleaf: failed to load ${id} highlighting`, e)
       return null
     })
     cache.set(id, p)

@@ -3,7 +3,7 @@
  * exists: it serves the encrypted snapshot over a ShareTransport until the share expires or is
  * stopped, enforcing the password check and the wrong-password cool-down itself.
  */
-import type { NotepadzDB } from '../../db/db'
+import type { BlankleafDB } from '../../db/db'
 import { displayTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
 import { fromB64url, toB64url } from './b64'
@@ -88,10 +88,10 @@ export interface ShareChannel {
   close(): void
 }
 type ShareMsg = { t: 'changed' } | { t: 'stopped'; id: string }
-const CHANNEL_NAME = 'notepadz-shares'
+const CHANNEL_NAME = 'blankleaf-shares'
 
 export function createShareHost(o: {
-  db: NotepadzDB
+  db: BlankleafDB
   transport: ShareTransport
   appUrl: string
   now?: () => number

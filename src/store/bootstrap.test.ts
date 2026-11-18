@@ -1,4 +1,4 @@
-import { openDb, type NotepadzDB } from '../db/db'
+import { openDb, type BlankleafDB } from '../db/db'
 import { insertNote, loadAll, putKv } from '../db/notesRepo'
 import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
 import type { Note } from '../domain/types'
@@ -7,7 +7,7 @@ import { JOURNAL_PREFIX, readAllJournals, readJournal, writeJournal } from './jo
 
 const DAY = 86_400_000
 const NOW = 100 * DAY
-let db: NotepadzDB
+let db: BlankleafDB
 
 beforeEach(() => {
   db = openDb(`boot-${Math.random()}`)
@@ -29,7 +29,7 @@ describe('loadInitialState', () => {
     const { state } = await loadInitialState(db, NOW)
     const [welcome] = Object.values(state.notes!)
     expect(welcome.title).toBe('Welcome')
-    expect(welcome.content).toMatch(/Welcome to Notepadz/)
+    expect(welcome.content).toMatch(/Welcome to Blankleaf/)
     expect(state.session!.openTabIds).toEqual([welcome.id])
     expect(state.session!.activeTabId).toBe(welcome.id)
     const all = await loadAll(db)

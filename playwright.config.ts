@@ -9,7 +9,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: `http://localhost:${PORT}/notepadz/`,
+    baseURL: `http://localhost:${PORT}/blankleaf/`,
     // Most tests run without the service worker; the offline test turns it on.
     serviceWorkers: 'block',
     trace: 'retain-on-failure',
@@ -35,8 +35,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build && npx vite preview --base /notepadz/ --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}/notepadz/`,
+    command: `npm run build && npx vite preview --base /blankleaf/ --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}/blankleaf/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

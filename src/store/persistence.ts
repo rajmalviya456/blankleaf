@@ -10,7 +10,7 @@
  * - Write errors keep the text in memory, show "Not saved" and retry with backoff.
  */
 import type { StoreApi } from 'zustand'
-import type { NotepadzDB } from '../db/db'
+import type { BlankleafDB } from '../db/db'
 import { hardDeleteNote, purgeNote, putKv, saveNote } from '../db/notesRepo'
 import type { Note } from '../domain/types'
 import { createDebouncedWriter } from '../lib/debouncedWriter'
@@ -60,7 +60,7 @@ function describeError(e: unknown): string {
 
 export function startPersistence(
   store: StoreApi<AppStore>,
-  db: NotepadzDB,
+  db: BlankleafDB,
   opts: PersistenceOptions = {},
 ): Persistence {
   const {

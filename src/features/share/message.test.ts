@@ -1,7 +1,7 @@
 import { formatShareMessage } from './message'
 
 const now = Date.UTC(2026, 10, 17, 14, 32, 0)
-const link = 'https://x.dev/notepadz/#/s/abc.def.p'
+const link = 'https://x.dev/blankleaf/#/s/abc.def.p'
 
 describe('formatShareMessage', () => {
   it('formats the message with password', () => {
@@ -15,7 +15,7 @@ describe('formatShareMessage', () => {
         timeZone: 'UTC',
       }),
     ).toBe(
-      `Hey! A note was shared with you on Notepadz.\n\nOpen it: ${link}\nPassword: kq7m-x3vr-p9tz\n\nThis link expires on Nov 17, 2026 at 2:37 PM (in 5 minutes).`,
+      `Hey! A note was shared with you on Blankleaf.\n\nOpen it: ${link}\nPassword: kq7m-x3vr-p9tz\n\nThis link expires on Nov 17, 2026 at 2:37 PM (in 5 minutes).`,
     )
   })
 

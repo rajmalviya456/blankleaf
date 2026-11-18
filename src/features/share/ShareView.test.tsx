@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { openDb, type NotepadzDB } from '../../db/db'
+import { openDb, type BlankleafDB } from '../../db/db'
 import { DEFAULT_SETTINGS, newNoteDraft } from '../../domain/defaults'
 import type { Note } from '../../domain/types'
 import { __setPbkdf2Iterations, PBKDF2_ITERATIONS } from './crypto'
@@ -13,7 +13,7 @@ import type { ShareTransport } from './transport'
 beforeAll(() => __setPbkdf2Iterations(1000))
 afterAll(() => __setPbkdf2Iterations(PBKDF2_ITERATIONS))
 
-let db: NotepadzDB
+let db: BlankleafDB
 const cleanups: (() => void)[] = []
 beforeEach(() => {
   db = openDb(`view-${Math.random()}`)
@@ -34,7 +34,7 @@ const note = (patch: Partial<Note> = {}): Note => ({
 })
 
 function host(t: ShareTransport): ShareHost {
-  const h = createShareHost({ db, transport: t, appUrl: 'https://x.dev/notepadz/', channel: null })
+  const h = createShareHost({ db, transport: t, appUrl: 'https://x.dev/blankleaf/', channel: null })
   cleanups.push(() => h.dispose())
   return h
 }
@@ -64,7 +64,7 @@ describe('ShareView', () => {
     view(t, created.link)
     expect(await screen.findByRole('textbox', { name: /shared note/i })).toBeInTheDocument()
     const names = (await indexedDB.databases()).map((d) => d.name)
-    expect(names).not.toContain('notepadz')
+    expect(names).not.toContain('blankleaf')
   })
 
   it('password flow to a read-only note', async () => {
@@ -119,7 +119,7 @@ describe('ShareView', () => {
   })
 
   it('expired link shows the expired screen', () => {
-    const link = `https://x.dev/notepadz/#/s/${'A'.repeat(43)}.1.n`
+    const link = `https://x.dev/blankleaf/#/s/${'A'.repeat(43)}.1.n`
     view(createMemoryTransport(), link)
     expect(
       screen.getByRole('heading', { name: /this shared note has expired/i }),

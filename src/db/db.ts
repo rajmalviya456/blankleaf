@@ -57,10 +57,11 @@ export interface ShareRow {
   stopped: boolean
 }
 
+/** Kept from the app's former name (Notepadz): renaming it would orphan everyone's saved notes. */
 export const DB_NAME = 'notepadz'
 export const SCHEMA_VERSION = 2
 
-export class NotepadzDB extends Dexie {
+export class BlankleafDB extends Dexie {
   notes!: Table<Note, string>
   kv!: Table<KvRow, KvKey>
   tombstones!: Table<Tombstone, string>
@@ -78,6 +79,6 @@ export class NotepadzDB extends Dexie {
   }
 }
 
-export function openDb(name: string = DB_NAME): NotepadzDB {
-  return new NotepadzDB(name)
+export function openDb(name: string = DB_NAME): BlankleafDB {
+  return new BlankleafDB(name)
 }
