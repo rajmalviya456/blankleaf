@@ -1,10 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   Bug,
+  CircleHelp,
   ExternalLink,
   Code2,
   HardDrive,
   Keyboard,
+  ListChecks,
   Lock,
   Sparkles,
   WifiOff,
@@ -124,6 +126,12 @@ export function AboutDialog() {
           </ul>
 
           <div className="mt-4 border-t border-border pt-3">
+            <LinkRow href={`${import.meta.env.BASE_URL}features/`} icon={ListChecks}>
+              All features
+            </LinkRow>
+            <LinkRow href={`${import.meta.env.BASE_URL}faq/`} icon={CircleHelp}>
+              Frequently asked questions
+            </LinkRow>
             <LinkRow href={REPO} icon={Code2}>
               Source code on GitHub
             </LinkRow>
