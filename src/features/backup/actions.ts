@@ -1,14 +1,16 @@
 /** User-facing backup actions: export all, export one note, import files. */
+import { importVersions } from '../../db/versionsRepo'
 import { getActiveDb } from '../../store/dataReset'
 import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import {
   BackupError,
   backupFileName,
-  buildBackup,
+  backupText,
   looksLikeBackup,
   parseBackup,
   planImport,
+  type BackupVersion,
   type ImportPlan,
 } from './backup'
 import { downloadText } from './download'
@@ -20,10 +22,33 @@ const MAX_FILE_BYTES = 50 * 1024 * 1024
 
 export async function exportAll(now: number = Date.now()): Promise<void> {
   const s = getStore().getState()
-  const backup = buildBackup(Object.values(s.notes), s.settings, now)
-  downloadText(backupFileName(now), 'application/json', JSON.stringify(backup, null, 2))
+  const notes = Object.values(s.notes)
+  const { versions, complete } = await versionsForBackup(notes.map((n) => n.id))
+  const { text, withVersions } = backupText(notes, s.settings, now, versions)
+  downloadText(backupFileName(now), 'application/json', text)
   await markBackedUp(now)
-  toast(`Backup saved (${backup.notes.length} notes). Keep it somewhere safe.`)
+  if (complete && (withVersions || !versions.length))
+    toast(`Backup saved (${notes.length} notes). Keep it somewhere safe.`)
+  else toast(`Backup saved (${notes.length} notes), without version history.`, { tone: 'warn' })
+}
+
+/** Every saved version of these notes. A problem reading them never blocks the backup. */
+async function versionsForBackup(
+  noteIds: string[],
+): Promise<{ versions: BackupVersion[]; complete: boolean }> {
+  const db = getActiveDb()
+  if (!db) return { versions: [], complete: true }
+  try {
+    const ids = new Set(noteIds)
+    const rows = await db.versions.toArray()
+    const versions = rows
+      .filter((v) => ids.has(v.noteId))
+      .map(({ noteId, at, content }) => ({ noteId, at, content }))
+    return { versions, complete: true }
+  } catch (e) {
+    console.error('Blankleaf: could not read version history for the backup', e)
+    return { versions: [], complete: false }
+  }
 }
 
 export function exportNote(id: string): void {
@@ -95,6 +120,15 @@ export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Pr
   getStore().getState().importNotes(incoming)
   if (restoreDeleted && plan.deletedRestorable.length) {
     await getActiveDb()?.tombstones.bulkDelete(plan.deletedRestorable.map((n) => n.id))
+  }
+  const db = getActiveDb()
+  if (db && plan.versions) {
+    // Versions of a permanently deleted note come back only if the note itself does.
+    const skipped = new Set(restoreDeleted ? [] : plan.deletedRestorable.map((n) => n.id))
+    await importVersions(
+      db,
+      plan.versions.filter((v) => !skipped.has(v.noteId)),
+    )
   }
   return incoming.length
 }

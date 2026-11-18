@@ -41,3 +41,21 @@ export async function saveVersion(
 export async function deleteVersions(db: BlankleafDB, noteIds: string[]): Promise<void> {
   if (noteIds.length) await db.versions.where('noteId').anyOf(noteIds).delete()
 }
+
+/** Add versions from a backup, skipping ones already here and keeping the newest per note. */
+export function importVersions(
+  db: BlankleafDB,
+  rows: { noteId: string; at: number; content: string }[],
+): Promise<void> {
+  return db.transaction('rw', db.versions, async () => {
+    for (const noteId of new Set(rows.map((r) => r.noteId))) {
+      const here = await ofNote(db, noteId).toArray()
+      const seen = new Set(here.map((v) => `${v.at}:${v.content}`))
+      const fresh = rows.filter((r) => r.noteId === noteId && !seen.has(`${r.at}:${r.content}`))
+      await db.versions.bulkAdd(fresh.map(({ noteId, at, content }) => ({ noteId, at, content })))
+      const extra = (await ofNote(db, noteId).count()) - VERSIONS_KEPT
+      if (extra > 0)
+        await db.versions.bulkDelete(await ofNote(db, noteId).limit(extra).primaryKeys())
+    }
+  })
+}

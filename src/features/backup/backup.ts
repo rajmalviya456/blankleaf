@@ -2,6 +2,7 @@
  * Whole-app backup files: build, parse (defensively — the file is untrusted input) and plan
  * how an import merges with what's already here.
  */
+import { VERSIONS_KEPT } from '../../db/versionsRepo'
 import { mergeSettings } from '../../domain/defaults'
 import { LANGUAGES } from '../../domain/languages'
 import type { LanguageId, Note, Settings } from '../../domain/types'
@@ -15,12 +16,24 @@ export function looksLikeBackup(text: string): boolean {
   return /^\s*\{/.test(text) && /"app"\s*:\s*"(blankleaf|notepadz)"/.test(text.slice(0, 2000))
 }
 
+/** Importing refuses files over 50 MB, so a backup must stay safely under that. */
+export const BACKUP_MAX_BYTES = 45 * 1024 * 1024
+
+/** An earlier state of a note (see db/versionsRepo). */
+export interface BackupVersion {
+  noteId: string
+  at: number
+  content: string
+}
+
 export interface Backup {
   app: 'blankleaf'
   schemaVersion: number
   exportedAt: number
   notes: Note[]
   settings: Settings
+  /** Optional, so backups stay readable by builds from before version history. */
+  versions?: BackupVersion[]
 }
 
 export type BackupErrorKind = 'not-json' | 'not-blankleaf' | 'bad-schema' | 'too-new'
@@ -41,14 +54,55 @@ export class BackupError extends Error {
   }
 }
 
-export function buildBackup(notes: Note[], settings: Settings, now: number): Backup {
+export function buildBackup(
+  notes: Note[],
+  settings: Settings,
+  now: number,
+  versions: BackupVersion[] = [],
+): Backup {
   return {
     app: 'blankleaf',
     schemaVersion: BACKUP_SCHEMA_VERSION,
     exportedAt: now,
     notes,
     settings,
+    ...(versions.length ? { versions } : {}),
   }
+}
+
+/**
+ * The backup file's text. Version history is left out if including it would make the file too
+ * big to import again: the notes themselves matter more.
+ */
+export function backupText(
+  notes: Note[],
+  settings: Settings,
+  now: number,
+  versions: BackupVersion[],
+  maxBytes: number = BACKUP_MAX_BYTES,
+): { text: string; withVersions: boolean } {
+  const text = JSON.stringify(buildBackup(notes, settings, now, versions), null, 2)
+  if (!versions.length || new Blob([text]).size <= maxBytes)
+    return { text, withVersions: versions.length > 0 }
+  return { text: JSON.stringify(buildBackup(notes, settings, now), null, 2), withVersions: false }
+}
+
+/** Keep valid versions of the backup's own notes, newest `VERSIONS_KEPT` per note. */
+function cleanVersions(raw: unknown, notes: Note[]): BackupVersion[] {
+  if (!Array.isArray(raw)) return []
+  const ids = new Set(notes.map((n) => n.id))
+  const perNote = new Map<string, BackupVersion[]>()
+  for (const v of raw as Partial<BackupVersion>[]) {
+    if (!v || typeof v !== 'object') continue
+    const { noteId, at, content } = v
+    if (typeof noteId !== 'string' || !ids.has(noteId)) continue
+    if (typeof at !== 'number' || !Number.isFinite(at)) continue
+    if (typeof content !== 'string' || !content) continue
+    perNote.set(noteId, [...(perNote.get(noteId) ?? []), { noteId, at, content }])
+  }
+  return [...perNote.values()].flatMap((list) =>
+    list.sort((a, b) => b.at - a.at).slice(0, VERSIONS_KEPT),
+  )
 }
 
 function pad(n: number): string {
@@ -112,12 +166,14 @@ export function parseBackup(text: string, now: number = Date.now()): Backup {
       notes.push(n)
     }
   }
+  const versions = cleanVersions(d.versions, notes)
   return {
     app: 'blankleaf',
     schemaVersion: d.schemaVersion,
     exportedAt: num(d.exportedAt, now),
     notes,
     settings: mergeSettings(d.settings as Partial<Settings> | undefined),
+    ...(versions.length ? { versions } : {}),
   }
 }
 
@@ -128,6 +184,8 @@ export interface ImportPlan {
   olderSkipped: number
   /** Notes in the backup that were permanently deleted here; only restored on request. */
   deletedRestorable: Note[]
+  /** Version history carried by the backup. */
+  versions?: BackupVersion[]
 }
 
 export function planImport(
@@ -141,6 +199,7 @@ export function planImport(
     unchanged: 0,
     olderSkipped: 0,
     deletedRestorable: [],
+    ...(backup.versions ? { versions: backup.versions } : {}),
   }
   for (const n of backup.notes) {
     const current = existing[n.id]
