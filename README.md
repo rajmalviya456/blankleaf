@@ -43,6 +43,7 @@ one calm, keyboard-friendly window that opens on a blank page every time.
 - **Two notes side by side** on wide screens.
 - **Automatic backup to a folder** in Chrome and Edge on a computer, with a dated copy for each of the last
   seven days.
+- **Voice typing** on a computer, in browsers with speech recognition such as Chrome, Edge and Safari.
 - **Send to Blankleaf.** Installed, it appears in the Android Share menu and can open `.txt` and `.md` files
   on a computer.
 - **Password-locked notes.** Encrypt a note in your browser with AES-256. A forgotten password can't be
@@ -213,3 +214,7 @@ Icons are generated from `public/logo.svg` with `npm run icons`.
 - Sharing design: [`docs/superpowers/specs/2026-11-17-share-by-link-design.md`](docs/superpowers/specs/2026-11-17-share-by-link-design.md)
 - Toolbar design: [`docs/superpowers/specs/2026-11-17-toolbar-design.md`](docs/superpowers/specs/2026-11-17-toolbar-design.md)
 - Implementation plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
+
+## License
+
+[MIT](LICENSE) © 2026 Raj Malviya

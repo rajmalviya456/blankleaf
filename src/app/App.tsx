@@ -9,6 +9,7 @@ import { printStore } from '../features/print/printStore'
 import { tagsStore } from '../features/tags/tagsStore'
 import { lockStore } from '../features/lock/lockStore'
 import { goalStore } from '../features/goal/goalStore'
+import { voiceStore } from '../features/voice/voice'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
@@ -65,6 +66,9 @@ const LockDialog = lazy(() =>
 const WordGoalDialog = lazy(() =>
   import('../features/goal/WordGoalDialog').then((m) => ({ default: m.WordGoalDialog })),
 )
+const VoiceConsentDialog = lazy(() =>
+  import('../features/voice/VoiceConsentDialog').then((m) => ({ default: m.VoiceConsentDialog })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -83,7 +87,9 @@ function Dialogs() {
   const tagging = useStore(tagsStore, (s) => s.noteId !== null)
   const locking = useStore(lockStore, (s) => s.noteId !== null)
   const goal = useStore(goalStore, (s) => s.noteId !== null)
+  const voice = useStore(voiceStore, (s) => s.consentOpen)
   const [seen, setSeen] = useState({
+    voice,
     goal,
     locking,
     tagging,
@@ -109,9 +115,11 @@ function Dialogs() {
     (printing && !seen.printing) ||
     (tagging && !seen.tagging) ||
     (locking && !seen.locking) ||
-    (goal && !seen.goal)
+    (goal && !seen.goal) ||
+    (voice && !seen.voice)
   ) {
     setSeen({
+      voice: seen.voice || voice,
       goal: seen.goal || goal,
       locking: seen.locking || locking,
       tagging: seen.tagging || tagging,
@@ -140,6 +148,7 @@ function Dialogs() {
       {seen.tagging && <TagsDialog />}
       {seen.locking && <LockDialog />}
       {seen.goal && <WordGoalDialog />}
+      {seen.voice && <VoiceConsentDialog />}
     </Suspense>
   )
 }

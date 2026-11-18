@@ -16,6 +16,7 @@ import {
   Italic,
   Link,
   List,
+  Mic,
   Minus,
   Plus,
   Printer,
@@ -31,6 +32,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Fragment, type ReactNode } from 'react'
+import { useStore } from 'zustand'
+import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
@@ -269,6 +272,7 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
   const setSize = (n: number) =>
     s().updateSettings({ editorFontSize: Math.min(EDITOR_FONT_MAX, Math.max(EDITOR_FONT_MIN, n)) })
   const off = !view
+  const listening = useStore(voiceStore, (v) => v.listening)
   const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0)
   const canRedo = useActiveViewValue((v) => !!v && redoDepth(v.state) > 0)
 
@@ -321,6 +325,15 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
         disabled={off}
         onClick={() => view && openSearchPanel(view)}
       />
+      {!compact && isVoiceSupported() && (
+        <Btn
+          icon={Mic}
+          label={listening ? 'Stop voice typing' : 'Start voice typing'}
+          pressed={listening}
+          disabled={off}
+          onClick={() => toggleVoice(view)}
+        />
+      )}
       {!compact && (
         <>
           <span className="min-w-2 flex-1" />
