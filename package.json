@@ -31,7 +31,8 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist --dotfiles --nojekyll -m \"deploy: publish build\"",
     "icons": "pwa-assets-generator",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:linux": "sh scripts/e2e-linux.sh"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

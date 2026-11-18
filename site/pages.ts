@@ -280,7 +280,8 @@ ul,ol{padding-left:1.3rem}li{margin:6px 0}details{border-bottom:1px solid var(--
 summary{font-weight:600;cursor:pointer}details p{margin:8px 0 0;color:var(--muted)}
 .cta{background:var(--soft);border-radius:12px;padding:24px;margin-top:40px}.cta h2{margin-top:0}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:.95rem;padding-block:24px}
-@media (max-width:480px){header nav{display:none}}
+@media (max-width:480px){header nav{display:none}header .wrap{flex-wrap:nowrap;gap:8px}header .btn{padding:9px 12px;font-size:.9rem;white-space:nowrap}}
+@media (max-width:360px){.brand span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
 footer ul{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 18px}footer a{display:inline-block;padding:6px 0}`
 
 function section(s: Section): string {

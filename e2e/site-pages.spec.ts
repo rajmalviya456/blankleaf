@@ -33,11 +33,19 @@ test('once the app is installed, landing pages and the sitemap still load', asyn
   expect(await map?.text()).toContain('/blankleaf/faq/</loc>')
 })
 
-for (const width of [320, 390])
-  test(`pages fit a ${width}px phone screen`, async ({ page }) => {
+// Text widths differ by system font (Linux's default is much wider than macOS's), so the layout
+// is also checked with artificially wide letters: it must not depend on the machine's fonts.
+for (const [width, spacing] of [
+  [320, '0'],
+  [390, '0'],
+  [320, '0.08em'],
+  [390, '0.08em'],
+] as const)
+  test(`pages fit a ${width}px phone screen (letter spacing ${spacing})`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 })
     for (const p of PAGES) {
       await page.goto(`${p.slug}/`)
+      await page.addStyleTag({ content: `*{letter-spacing:${spacing}!important}` })
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       )
