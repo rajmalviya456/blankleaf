@@ -38,6 +38,7 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
   formatting kept.
 - **Note templates.** Start a daily journal, meeting notes, checklist or to-do list in one click.
 - **Spell check per note**, using your browser's own checker.
+- **Tags.** Label notes, filter the list by tag, and find tags in search.
 - **Sort your notes** by last edited, date created or name.
 - **Toolbar that fits the note.** Markdown notes get headings, bold, italic, lists, quotes,
   links and code blocks. Plain text, code and logs get change case, sort / dedupe / trim lines

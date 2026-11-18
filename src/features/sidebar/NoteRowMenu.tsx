@@ -1,7 +1,17 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Download, ExternalLink, MoreHorizontal, Pin, PinOff, Share2, Trash2 } from 'lucide-react'
+import {
+  Download,
+  ExternalLink,
+  MoreHorizontal,
+  Pin,
+  PinOff,
+  Share2,
+  Tag,
+  Trash2,
+} from 'lucide-react'
 import type { Note } from '../../domain/types'
 import { exportNote } from '../backup/actions'
+import { tagsStore } from '../tags/tagsStore'
 import { shareStore } from '../share/shareStore'
 import { getStore } from '../../store/store'
 
@@ -47,6 +57,9 @@ export function NoteRowMenu({
           >
             {note.pinned ? <PinOff size={16} aria-hidden /> : <Pin size={16} aria-hidden />}
             {note.pinned ? 'Unpin' : 'Pin'}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item className={item} onSelect={() => tagsStore.getState().open(note.id)}>
+            <Tag size={16} aria-hidden /> Tags…
           </DropdownMenu.Item>
           <DropdownMenu.Item className={item} onSelect={() => shareStore.getState().open(note.id)}>
             <Share2 size={16} aria-hidden /> Share…

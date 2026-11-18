@@ -5,6 +5,7 @@
 import { VERSIONS_KEPT } from '../../db/versionsRepo'
 import { mergeSettings } from '../../domain/defaults'
 import { LANGUAGES } from '../../domain/languages'
+import { cleanTags } from '../../domain/tags'
 import type { LanguageId, Note, Settings } from '../../domain/types'
 
 export const BACKUP_SCHEMA_VERSION = 1
@@ -125,6 +126,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
   if (typeof r.id !== 'string' || !r.id || r.id.length > 200) return null
   if (typeof r.content !== 'string') return null
   const createdAt = num(r.createdAt, now)
+  const tags = cleanTags(r.tags)
   return {
     id: r.id,
     title: typeof r.title === 'string' && r.title.trim() ? r.title : null,
@@ -135,6 +137,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
       : 'auto') as LanguageId,
     wrap: typeof r.wrap === 'boolean' ? r.wrap : true,
     ...(r.spellcheck === true ? { spellcheck: true } : {}),
+    ...(tags.length ? { tags } : {}),
     pinned: r.pinned === true,
     createdAt,
     updatedAt: num(r.updatedAt, createdAt),

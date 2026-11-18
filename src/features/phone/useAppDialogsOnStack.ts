@@ -9,6 +9,7 @@ import { getStore, useAppStore } from '../../store/store'
 import { importStore } from '../backup/importStore'
 import { shareStore } from '../share/shareStore'
 import { historyStore } from '../history/historyStore'
+import { tagsStore } from '../tags/tagsStore'
 import { phoneStore, sameOverlay, type AppDialog, type PhoneOverlay } from './phoneStore'
 
 const CLOSE: Record<AppDialog, () => void> = {
@@ -21,6 +22,7 @@ const CLOSE: Record<AppDialog, () => void> = {
   share: () => shareStore.getState().close(),
   import: () => importStore.getState().close(),
   history: () => historyStore.getState().close(),
+  tags: () => tagsStore.getState().close(),
 }
 
 const entry = (id: AppDialog): PhoneOverlay => ({ kind: 'app', id })
@@ -32,6 +34,7 @@ export function useAppDialogsOnStack(): void {
   const share = useStore(shareStore, (s) => s.dialogNoteId !== null)
   const importing = useStore(importStore, (s) => s.open)
   const history = useStore(historyStore, (s) => s.noteId !== null)
+  const tags = useStore(tagsStore, (s) => s.noteId !== null)
   const open: Record<AppDialog, boolean> = {
     settings: ui.settingsOpen,
     about: ui.aboutOpen,
@@ -42,6 +45,7 @@ export function useAppDialogsOnStack(): void {
     share,
     import: importing,
     history,
+    tags,
   }
   const key = Object.entries(open)
     .map(([id, on]) => `${id}:${on ? 1 : 0}`)
