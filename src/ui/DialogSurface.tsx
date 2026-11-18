@@ -8,6 +8,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import * as Dialog from '@radix-ui/react-dialog'
 import { forwardRef, useImperativeHandle, useRef, type ComponentPropsWithoutRef } from 'react'
 import { useIsPhone } from '../lib/media'
+import { keepOpenOnToast } from './keepOpenOnToast'
 import { useDragToClose } from './useDragToClose'
 
 type Props = ComponentPropsWithoutRef<typeof Dialog.Content> & { kind?: 'dialog' | 'alert' }
@@ -28,7 +29,7 @@ function sheetClasses(laptop: string): string {
 }
 
 export const DialogSurface = forwardRef<HTMLDivElement, Props>(function DialogSurface(
-  { kind = 'dialog', className = '', children, ...rest },
+  { kind = 'dialog', className = '', children, onInteractOutside, ...props },
   forwarded,
 ) {
   const phone = useIsPhone()
@@ -37,6 +38,13 @@ export const DialogSurface = forwardRef<HTMLDivElement, Props>(function DialogSu
   const drag = useDragToClose(() =>
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })),
   )
+  const rest = {
+    ...props,
+    onInteractOutside: (e: Parameters<NonNullable<Props['onInteractOutside']>>[0]) => {
+      keepOpenOnToast(e)
+      onInteractOutside?.(e)
+    },
+  }
   const Content = (kind === 'alert' ? AlertDialog.Content : Dialog.Content) as typeof Dialog.Content
 
   if (!phone)

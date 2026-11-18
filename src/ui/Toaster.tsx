@@ -22,9 +22,6 @@ function ToastView({ t }: { t: ToastItem }) {
   return (
     <div
       role={t.tone === 'error' ? 'alert' : 'status'}
-      // A tap on a toast (e.g. Undo) isn't a tap "outside" an open sheet or the phone
-      // Library: keep it from reaching their outside-tap listeners, so they stay open.
-      onPointerDown={(e) => e.stopPropagation()}
       className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-lg border bg-bg-elev px-3 py-2.5 text-[12.5px] text-fg shadow-lg ${toneClass[t.tone]}`}
     >
       <p className="flex-1 leading-snug">{t.msg}</p>
@@ -60,6 +57,10 @@ export function Toaster() {
   return (
     <div
       data-toaster
+      // A modal dialog hides the rest of the page from screen readers but leaves aria-live
+      // elements alone, so this keeps toasts (and their Undo) reachable. "off": the toasts'
+      // own status/alert roles do the announcing.
+      aria-live="off"
       className={
         phone
           ? 'pointer-events-none fixed inset-x-3 bottom-[calc(var(--kb,0px)+56px+env(safe-area-inset-bottom))] z-50 flex flex-col items-stretch gap-2'

@@ -1,4 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { keepOpenOnToast } from '../../ui/keepOpenOnToast'
 import {
   ChevronLeft,
   Contrast,
@@ -70,6 +71,7 @@ export function Library({ open, onClose }: { open: boolean; onClose(): void }) {
       <Dialog.Portal>
         <Dialog.Content
           aria-describedby={undefined}
+          onInteractOutside={keepOpenOnToast}
           className="np-library fixed inset-0 z-40 flex flex-col bg-bg-elev pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] outline-none"
         >
           <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-1">
