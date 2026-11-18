@@ -95,6 +95,74 @@ describe('browsers without speech recognition', () => {
   })
 })
 
+describe('browsers that include speech recognition but can’t use it', () => {
+  const brands = (...names: string[]) =>
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      language: 'en-US',
+      onLine: true,
+      userAgentData: { brands: names.map((brand) => ({ brand, version: '1' })) },
+    })
+
+  it.each([
+    ['Brave', ['Brave', 'Chromium']],
+    ['Vivaldi', ['Vivaldi', 'Chromium']],
+    ['Opera', ['Opera', 'Chromium']],
+    ['a plain Chromium build', ['Chromium', 'Not=A?Brand']],
+  ])('%s shows no voice typing', (_, names) => {
+    brands(...names)
+    const { s } = setup()
+    render(<App />)
+    expect(isVoiceSupported()).toBe(false)
+    expect(mic()).toBeNull()
+    expect(
+      commandEnabled(
+        COMMANDS.find((c) => c.id === 'voice.toggle')!,
+        s(),
+      ),
+    ).toBe(false)
+  })
+
+  it.each([
+    ['Chrome', ['Google Chrome', 'Chromium']],
+    ['Edge', ['Microsoft Edge', 'Chromium']],
+  ])('%s keeps it', (_, names) => {
+    brands(...names)
+    expect(isVoiceSupported()).toBe(true)
+  })
+
+  it('an unknown browser that fails is never offered it again', async () => {
+    const { user } = setup()
+    render(<App />)
+    await startListening(user)
+    rec().fail('network')
+    expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/isn’t available in this browser/)
+    await waitFor(() => expect(mic()).toBeNull())
+    expect(isVoiceSupported()).toBe(false)
+  })
+
+  it('Chrome keeps the button after a connection problem, and says what to check', async () => {
+    brands('Google Chrome', 'Chromium')
+    const { user } = setup()
+    render(<App />)
+    await startListening(user)
+    rec().fail('network')
+    expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/connection or VPN/)
+    expect(mic()).not.toBeNull()
+  })
+
+  it('being offline is reported as being offline', async () => {
+    const { user } = setup()
+    render(<App />)
+    await startListening(user)
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    rec().fail('network')
+    expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/You’re offline/)
+    expect(mic()).not.toBeNull()
+    vi.restoreAllMocks()
+  })
+})
+
 describe('phones', () => {
   it('use the keyboard’s own microphone, so there’s no extra button', () => {
     media = stubMedia({ phone: true, touch: true })
@@ -162,7 +230,6 @@ describe('voice typing', () => {
   it.each([
     ['not-allowed', /Allow microphone/],
     ['audio-capture', /No microphone/],
-    ['network', /internet connection/],
   ])('explains the %s error and stops', async (error, message) => {
     const { user } = setup()
     render(<App />)

@@ -34,7 +34,42 @@ const recognitionClass = (): RecognitionClass | undefined => {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition
 }
 
-export const isVoiceSupported = () => !!recognitionClass()
+const UNAVAILABLE_KEY = 'blankleaf:voice-unavailable'
+
+function remembered(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'yes'
+  } catch {
+    return false
+  }
+}
+
+function remember(key: string): void {
+  try {
+    localStorage.setItem(key, 'yes')
+  } catch {
+    // Private browsing: it simply asks or tries again next time.
+  }
+}
+
+/** The browser's brand names, where it reports them (Chromium-based browsers do). */
+const browserBrands = () =>
+  (
+    navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }
+  ).userAgentData?.brands.map((b) => b.brand)
+
+const hasSpeechService = (brands: string[]) =>
+  brands.some((b) => b === 'Google Chrome' || b === 'Microsoft Edge')
+
+/**
+ * Brave, Vivaldi, Opera and other Chromium browsers include the speech feature, but only Chrome
+ * and Edge come with the service behind it: elsewhere every attempt fails with a network error.
+ */
+export function isVoiceSupported(): boolean {
+  if (!recognitionClass() || remembered(UNAVAILABLE_KEY)) return false
+  const brands = browserBrands()
+  return !brands || hasSpeechService(brands)
+}
 
 export const voiceStore = createStore<{
   listening: boolean
@@ -51,16 +86,17 @@ const PROBLEMS: Record<string, string> = {
   'not-allowed': 'Allow microphone access in your browser to use voice typing.',
   'service-not-allowed': 'Allow microphone access in your browser to use voice typing.',
   'audio-capture': 'No microphone was found.',
-  network: 'Voice typing needs an internet connection in this browser.',
   'language-not-supported': 'Voice typing doesn’t support your browser’s language.',
 }
 
-function hasConsent(): boolean {
-  try {
-    return localStorage.getItem(CONSENT_KEY) === 'yes'
-  } catch {
-    return false
-  }
+/** A network error can mean being offline, a blocked service, or no service at all. */
+function networkProblem(): string {
+  if (!navigator.onLine) return 'You’re offline. Voice typing needs an internet connection.'
+  const brands = browserBrands()
+  if (brands && hasSpeechService(brands))
+    return 'Voice typing couldn’t reach the speech service. Check your connection or VPN.'
+  remember(UNAVAILABLE_KEY)
+  return 'Voice typing isn’t available in this browser.'
 }
 
 let stopCurrent: (() => void) | null = null
@@ -125,7 +161,7 @@ function start(view: EditorView) {
     voiceStore.setState({ interim: interim.trim() })
   }
   recognition.onerror = ({ error }) => {
-    const problem = PROBLEMS[error]
+    const problem = error === 'network' ? networkProblem() : PROBLEMS[error]
     if (!problem) return // Silence and cancelled sessions just carry on.
     stop()
     toast(problem, { tone: 'warn' })
@@ -161,16 +197,12 @@ function start(view: EditorView) {
 export function toggleVoice(view: EditorView | null): void {
   if (voiceStore.getState().listening) return stopVoice()
   if (!view) return
-  if (hasConsent()) start(view)
+  if (remembered(CONSENT_KEY)) start(view)
   else voiceStore.setState({ consentOpen: true })
 }
 
 export function acceptVoiceConsent(): void {
-  try {
-    localStorage.setItem(CONSENT_KEY, 'yes')
-  } catch {
-    // Private browsing: it simply asks again next time.
-  }
+  remember(CONSENT_KEY)
   voiceStore.setState({ consentOpen: false })
   const view = getActiveView()
   if (view) start(view)
