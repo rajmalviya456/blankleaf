@@ -52,6 +52,18 @@ describe('Toolbar', () => {
     expect(t.msg).toBe('Switched this note to Markdown')
     act(() => t.action!.run())
     expect(s().notes[id].mode).toBe('plain')
+    expect(s().notes[id].content).toBe('ship tabs') // the markers go too
+  })
+
+  it('Undo on the Markdown switch keeps later typing', async () => {
+    const user = userEvent.setup()
+    const { view, id, s } = setup('ship tabs', false)
+    act(() => view.dispatch({ selection: { anchor: 5, head: 9 } }))
+    await user.click(screen.getByRole('button', { name: 'Bold' }))
+    act(() => view.dispatch({ changes: { from: 0, insert: '>' } }))
+    act(() => toastStore.getState().toasts.at(-1)!.action!.run())
+    expect(s().notes[id].mode).toBe('plain')
+    expect(s().notes[id].content).toBe('>ship **tabs**')
   })
 
   it('a text size can be typed: Enter applies it, clamped to 10–72', async () => {

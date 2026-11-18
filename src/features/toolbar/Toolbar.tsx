@@ -31,7 +31,7 @@ import {
 import type { ReactNode } from 'react'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
-import { useActiveView, useActiveViewValue } from '../editor/activeView'
+import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
 import { shareStore } from '../share/shareStore'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -133,25 +133,33 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
 
 const Sep = () => <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border" />
 
-/** Formatting writes Markdown, so a plain-text note becomes a Markdown note (with Undo). */
-function useAsMarkdown(noteId: string) {
-  return () => {
-    const s = getStore().getState()
-    if (s.notes[noteId]?.mode === 'markdown') return
-    s.setNoteMode(noteId, 'markdown')
-    toast('Switched this note to Markdown', {
-      action: { label: 'Undo', run: () => getStore().getState().setNoteMode(noteId, 'plain') },
-    })
-  }
+/**
+ * Formatting writes Markdown, so a plain-text note becomes a Markdown note. Undo on the toast
+ * switches it back and, if nothing was typed since, takes the formatting out again.
+ */
+function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorView) => unknown) {
+  const s = getStore().getState()
+  if (s.notes[noteId]?.mode === 'markdown') return void format(view)
+  s.setNoteMode(noteId, 'markdown')
+  format(view)
+  const after = view.state.doc
+  toast('Switched this note to Markdown', {
+    action: {
+      label: 'Undo',
+      run: () => {
+        // The editor may have been recreated for the new format; its history carries over.
+        const v = getActiveView()
+        if (v && v.state.doc.eq(after) && undoDepth(v.state) > 0) undo(v)
+        getStore().getState().setNoteMode(noteId, 'plain')
+      },
+    },
+  })
 }
 
 function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
-  const asMarkdown = useAsMarkdown(noteId)
   const run = (fn: (v: EditorView) => unknown) => () => {
-    if (!view) return
-    asMarkdown()
-    fn(view)
+    if (view) formatAsMarkdown(noteId, view, fn)
   }
   return (
     <>

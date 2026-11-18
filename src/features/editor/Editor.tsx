@@ -13,6 +13,7 @@ import { useEditorExtensions } from './useEditorExtensions'
 import { effectiveEditorFontSize } from '../../domain/defaults'
 import { useIsPhone } from '../../lib/media'
 import { activeViewUpdated, releaseActiveView, setActiveView } from './activeView'
+import { rememberState, restoreHistory } from './historyCache'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
 function useLanguageExtension(lang: LanguageId, large: boolean): Extension | null {
@@ -63,6 +64,8 @@ export function Editor({ noteId }: { noteId: string }) {
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)
+  // Undo history from this note's previous editor, if the text hasn't changed since.
+  const [initialState] = useState(() => restoreHistory(noteId, content))
   const reveal = useAppStore((s) => (s.ui.reveal?.noteId === noteId ? s.ui.reveal : null))
 
   useEffect(() => {
@@ -124,7 +127,10 @@ export function Editor({ noteId }: { noteId: string }) {
 
   const onUpdate = useCallback(
     (u: ViewUpdate) => {
-      if (u.docChanged || u.transactions.length) activeViewUpdated(u.view)
+      if (u.docChanged || u.transactions.length) {
+        activeViewUpdated(u.view)
+        rememberState(noteId, u.state)
+      }
       if (!u.selectionSet) return
       const { anchor, head } = u.state.selection.main
       const prev = s().session.perTab[noteId]
@@ -136,6 +142,7 @@ export function Editor({ noteId }: { noteId: string }) {
   return (
     <CodeMirror
       value={content}
+      initialState={initialState as Parameters<typeof CodeMirror>[0]['initialState']}
       onChange={onChange}
       onUpdate={onUpdate}
       onCreateEditor={onCreateEditor}
