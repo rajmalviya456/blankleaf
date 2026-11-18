@@ -5,7 +5,6 @@ import { stubMedia } from '../../../tests/media'
 import { App } from '../../app/App'
 import { StatusBar } from '../../app/layout/StatusBar'
 import { COMMANDS } from '../../commands/registry'
-import { WELCOME_CONTENT } from '../../domain/defaults'
 import { cleanWordGoal } from '../../domain/wordGoal'
 import { readingMinutes } from '../../lib/textStats'
 import { createAppStore, initStore } from '../../store/store'
@@ -26,7 +25,6 @@ function setup(content = 'one two three') {
   const s = () => store.getState()
   return { store, s, id: s().newNote({ content }) }
 }
-const hints = () => screen.queryByRole('navigation', { name: 'Get started' })
 
 describe('reading time', () => {
   it('rounds up at 200 words a minute', () => {
@@ -113,58 +111,5 @@ describe('word goals', () => {
     act(() => goalStore.getState().open(id))
     await screen.findByRole('dialog', { name: 'Word goal' })
     expect(phoneStore.getState().stack).toEqual([{ kind: 'app', id: 'goal' }])
-  })
-})
-
-describe('the blank page', () => {
-  function blankAfterNotes() {
-    const store = initStore(createAppStore())
-    const s = () => store.getState()
-    const older = s().newNote({ title: 'Older', content: 'a', updatedAt: 10 })
-    const last = s().newNote({ title: 'Yesterday', content: 'b', updatedAt: 20 })
-    const blank = s().newNote()
-    return { s, older, last, blank }
-  }
-
-  it('offers the last edited note, and going there leaves no empty tab', async () => {
-    const { s, last, blank } = blankAfterNotes()
-    render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: 'Continue “Yesterday”' }))
-    expect(s().session.activeTabId).toBe(last)
-    expect(s().notes[blank]).toBeUndefined()
-  })
-
-  it('links to the guide pages', () => {
-    blankAfterNotes()
-    render(<App />)
-    const nav = hints()!
-    expect(within(nav).getByRole('link', { name: 'Features' })).toHaveAttribute(
-      'href',
-      '/features/',
-    )
-    expect(within(nav).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq/')
-  })
-
-  it('goes away as soon as you type', () => {
-    const { s, blank } = blankAfterNotes()
-    render(<App />)
-    expect(hints()).not.toBeNull()
-    act(() => s().updateContent(blank, 'hello'))
-    expect(hints()).toBeNull()
-  })
-
-  it('shows the links, but nothing to continue, on the first visit', () => {
-    const store = initStore(createAppStore())
-    store.getState().newNote({ title: 'Welcome', content: WELCOME_CONTENT })
-    render(<App />)
-    expect(within(hints()!).getByRole('link', { name: 'FAQ' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Continue/ })).toBeNull()
-  })
-
-  it('stays out of the way in zen mode and on locked notes', () => {
-    const { s } = blankAfterNotes()
-    render(<App />)
-    act(() => s().toggleZen())
-    expect(hints()).toBeNull()
   })
 })

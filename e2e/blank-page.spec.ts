@@ -1,25 +1,16 @@
 import { expect, test } from '@playwright/test'
-import { editor, newNote, openApp, statusBar } from './helpers'
+import { newNote, openApp, statusBar } from './helpers'
 
-test('continue the last note from the blank page', async ({ page }) => {
+test('the blank page shows nothing but the page', async ({ page }) => {
   await openApp(page)
-  await newNote(page, 'yesterday’s plan')
+  await newNote(page, 'an older note')
   await expect(statusBar(page)).toContainText('Saved')
   await page.goto('./')
-  await page.getByRole('button', { name: 'Continue “yesterday’s plan”' }).click()
-  await expect(editor(page)).toContainText('yesterday’s plan')
-  await expect(page.getByRole('navigation', { name: 'Get started' })).toBeHidden()
-})
-
-test('guide pages are linked for visitors and search engines', async ({ page }) => {
-  await openApp(page)
-  const nav = page.getByRole('navigation', { name: 'Get started' })
-  await expect(nav.getByRole('link', { name: 'Features' })).toHaveAttribute(
-    'href',
-    '/blankleaf/features/',
-  )
+  await expect(page.locator('.cm-editor')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Continue/ })).toHaveCount(0)
+  await expect(page.getByRole('main').getByRole('link')).toHaveCount(0)
   const html = await (await page.request.get('./')).text()
-  expect(html).toContain('href="/blankleaf/faq/"')
+  expect(html).not.toContain('href="/blankleaf/faq/"')
 })
 
 test('word goal and reading time in the status bar', async ({ page }) => {

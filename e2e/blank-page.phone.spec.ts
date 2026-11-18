@@ -1,28 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { editor, noteBar, openPhoneApp } from './helpers'
+import { noteBar, openPhoneApp } from './helpers'
 
-test('on a phone: continue the last note, and set a word goal', async ({ page }) => {
+test('on a phone: set a word goal', async ({ page }) => {
   await openPhoneApp(page)
-  await noteBar(page)
-    .getByRole('button', { name: /^Open tabs:/ })
-    .tap()
-  await page
-    .getByRole('dialog', { name: 'Open tabs' })
-    .getByRole('button', { name: 'New note' })
-    .tap()
-  await editor(page).tap()
-  await page.keyboard.type('phone draft')
-  await page.waitForTimeout(600)
-  await openPhoneApp(page)
-  const nextUp = page.getByRole('button', { name: 'Continue “phone draft”' })
-  await expect(nextUp).toBeVisible()
-  const faq = (await page.getByRole('link', { name: 'FAQ' }).boundingBox())!
-  expect(Math.abs(faq.y - (await nextUp.boundingBox())!.y)).toBeLessThanOrEqual(4)
-  const box = (await nextUp.boundingBox())!
-  expect(box.height).toBeGreaterThanOrEqual(44)
-  await nextUp.tap()
-  await expect(editor(page)).toContainText('phone draft')
-
   await noteBar(page).getByRole('button', { name: 'Note menu' }).tap()
   await page
     .getByRole('dialog', { name: 'Note menu' })

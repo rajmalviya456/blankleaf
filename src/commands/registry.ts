@@ -11,6 +11,7 @@ import { printStore } from '../features/print/printStore'
 import { tagsStore } from '../features/tags/tagsStore'
 import { lockStore } from '../features/lock/lockStore'
 import { goalStore } from '../features/goal/goalStore'
+import { isVoiceSupported, toggleVoice } from '../features/voice/voice'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
@@ -185,6 +186,19 @@ export const COMMANDS: Command[] = [
       const id = activeId(ctx)
       if (id) shareStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+  {
+    id: 'voice.toggle',
+    title: 'Voice typing',
+    section: 'Note',
+    keywords: ['dictate', 'dictation', 'speech', 'microphone', 'mic'],
+    shortcuts: [],
+    only: 'laptop',
+    when: (s) => hasOpenText(s) && isVoiceSupported(),
+    run: (ctx) => {
+      st(ctx).setUi({ paletteOpen: false })
+      toggleVoice(getActiveView())
     },
   },
   {
