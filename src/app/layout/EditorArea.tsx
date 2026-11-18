@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { lazy, Suspense, useDeferredValue } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
 import { getStore, useAppStore } from '../../store/store'
@@ -9,10 +9,19 @@ const MarkdownPreview = lazy(() =>
   import('../../features/editor/MarkdownPreview').then((m) => ({ default: m.MarkdownPreview })),
 )
 
-function Preview({ source }: { source: string }) {
+function Preview({ source, noteId }: { source: string; noteId: string }) {
+  // Ticking a checklist box edits the note, unless the preview is behind fresh typing
+  // (its text would overwrite what was just typed).
+  const onSourceChange = useCallback(
+    (next: string) => {
+      const s = getStore().getState()
+      if (s.notes[noteId]?.content === source) s.updateContent(noteId, next)
+    },
+    [noteId, source],
+  )
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
-      <MarkdownPreview source={source} />
+      <MarkdownPreview source={source} onSourceChange={onSourceChange} />
     </Suspense>
   )
 }
@@ -31,7 +40,7 @@ function NoteView({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
   if (view === 'preview')
     return (
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <Preview source={deferred} />
+        <Preview source={deferred} noteId={noteId} />
       </div>
     )
   return (
@@ -40,7 +49,7 @@ function NoteView({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
         <Editor noteId={noteId} />
       </div>
       <div className="min-h-0 min-w-0 overflow-y-auto bg-bg">
-        <Preview source={deferred} />
+        <Preview source={deferred} noteId={noteId} />
       </div>
     </div>
   )
