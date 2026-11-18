@@ -105,7 +105,7 @@ export const PAGES: Page[] = [
       },
       {
         q: 'Will I lose my notes if I close the tab?',
-        a: 'No. Notes are saved as you type, and your open tabs come back the next time you visit in the same browser.',
+        a: 'No. Notes are saved as you type. Each visit opens on a blank page, and your earlier notes are waiting in the Notes list in the same browser.',
       },
       {
         q: 'How could I lose my notes?',
@@ -151,7 +151,7 @@ export const PAGES: Page[] = [
         heading: 'Why tabs help',
         list: [
           'Switch between notes without losing your place',
-          'Your open tabs, cursor and scroll position come back after a reload',
+          'Your tabs, cursor and scroll position stay put when you reload',
           'Pin the notes you use every day',
           'Drag tabs into the order you want',
           'Search across all your notes at once',
@@ -162,7 +162,7 @@ export const PAGES: Page[] = [
         steps: [
           'Open Blankleaf. A blank page is ready straight away.',
           'Add a new tab for each note you want to keep open.',
-          'Close the window whenever you like. Your tabs will be there next time.',
+          'Close the window whenever you like. Your notes stay saved in the Notes list.',
         ],
       },
     ],
