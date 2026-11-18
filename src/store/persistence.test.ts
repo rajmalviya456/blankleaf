@@ -1,11 +1,11 @@
-import { openDb, type NotepadzDB } from '../db/db'
+import { openDb, type BlankleafDB } from '../db/db'
 import { loadAll } from '../db/notesRepo'
 import { toastStore } from '../ui/toast'
 import { readJournal } from './journal'
 import { startPersistence, type Persistence } from './persistence'
 import { createAppStore } from './store'
 
-let db: NotepadzDB
+let db: BlankleafDB
 let p: Persistence | null = null
 
 beforeEach(() => {

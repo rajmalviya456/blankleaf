@@ -1,14 +1,14 @@
-import type { NotepadzDB } from '../db/db'
+import type { BlankleafDB } from '../db/db'
 import { clearAllJournals } from './journal'
 import type { Persistence } from './persistence'
 
 /** Handles to the live storage, registered once at startup (main.tsx). */
-let activeDb: NotepadzDB | null = null
+let activeDb: BlankleafDB | null = null
 let activePersistence: Persistence | null = null
 let announceCleared: (() => void) | null = null
 
 export function registerStorage(
-  db: NotepadzDB | null,
+  db: BlankleafDB | null,
   persistence: Persistence | null,
   announce: (() => void) | null = null,
 ): void {
@@ -17,7 +17,7 @@ export function registerStorage(
   announceCleared = announce
 }
 
-export function getActiveDb(): NotepadzDB | null {
+export function getActiveDb(): BlankleafDB | null {
   return activeDb
 }
 

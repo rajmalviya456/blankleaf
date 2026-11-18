@@ -20,6 +20,10 @@ import { startPersistence } from './store/persistence'
 import { createAppStore, initStore } from './store/store'
 import './styles/index.css'
 import { toast } from './ui/toast'
+import { renameStorageKeys } from './lib/renameStorageKeys'
+
+// Before anything reads storage: carry over keys saved under the app's old name.
+renameStorageKeys()
 
 const rootEl = () => {
   const root = document.getElementById('root')
@@ -106,7 +110,7 @@ async function main() {
   )
 }
 
-// A share link pasted into an already-open Notepadz tab only changes the hash; reload so it
+// A share link pasted into an already-open Blankleaf tab only changes the hash; reload so it
 // goes through the share entry point (and the key leaves the address bar).
 window.addEventListener('hashchange', () => {
   if (parseShareHash(location.hash)) location.reload()

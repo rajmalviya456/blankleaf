@@ -337,7 +337,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: 'app.about',
-    title: 'About Notepadz',
+    title: 'About Blankleaf',
     section: 'App',
     keywords: ['version', 'help', 'privacy', 'github', 'feedback', 'bug'],
     shortcuts: [],

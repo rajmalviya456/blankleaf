@@ -12,7 +12,7 @@ type Envelope =
  * BroadcastChannel transport: lets two tabs of the same origin talk without a network.
  * Used for end-to-end tests (enabled with a localStorage flag, see pickTransport).
  */
-export function createChannelTransport(name = 'notepadz-share-test'): ShareTransport {
+export function createChannelTransport(name = 'blankleaf-share-test'): ShareTransport {
   const ch = new BroadcastChannel(name)
   const hosted = new Map<string, { onConn: (c: Conn) => void; conns: Map<string, ConnHandlers> }>()
   const clients = new Map<string, ConnHandlers>()

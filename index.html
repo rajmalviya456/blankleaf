@@ -2,16 +2,75 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Blankleaf — Free Online Notepad with Tabs, Markdown &amp; Autosave</title>
+    <meta
+      name="description"
+      content="Blankleaf is a free online notepad that opens straight to a blank page. Tabs, Markdown preview, code highlighting and autosave in your browser. No sign-up, works offline, share notes by link."
+    />
+    <meta name="application-name" content="Blankleaf" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://rajmalviya456.github.io/blankleaf/" />
+
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="apple-mobile-web-app-title" content="Blankleaf" />
     <meta name="theme-color" content="#111318" />
+
+    <!-- Link previews (Open Graph, X/Twitter) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Blankleaf" />
+    <meta property="og:title" content="Blankleaf — Online Notepad" />
     <meta
-      name="description"
-      content="A full-window, tabbed notepad that keeps everything in your browser."
+      property="og:description"
+      content="A free online notepad: tabs, Markdown, code highlighting and autosave. No sign-up, works offline, share by link."
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Notepadz</title>
+    <meta property="og:url" content="https://rajmalviya456.github.io/blankleaf/" />
+    <meta property="og:image" content="https://rajmalviya456.github.io/blankleaf/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Blankleaf — Online Notepad" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Blankleaf — Online Notepad" />
+    <meta
+      name="twitter:description"
+      content="A free online notepad: tabs, Markdown, code highlighting and autosave. No sign-up, works offline, share by link."
+    />
+    <meta name="twitter:image" content="https://rajmalviya456.github.io/blankleaf/og-image.png" />
+    <meta name="twitter:image:alt" content="Blankleaf — Online Notepad" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Blankleaf",
+        "alternateName": ["Blankleaf Online Notepad", "Notepadz"],
+        "url": "https://rajmalviya456.github.io/blankleaf/",
+        "description": "A free online notepad with tabs, Markdown preview, code highlighting and autosave in your browser. No sign-up, works offline, share notes by link.",
+        "applicationCategory": "UtilitiesApplication",
+        "applicationSubCategory": "Notepad",
+        "operatingSystem": "Any (web browser)",
+        "browserRequirements": "Requires JavaScript. Works in current Chrome, Edge, Firefox and Safari.",
+        "image": "https://rajmalviya456.github.io/blankleaf/og-image.png",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Tabs for many notes at once",
+          "Markdown with live preview",
+          "Syntax highlighting for code and logs",
+          "Autosave in your browser, no account",
+          "Works offline as an installable app",
+          "Find and replace",
+          "End-to-end encrypted share by link",
+          "Backup and restore",
+          "Works on phones"
+        ],
+        "codeRepository": "https://github.com/rajmalviya456/blankleaf"
+      }
+    </script>
+
     <script>
       // Set theme before first paint to avoid a light flash in dark mode.
       document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches
@@ -21,6 +80,17 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main style="max-width: 40rem; margin: 3rem auto; padding: 0 1rem; font-family: sans-serif">
+        <h1>Blankleaf — Online Notepad</h1>
+        <p>
+          A free online notepad that opens straight to a blank page. Write in tabs, preview
+          Markdown, highlight code, and everything saves automatically in your browser. No sign-up,
+          works offline, and notes can be shared by an encrypted link.
+        </p>
+        <p>Blankleaf needs JavaScript. Please turn it on to start writing.</p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

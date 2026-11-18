@@ -9,9 +9,9 @@
  */
 import type { Note, Session, Settings } from '../domain/types'
 
-export const JOURNAL_PREFIX = 'notepadz:unsaved:'
+export const JOURNAL_PREFIX = 'blankleaf:unsaved:'
 /** Pre-1.0 single-key journal, still read so nothing written by older builds is lost. */
-const LEGACY_KEY = 'notepadz:unsaved'
+const LEGACY_KEY = 'blankleaf:unsaved'
 
 const WINDOW_ID = crypto.randomUUID()
 

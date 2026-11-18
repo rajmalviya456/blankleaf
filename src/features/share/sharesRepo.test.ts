@@ -1,4 +1,4 @@
-import { openDb, type NotepadzDB } from '../../db/db'
+import { openDb, type BlankleafDB } from '../../db/db'
 import {
   deleteShare,
   getShare,
@@ -9,7 +9,7 @@ import {
   type ShareRow,
 } from './sharesRepo'
 
-let db: NotepadzDB
+let db: BlankleafDB
 beforeEach(() => {
   db = openDb(`shares-${Math.random()}`)
 })

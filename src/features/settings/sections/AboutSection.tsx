@@ -4,13 +4,13 @@ import { buttonClass, Row, Section } from '../controls'
 export function AboutSection() {
   return (
     <Section title="About">
-      <Row label={`Notepadz ${__APP_VERSION__}`} hint="Notes are stored only in this browser.">
+      <Row label={`Blankleaf ${__APP_VERSION__}`} hint="Notes are stored only in this browser.">
         <button
           type="button"
           className={buttonClass}
           onClick={() => getStore().getState().setUi({ settingsOpen: false, aboutOpen: true })}
         >
-          About Notepadz…
+          About Blankleaf…
         </button>
       </Row>
     </Section>

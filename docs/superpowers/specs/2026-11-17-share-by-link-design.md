@@ -1,18 +1,18 @@
-# Notepadz — Share a note by link (live handoff)
+# Blankleaf — Share a note by link (live handoff)
 
 Date: 2026-11-17
 Status: Draft, awaiting approval
-Builds on: `docs/superpowers/specs/2026-11-16-notepadz-design.md` (replaces its §10a direction)
+Builds on: `docs/superpowers/specs/2026-11-16-blankleaf-design.md` (replaces its §10a direction)
 
 ## 1. Intent
 
 The user wants to send a note to someone **easily, with a link**, with these properties:
 - The link **really expires**, by default after **5 minutes**.
 - It's **password-protected by default**.
-- Notepadz stays **free of any server the user has to run**.
+- Blankleaf stays **free of any server the user has to run**.
 
 The model is a **live handoff**: the note travels directly from the sender's browser to the
-recipient's, peer to peer, while the sender's Notepadz is open. The sender's browser is the only
+recipient's, peer to peer, while the sender's Blankleaf is open. The sender's browser is the only
 place the shared copy exists, so when the share ends there is nothing left anywhere to fetch. That
 makes the expiry real.
 
@@ -27,7 +27,7 @@ makes the expiry real.
   password. They can **Save to my notes** or **Download**.
 - **Real expiry:** after the expiry, or after **Stop sharing**, the link can never deliver the note
   again.
-- **Survives a restart:** closing and reopening Notepadz before the expiry resumes the share, and the
+- **Survives a restart:** closing and reopening Blankleaf before the expiry resumes the share, and the
   same link keeps working.
 
 **Non-goals (v1)**
@@ -51,11 +51,11 @@ makes the expiry real.
 
 ## 3. Constraints
 
-- The app is a static SPA on GitHub Pages at `https://rajmalviya456.github.io/notepadz/`, with no
+- The app is a static SPA on GitHub Pages at `https://rajmalviya456.github.io/blankleaf/`, with no
   response headers and no backend.
 - Transport is WebRTC data channels through **PeerJS**, using its free public cloud signaling
   server and the default public STUN servers.
-- **The sender must be online** with Notepadz open (a background tab is fine) for the recipient to
+- **The sender must be online** with Blankleaf open (a background tab is fine) for the recipient to
   receive the note. A sleeping laptop or a closed browser pauses the share.
 - About 1 in 10 networks block direct peer connections. Without TURN, those handoffs fail.
 - Crypto uses WebCrypto only (no crypto libraries). Compression uses `CompressionStream`.
@@ -85,7 +85,7 @@ in the status bar. The popup has these parts, in order:
   - **Fixed after creation:** the password is decided before the link is created, because it's part
     of the encryption.
 - **Explanation:** one line saying the note is encrypted in the browser, sent directly to the
-  recipient, and that Notepadz must stay open until it's opened.
+  recipient, and that Blankleaf must stay open until it's opened.
 - **Size line:** "Size: 3.1 KB of 5 MB". The cap is **5 MB compressed**.
 - **Create link.**
 
@@ -95,13 +95,13 @@ After creation, the popup shows:
 - **"✓ Message copied"**, plus a live **countdown** and a bar.
 - **Tip:** for confidential notes, send the password another way. Sent together, it only protects
   against someone seeing just the link.
-- **"Keep Notepadz open until they've opened it."**
+- **"Keep Blankleaf open until they've opened it."**
 - **Stop sharing** and **Done**.
 
 **Copied message (exact format).** It's copied automatically on create. The Password line is
 omitted when the password is off. The date and time use the sender's locale and time zone:
 ```
-Hey! A note was shared with you on Notepadz.
+Hey! A note was shared with you on Blankleaf.
 
 Open it: <link>
 Password: <password>
@@ -118,16 +118,16 @@ The note title is **not** included, because notification previews would expose i
   - time left,
   - "Opened N times · last at 2:35 PM",
   - **Copy message** (same format as §5.1, password included) and **Stop sharing**.
-- **Every window:** every open Notepadz window shows the indicator and can Stop a share. Stop
+- **Every window:** every open Blankleaf window shows the indicator and can Stop a share. Stop
   deletes the row and announces `{t:'share-stopped', id}` on the existing BroadcastChannel; the
   serving window stops at once. *(Builder-check call.)*
 - **End of a share:** at expiry, or when stopped, the share disappears and a toast says "Share ended".
 
 ### 5.3 Recipient view
-Opening a link (`…/notepadz/#/s/<key>.<exp>.<p|n>`) shows the **share view**, a lightweight entry
+Opening a link (`…/blankleaf/#/s/<key>.<exp>.<p|n>`) shows the **share view**, a lightweight entry
 point. It does **not** create the Welcome note, open the notes database, start persistence or sync,
 or touch the recipient's notes. The full app boots only when the recipient clicks **Save to my
-notes** (which adds the note and opens it) or **Close** (which opens their normal Notepadz).
+notes** (which adds the note and opens it) or **Close** (which opens their normal Blankleaf).
 *(Builder-check call.)*
 
 The link carries the expiry time, so the recipient always knows it, even when the sender is
@@ -175,7 +175,7 @@ After reading the key, the share view removes `#/s/…` from the address bar (`h
    - With a password: `pw = PBKDF2-SHA256(normalised password, salt, 600000)`, then
      `readToken = HKDF(K ‖ pw, 'read')` and `encKey = HKDF(K ‖ pw, 'enc')`.
    - Without a password: `readToken = HKDF(K, 'read')` and `encKey = HKDF(K, 'enc')`.
-5. **Encryption**: AES-256-GCM with a random 96-bit IV, and AAD = `"notepadz-share-v1" ‖ exp ‖ flag`.
+5. **Encryption**: AES-256-GCM with a random 96-bit IV, and AAD = `"blankleaf-share-v1" ‖ exp ‖ flag`.
    It's computed once at creation and stored (§5.5). The plaintext snapshot isn't kept in share
    storage.
 6. **Handshake**: data is sent only after the password check passes. *(Builder-check call.)*
@@ -216,7 +216,7 @@ After reading the key, the share view removes `#/s/…` from the address bar (`h
 - **Peer id taken** (very unlikely, or a duplicate window): handled by the Web Lock. Otherwise retry
   once.
 - **Sender clock wrong:** expiry is decided by the sender's clock, which is accepted.
-- **Recipient opens the link in their own Notepadz** (same origin): the share view still works
+- **Recipient opens the link in their own Blankleaf** (same origin): the share view still works
   without changing their data until Save.
 - **The recipient is the sender** (same browser, testing): it works.
 

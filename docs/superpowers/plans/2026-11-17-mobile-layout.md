@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make every Notepadz feature usable and crisp on a phone (< 640px wide) with a note-first layout, without changing the laptop layout.
+**Goal:** Make every Blankleaf feature usable and crisp on a phone (< 640px wide) with a note-first layout, without changing the laptop layout.
 
 **Architecture:** A `useIsPhone()` media hook picks between the existing laptop shell and a new `PhoneShell` (top bar · editor · keyboard-docked toolbar). Phone-only overlays (Library, Tabs sheet, Note menu, row-action sheets) live in a small local zustand store with a history-backed "back closes the top overlay" stack. Every existing dialog renders through one `DialogSurface` that is a centred dialog on laptop and a draggable bottom sheet on phone.
 
@@ -27,7 +27,7 @@
 
 1. **Keyboard opens while typing near the bottom** → the caret line stays visible above the toolbar; the page never scrolls the top bar away. (Task 5 test: `useKeyboardInset` reports the covered height and `PhoneShell` sets `--kb` so the editor shrinks.)
 2. **Rotate or resize to ≥ 640px with a sheet or the Library open** → overlays close, pushed history entries are removed, the laptop layout shows with its own sidebar state. (Task 2 test.)
-3. **Pressing Back with nothing open** → normal browser navigation, Notepadz doesn't swallow it; with an overlay open → only that overlay closes. (Task 2 test.)
+3. **Pressing Back with nothing open** → normal browser navigation, Blankleaf doesn't swallow it; with an overlay open → only that overlay closes. (Task 2 test.)
 4. **Many tabs (30+) or a very long note title** → the Tabs sheet scrolls inside itself, the title truncates with an ellipsis, nothing overflows horizontally at 360px. (Task 6 test + Task 11 overflow e2e.)
 5. **A note left in "split" view on the laptop** → shows Edit on the phone, and after toggling Preview on the phone the laptop still shows split. (Task 4 test.)
 
@@ -137,7 +137,7 @@ it('footer stays outside the scrolling body')
   - `EditorArea({ viewOverride?: 'edit' | 'preview' })` — when set, overrides `session.perTab[id].previewMode` for rendering only.
   - `phoneViewFor(noteId, s): 'edit' | 'preview'` — `previewByTab[id]` if set, else `'preview'` when saved mode is preview, else `'edit'`.
   - `PhoneShell` layout: `PhoneTopBar` / `EditorArea viewOverride` / `PhoneToolbarDock` (Task 5) / lazy overlays (Tasks 6–8); height `100dvh`, top padding `env(safe-area-inset-top)`.
-  - `PhoneTopBar` buttons (accessible names): "Library" (☰), title button named `Open tabs: <title>` (shows "Notepadz" with no note), "Preview"/"Edit" toggle (Markdown only), "Note menu" (⋯). A small accent dot (aria-hidden; buttons' names gain " · sharing") on "Library" and "Note menu" while any share is active. Under the title: "Saving…" while saving; "Not saved" button (opens a toast with the error) on error; nothing when saved.
+  - `PhoneTopBar` buttons (accessible names): "Library" (☰), title button named `Open tabs: <title>` (shows "Blankleaf" with no note), "Preview"/"Edit" toggle (Markdown only), "Note menu" (⋯). A small accent dot (aria-hidden; buttons' names gain " · sharing") on "Library" and "Note menu" while any share is active. Under the title: "Saving…" while saving; "Not saved" button (opens a toast with the error) on error; nothing when saved.
 - App: `useIsPhone() ? <PhoneShell /> : <existing layout>`; `Dialogs`, `Toaster`, shortcuts and reminders stay shared.
 
 - [ ] **Step 1: Failing tests**
@@ -145,7 +145,7 @@ it('footer stays outside the scrolling body')
 ```ts
 it('phone media → top bar, no tab strip, rail or status bar')
 it('laptop media → existing layout untouched')
-it('title shows display title and opens the Tabs sheet; "Notepadz" with no open note plus a "New note" button')
+it('title shows display title and opens the Tabs sheet; "Blankleaf" with no open note plus a "New note" button')
 it('Preview toggle only for markdown; a split note shows Edit; toggling never changes session.perTab.previewMode') // Review Focus 5
 it('save state text: hidden when saved, "Saving…" when saving, "Not saved" button on error')
 it('sharing dot on Library and Note menu only while a share is active')

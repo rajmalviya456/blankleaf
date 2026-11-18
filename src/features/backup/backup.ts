@@ -7,16 +7,23 @@ import { LANGUAGES } from '../../domain/languages'
 import type { LanguageId, Note, Settings } from '../../domain/types'
 
 export const BACKUP_SCHEMA_VERSION = 1
+/** Backups made before the rename say "notepadz"; they import the same way. */
+const BACKUP_APPS: readonly unknown[] = ['blankleaf', 'notepadz']
+
+/** Cheap check on a file's start: is this (probably) one of our backups? */
+export function looksLikeBackup(text: string): boolean {
+  return /^\s*\{/.test(text) && /"app"\s*:\s*"(blankleaf|notepadz)"/.test(text.slice(0, 2000))
+}
 
 export interface Backup {
-  app: 'notepadz'
+  app: 'blankleaf'
   schemaVersion: number
   exportedAt: number
   notes: Note[]
   settings: Settings
 }
 
-export type BackupErrorKind = 'not-json' | 'not-notepadz' | 'bad-schema' | 'too-new'
+export type BackupErrorKind = 'not-json' | 'not-blankleaf' | 'bad-schema' | 'too-new'
 
 export class BackupError extends Error {
   readonly kind: BackupErrorKind
@@ -25,9 +32,9 @@ export class BackupError extends Error {
     super(
       {
         'not-json': 'This file isn’t valid JSON.',
-        'not-notepadz': 'This file isn’t a Notepadz backup.',
+        'not-blankleaf': 'This file isn’t a Blankleaf backup.',
         'bad-schema': 'This backup is damaged and can’t be read.',
-        'too-new': 'This backup was made by a newer version of Notepadz.',
+        'too-new': 'This backup was made by a newer version of Blankleaf.',
       }[kind],
     )
     this.kind = kind
@@ -36,7 +43,7 @@ export class BackupError extends Error {
 
 export function buildBackup(notes: Note[], settings: Settings, now: number): Backup {
   return {
-    app: 'notepadz',
+    app: 'blankleaf',
     schemaVersion: BACKUP_SCHEMA_VERSION,
     exportedAt: now,
     notes,
@@ -50,7 +57,7 @@ function pad(n: number): string {
 
 export function backupFileName(now: number): string {
   const d = new Date(now)
-  return `notepadz-backup-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`
+  return `blankleaf-backup-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`
 }
 
 const LANGUAGE_IDS = new Set<string>(['auto', ...LANGUAGES.map((l) => l.id)])
@@ -89,8 +96,8 @@ export function parseBackup(text: string, now: number = Date.now()): Backup {
   } catch {
     throw new BackupError('not-json')
   }
-  if (!data || typeof data !== 'object' || (data as { app?: unknown }).app !== 'notepadz')
-    throw new BackupError('not-notepadz')
+  if (!data || typeof data !== 'object' || !BACKUP_APPS.includes((data as { app?: unknown }).app))
+    throw new BackupError('not-blankleaf')
   const d = data as Record<string, unknown>
   if (typeof d.schemaVersion !== 'number' || !Array.isArray(d.notes))
     throw new BackupError('bad-schema')
@@ -105,7 +112,7 @@ export function parseBackup(text: string, now: number = Date.now()): Backup {
     }
   }
   return {
-    app: 'notepadz',
+    app: 'blankleaf',
     schemaVersion: d.schemaVersion,
     exportedAt: num(d.exportedAt, now),
     notes,

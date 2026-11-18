@@ -4,7 +4,7 @@ import { newNote, openApp, tabs } from './helpers'
 
 // Keep sharing inside the browser (two tabs over BroadcastChannel) — no public PeerJS in CI.
 test.beforeEach(async ({ context }) => {
-  await context.addInitScript(() => localStorage.setItem('notepadz:share-transport', 'channel'))
+  await context.addInitScript(() => localStorage.setItem('blankleaf:share-transport', 'channel'))
 })
 
 async function createShare(page: Page, opts: { password: boolean }) {

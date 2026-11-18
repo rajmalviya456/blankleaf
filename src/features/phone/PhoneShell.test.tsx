@@ -52,11 +52,11 @@ describe('PhoneShell', () => {
     expect(phoneStore.getState().stack).toEqual(['tabs'])
   })
 
-  it('with no note open: "Notepadz" title and a New note button', async () => {
+  it('with no note open: "Blankleaf" title and a New note button', async () => {
     setup()
     expect(
       await within(await screen.findByRole('banner', { name: 'Note bar' })).findByRole('button', {
-        name: 'Open tabs: Notepadz',
+        name: 'Open tabs: Blankleaf',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'New note' })).toBeInTheDocument()

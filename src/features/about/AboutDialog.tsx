@@ -15,20 +15,16 @@ import type { ReactNode } from 'react'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 
-const REPO = 'https://github.com/rajmalviya456/notepadz'
+const REPO = 'https://github.com/rajmalviya456/blankleaf'
 
 function Logo() {
   return (
     <svg viewBox="0 0 512 512" className="size-12 shrink-0" aria-hidden>
       <rect width="512" height="512" rx="112" fill="#14161c" />
-      <path
-        d="M164 356V156l184 200V156"
-        fill="none"
-        stroke="#7c9cff"
-        strokeWidth="48"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <g fill="none" stroke="#5fd39a" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M136 376C136 236 236 136 376 136C376 276 276 376 136 376Z" />
+        <path d="M136 376L300 212" />
+      </g>
     </svg>
   )
 }
@@ -76,7 +72,7 @@ function LinkRow({
   )
 }
 
-/** "About Notepadz": what it is, version, how your data is kept, and where to get help. */
+/** "About Blankleaf": what it is, version, how your data is kept, and where to get help. */
 export function AboutDialog() {
   const open = useAppStore((s) => s.ui.aboutOpen)
   const s = () => getStore().getState()
@@ -100,14 +96,16 @@ export function AboutDialog() {
             <Logo />
             <div>
               <Dialog.Title className="text-[15px] font-semibold text-fg">
-                About Notepadz
+                About Blankleaf
               </Dialog.Title>
-              <p className="text-[12px] tabular-nums text-fg-muted">Version {__APP_VERSION__}</p>
+              <p className="text-[12px] tabular-nums text-fg-muted">
+                Version {__APP_VERSION__} · formerly Notepadz
+              </p>
             </div>
           </div>
           <p id="about-tagline" className="mt-3 text-[12.5px] leading-snug text-fg-muted">
-            A full-window, tabbed notepad for quick scratch text, code and logs, and long-lived
-            notes.
+            A free online notepad: full-window and tabbed, for quick scratch text, code and logs,
+            and long-lived notes.
           </p>
 
           <ul className="mt-4 space-y-3">

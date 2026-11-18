@@ -1,4 +1,4 @@
-import { openDb, type NotepadzDB } from '../../db/db'
+import { openDb, type BlankleafDB } from '../../db/db'
 import { loadAll } from '../../db/notesRepo'
 import { startPersistence, type Persistence } from '../../store/persistence'
 import { createAppStore } from '../../store/store'
@@ -37,7 +37,7 @@ afterEach(async () => {
 })
 
 function openWindow(hub: Hub, reload: () => void = () => {}) {
-  const db: NotepadzDB = openDb(name)
+  const db: BlankleafDB = openDb(name)
   const store = createAppStore()
   const ref: { sync?: ReturnType<typeof startSync> } = {}
   const persistence: Persistence = startPersistence(store, db, {

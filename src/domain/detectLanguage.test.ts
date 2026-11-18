@@ -1,7 +1,7 @@
 import { detectLanguage } from './detectLanguage'
 
 const cases: [string, string][] = [
-  ['json', '{\n  "name": "notepadz",\n  "version": 1\n}'],
+  ['json', '{\n  "name": "blankleaf",\n  "version": 1\n}'],
   ['json', '[1, 2, {"a": true}]'],
   [
     'log',
@@ -26,7 +26,7 @@ const cases: [string, string][] = [
   ['javascript', 'const x = 1\nfunction add(a, b) {\n  return a + b\n}'],
   ['javascript', "import React from 'react'\nexport default () => null"],
   ['css', '.btn {\n  color: red;\n  padding: 4px 8px;\n}'],
-  ['toml', '[package]\nname = "notepadz"\nversion = "0.1.0"'],
+  ['toml', '[package]\nname = "blankleaf"\nversion = "0.1.0"'],
   ['yaml', 'name: ci\non:\n  push:\n    branches: [main]\njobs:\n  build:\n    runs-on: ubuntu'],
   ['markdown', '# Sprint sync\n\n- ship tabs\n- fix export\n\n**blocker:** none'],
   [

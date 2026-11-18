@@ -39,7 +39,7 @@ export function PhoneTopBar() {
   const saved = useAppStore((s) => (activeId ? s.session.perTab[activeId]?.previewMode : undefined))
   const previewByTab = usePhone((p) => p.previewByTab)
   const sharing = useActiveShares().length > 0
-  const title = note ? displayTitle(note) : 'Notepadz'
+  const title = note ? displayTitle(note) : 'Blankleaf'
   const markdown = note?.mode === 'markdown'
   const view = activeId ? phoneViewFor(previewByTab, activeId, saved) : 'edit'
   const open = phoneStore.getState().open

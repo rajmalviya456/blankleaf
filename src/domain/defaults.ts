@@ -68,7 +68,7 @@ export function newNoteDraft(
   }
 }
 
-export const WELCOME_CONTENT = `Welcome to Notepadz
+export const WELCOME_CONTENT = `Welcome to Blankleaf
 
 Everything you type is saved in this browser automatically. Nothing leaves your machine.
 

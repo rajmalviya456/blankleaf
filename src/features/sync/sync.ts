@@ -1,5 +1,5 @@
 /**
- * Keeps several open Notepadz windows/tabs consistent via BroadcastChannel.
+ * Keeps several open Blankleaf windows/tabs consistent via BroadcastChannel.
  *
  * - After any successful write, persistence tells us; we announce it to other windows.
  * - A window that receives a note change reloads it from IndexedDB — unless it has unsaved
@@ -8,7 +8,7 @@
  *   window's text is saved as a new "(conflict copy)" note.
  */
 import type { StoreApi } from 'zustand'
-import type { NotepadzDB } from '../../db/db'
+import type { BlankleafDB } from '../../db/db'
 import { mergeSettings } from '../../domain/defaults'
 import { displayTitle } from '../../domain/title'
 import type { Note, Settings } from '../../domain/types'
@@ -25,7 +25,7 @@ export interface SyncChannel {
   close(): void
 }
 
-export const CHANNEL_NAME = 'notepadz'
+export const CHANNEL_NAME = 'blankleaf'
 
 /** Keep the other window's text in the note and save ours as a new note next to it. */
 export function resolveConflict(
@@ -65,7 +65,7 @@ export interface Sync {
 
 export function startSync(
   store: StoreApi<AppStore>,
-  db: NotepadzDB,
+  db: BlankleafDB,
   persistence: Persistence,
   channel: SyncChannel = new BroadcastChannel(CHANNEL_NAME),
   target: Window = window,

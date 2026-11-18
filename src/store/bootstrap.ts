@@ -1,4 +1,4 @@
-import { openDb, SCHEMA_VERSION, type Meta, type NotepadzDB } from '../db/db'
+import { openDb, SCHEMA_VERSION, type Meta, type BlankleafDB } from '../db/db'
 import { loadAll, purgeExpiredTrash, putKv, saveNote } from '../db/notesRepo'
 import { emptySession, mergeSettings, newNoteDraft, WELCOME_CONTENT } from '../domain/defaults'
 import type { Note, Session, Settings } from '../domain/types'
@@ -46,7 +46,7 @@ function sanitizeSession(stored: Session | undefined, notes: Record<string, Note
 }
 
 /** Replay unsaved work journaled at the last page hide (see journal.ts). Newer wins. */
-async function replayJournal(db: NotepadzDB): Promise<void> {
+async function replayJournal(db: BlankleafDB): Promise<void> {
   for (const { key, journal: j } of readAllJournals()) {
     try {
       await db.transaction('rw', db.notes, db.kv, db.tombstones, async () => {
@@ -61,16 +61,16 @@ async function replayJournal(db: NotepadzDB): Promise<void> {
       })
       clearJournal(key) // only once its contents are safely in IndexedDB
     } catch (e) {
-      console.error('Notepadz: could not replay unsaved work; keeping it for next time', e)
+      console.error('Blankleaf: could not replay unsaved work; keeping it for next time', e)
     }
   }
 }
 
-export async function loadInitialState(db: NotepadzDB, now: number): Promise<InitialState> {
+export async function loadInitialState(db: BlankleafDB, now: number): Promise<InitialState> {
   await replayJournal(db)
   // Housekeeping must never stand between the user and their notes.
   await purgeExpiredTrash(db, now).catch((e) =>
-    console.error('Notepadz: could not empty old Trash items', e),
+    console.error('Blankleaf: could not empty old Trash items', e),
   )
   const data = await loadAll(db)
   const settings: Settings = mergeSettings(data.settings)
@@ -88,7 +88,7 @@ export async function loadInitialState(db: NotepadzDB, now: number): Promise<Ini
         if (res.ok) first = { ...first, rev: res.rev }
         await putKv(db, 'meta', meta)
       } catch (e) {
-        console.error('Notepadz: could not save the Welcome note', e)
+        console.error('Blankleaf: could not save the Welcome note', e)
       }
     }
     notes[first.id] = first
@@ -101,13 +101,16 @@ export async function loadInitialState(db: NotepadzDB, now: number): Promise<Ini
 export interface BootResult {
   state: InitialState['state']
   meta: Meta | null
-  db: NotepadzDB | null
+  db: BlankleafDB | null
   error?: string
 }
 
 /** Open storage and load the saved session; falls back to an in-memory session if storage fails. */
-export async function bootstrap(now: number, open: () => NotepadzDB = openDb): Promise<BootResult> {
-  let db: NotepadzDB | null = null
+export async function bootstrap(
+  now: number,
+  open: () => BlankleafDB = openDb,
+): Promise<BootResult> {
+  let db: BlankleafDB | null = null
   try {
     db = open()
     await db.open()
@@ -115,7 +118,7 @@ export async function bootstrap(now: number, open: () => NotepadzDB = openDb): P
     return { state, meta, db }
   } catch (e) {
     db?.close()
-    console.error('Notepadz: storage unavailable', e)
+    console.error('Blankleaf: storage unavailable', e)
     return {
       state: memoryState(now),
       meta: null,

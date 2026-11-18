@@ -1,7 +1,22 @@
 {
-  "name": "notepadz",
+  "name": "blankleaf",
   "private": true,
   "version": "1.2.0",
+  "description": "Blankleaf — a free online notepad with tabs, Markdown, code highlighting and autosave. No sign-up, works offline.",
+  "homepage": "https://rajmalviya456.github.io/blankleaf/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajmalviya456/blankleaf.git"
+  },
+  "keywords": [
+    "online notepad",
+    "notepad",
+    "notes",
+    "markdown",
+    "text editor",
+    "offline",
+    "pwa"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",

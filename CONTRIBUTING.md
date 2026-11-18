@@ -1,10 +1,10 @@
-# Contributing to Notepadz
+# Contributing to Blankleaf
 
 Thanks for wanting to help! Bug reports, ideas and pull requests are all welcome.
 
 ## Ground rules
 
-Notepadz has a few promises that every change must keep:
+Blankleaf has a few promises that every change must keep:
 
 - **No backend, no account.** Notes live only in the user's browser (IndexedDB). Don't add
   analytics, tracking, or anything that sends note content to a server. (Link sharing sends
@@ -22,7 +22,7 @@ Open an issue with:
 
 1. What you did, step by step.
 2. What you expected, and what happened instead.
-3. Browser and OS (e.g. Chrome 140 on macOS 15), and whether Notepadz was installed as an app.
+3. Browser and OS (e.g. Chrome 140 on macOS 15), and whether Blankleaf was installed as an app.
 
 Please don't paste private note content — a small made-up example is enough.
 
@@ -37,8 +37,8 @@ the shape: why, goals, non-goals, approaches, decisions).
 Requires **Node 24**.
 
 ```bash
-git clone https://github.com/rajmalviya456/notepadz.git
-cd notepadz
+git clone https://github.com/rajmalviya456/blankleaf.git
+cd blankleaf
 npm install
 npx playwright install chromium   # once, for end-to-end tests
 npm run dev                        # http://localhost:5173/

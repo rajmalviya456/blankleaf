@@ -1,4 +1,4 @@
-import { openDb, type NotepadzDB } from '../../db/db'
+import { openDb, type BlankleafDB } from '../../db/db'
 import { DEFAULT_SETTINGS, newNoteDraft } from '../../domain/defaults'
 import type { Note } from '../../domain/types'
 import { fromB64url, toB64url } from './b64'
@@ -25,7 +25,7 @@ import type { ShareTransport } from './transport'
 beforeAll(() => __setPbkdf2Iterations(1000))
 afterAll(() => __setPbkdf2Iterations(PBKDF2_ITERATIONS))
 
-let db: NotepadzDB
+let db: BlankleafDB
 let clock = 1_800_000_000_000
 const now = () => clock
 const hosts: ShareHost[] = []
@@ -69,7 +69,7 @@ function makeHost(transport: ShareTransport, locks = fakeLocks()) {
   const h = createShareHost({
     db,
     transport,
-    appUrl: 'https://x.dev/notepadz/',
+    appUrl: 'https://x.dev/blankleaf/',
     now,
     locks,
     closeAfterReplyMs: 10,
@@ -101,7 +101,7 @@ describe('share host', () => {
       expiresInMs: 300_000,
       password: 'kq7m-x3vr-p9tz',
     })
-    expect(created.link).toMatch(/^https:\/\/x\.dev\/notepadz\/#\/s\/.+\..+\.p$/)
+    expect(created.link).toMatch(/^https:\/\/x\.dev\/blankleaf\/#\/s\/.+\..+\.p$/)
     expect(created.message).toContain('Password: kq7m-x3vr-p9tz')
     expect(created.expiresAt).toBe(clock + 300_000)
     const rows = await db.shares.toArray()
@@ -289,7 +289,7 @@ describe('share host across windows', () => {
     const a = createShareHost({
       db,
       transport: t,
-      appUrl: 'https://x.dev/notepadz/',
+      appUrl: 'https://x.dev/blankleaf/',
       now,
       locks,
       channel: channel(),
@@ -297,7 +297,7 @@ describe('share host across windows', () => {
     const b = createShareHost({
       db,
       transport: t,
-      appUrl: 'https://x.dev/notepadz/',
+      appUrl: 'https://x.dev/blankleaf/',
       now,
       locks,
       channel: channel(),

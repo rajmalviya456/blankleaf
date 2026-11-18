@@ -25,7 +25,7 @@ describe('importing files', () => {
     const { s } = setup()
     const before = Object.keys(s().notes).length
     await act(() =>
-      importFileList([file('broken.json', '{"app":"notepadz","schemaVersion":1,"notes":"x"}')]),
+      importFileList([file('broken.json', '{"app":"blankleaf","schemaVersion":1,"notes":"x"}')]),
     )
     const dialog = await screen.findByRole('dialog', { name: /import/i })
     expect(dialog).toHaveTextContent(/damaged/i)
@@ -41,7 +41,7 @@ describe('importing files', () => {
     }
     const extra = { ...newNoteDraft(5, DEFAULT_SETTINGS), content: 'brand new' }
     const backup = buildBackup([newer, extra], DEFAULT_SETTINGS, 1)
-    await act(() => importFileList([file('notepadz-backup.json', JSON.stringify(backup))]))
+    await act(() => importFileList([file('blankleaf-backup.json', JSON.stringify(backup))]))
     const dialog = await screen.findByRole('dialog', { name: /import/i })
     expect(dialog).toHaveTextContent('1 new')
     expect(dialog).toHaveTextContent('1 updated')
@@ -110,7 +110,7 @@ describe('exporting', () => {
       names.push(this.download)
     })
     await exportAll()
-    expect(names[0]).toMatch(/^notepadz-backup-\d{4}-\d{2}-\d{2}\.json$/)
+    expect(names[0]).toMatch(/^blankleaf-backup-\d{4}-\d{2}-\d{2}\.json$/)
     const json = JSON.parse(await created[0].text())
     expect(json.notes.map((n: { id: string }) => n.id)).toContain(a)
     exportNote(a)

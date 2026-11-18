@@ -13,13 +13,13 @@ describe('backup round-trip', () => {
   it('buildBackup → JSON → parseBackup round-trips equal', () => {
     const notes = [note({ title: 'A', language: 'python' }), note({ deletedAt: 5 })]
     const b = buildBackup(notes, DEFAULT_SETTINGS, 99)
-    expect(b).toMatchObject({ app: 'notepadz', schemaVersion: 1, exportedAt: 99 })
+    expect(b).toMatchObject({ app: 'blankleaf', schemaVersion: 1, exportedAt: 99 })
     expect(parseBackup(JSON.stringify(b))).toEqual(b)
   })
 
   it('names the file by local date', () => {
     expect(backupFileName(new Date(2026, 10, 16, 23, 30).getTime())).toBe(
-      'notepadz-backup-2026-11-16.json',
+      'blankleaf-backup-2026-11-16.json',
     )
   })
 })
@@ -28,22 +28,22 @@ describe('parseBackup', () => {
   it('parseBackup rejects foreign json', () => {
     expect(() => parseBackup('abc')).toThrow(expect.objectContaining({ kind: 'not-json' }))
     expect(() => parseBackup('{"foo":1}')).toThrow(
-      expect.objectContaining({ kind: 'not-notepadz' }),
+      expect.objectContaining({ kind: 'not-blankleaf' }),
     )
-    expect(() => parseBackup('{"app":"notepadz","schemaVersion":1,"notes":"nope"}')).toThrow(
+    expect(() => parseBackup('{"app":"blankleaf","schemaVersion":1,"notes":"nope"}')).toThrow(
       expect.objectContaining({ kind: 'bad-schema' }),
     )
   })
 
   it('rejects backups from a newer app version', () => {
-    expect(() => parseBackup('{"app":"notepadz","schemaVersion":99,"notes":[]}')).toThrow(
+    expect(() => parseBackup('{"app":"blankleaf","schemaVersion":99,"notes":[]}')).toThrow(
       expect.objectContaining({ kind: 'too-new' }),
     )
   })
 
   it('cleans up untrusted note fields', () => {
     const raw = {
-      app: 'notepadz',
+      app: 'blankleaf',
       schemaVersion: 1,
       exportedAt: 1,
       settings: { tabSize: 4, accent: 'red;}' },

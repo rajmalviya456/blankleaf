@@ -55,8 +55,8 @@ export function Rail() {
       })}
       <button
         type="button"
-        aria-label="About Notepadz"
-        title="About Notepadz"
+        aria-label="About Blankleaf"
+        title="About Blankleaf"
         onClick={() => getStore().getState().setUi({ aboutOpen: true })}
         className="mb-2 mt-auto grid size-8 place-items-center rounded-md text-fg-muted hover:bg-bg-hover hover:text-fg"
       >

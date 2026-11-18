@@ -6,6 +6,7 @@ import {
   BackupError,
   backupFileName,
   buildBackup,
+  looksLikeBackup,
   parseBackup,
   planImport,
   type ImportPlan,
@@ -39,7 +40,7 @@ async function tombstoneIdsFromDb(): Promise<Set<string>> {
 }
 
 /**
- * Import picked or dropped files. A Notepadz backup opens the merge dialog; any other text
+ * Import picked or dropped files. A Blankleaf backup opens the merge dialog; any other text
  * file becomes a new note in the matching format; binary files are refused.
  */
 export async function importFileList(
@@ -61,7 +62,7 @@ export async function importFileList(
       continue
     }
     // A backup is recognised by its content, so renamed or extension-less files still work.
-    if (/^\s*\{/.test(text) && /"app"\s*:\s*"notepadz"/.test(text.slice(0, 2000))) {
+    if (looksLikeBackup(text)) {
       try {
         const backup = parseBackup(text)
         const tombs = opts.tombstoneIds ?? (await tombstoneIdsFromDb())
