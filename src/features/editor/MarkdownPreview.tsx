@@ -1,9 +1,9 @@
-import { createContext, memo, useContext, useMemo, type ComponentProps } from 'react'
+import { createContext, memo, useContext, useMemo, useState, type ComponentProps } from 'react'
 import ReactMarkdown, { type Components, type ExtraProps } from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import { taskLabelAt, toggleTaskAt } from '../checklist/taskToggle'
+import { taskLabelAt } from '../checklist/taskToggle'
 
 const link: Components['a'] = ({ node: _node, ...props }) => (
   <a {...props} target="_blank" rel="noopener noreferrer" />
@@ -11,7 +11,7 @@ const link: Components['a'] = ({ node: _node, ...props }) => (
 
 /** The source offset of the task item a checkbox belongs to (set by its <li>). */
 const TaskItem = createContext<number | null>(null)
-const Tasks = createContext<{ source: string; onSourceChange?(next: string): void } | null>(null)
+const Tasks = createContext<{ source: string; onToggleTask?(offset: number): void } | null>(null)
 
 const listItem: Components['li'] = ({ node, children, ...props }) => {
   const offset = String(props.className ?? '').includes('task-list-item')
@@ -28,15 +28,22 @@ const listItem: Components['li'] = ({ node, children, ...props }) => {
 function TaskBox({ node: _node, ...props }: ComponentProps<'input'> & ExtraProps) {
   const offset = useContext(TaskItem)
   const tasks = useContext(Tasks)
-  if (props.type !== 'checkbox' || offset === null || !tasks?.onSourceChange)
+  // Show a tick at once: the rendered text catches up a moment later (and this then expires).
+  const [ticked, setTicked] = useState<{ from: boolean; to: boolean } | null>(null)
+  if (props.type !== 'checkbox' || offset === null || !tasks?.onToggleTask)
     return <input {...props} />
-  const { source, onSourceChange } = tasks
+  const { source, onToggleTask } = tasks
+  const rendered = !!props.checked
+  const checked = ticked?.from === rendered ? ticked.to : rendered
   return (
     <input
       type="checkbox"
-      checked={!!props.checked}
+      checked={checked}
       aria-label={taskLabelAt(source, offset) ?? undefined}
-      onChange={() => onSourceChange(toggleTaskAt(source, offset))}
+      onChange={() => {
+        setTicked({ from: rendered, to: !checked })
+        onToggleTask(offset)
+      }}
       className="cursor-pointer"
     />
   )
@@ -48,14 +55,14 @@ const components: Components = { a: link, li: listItem, input: TaskBox }
 export const MarkdownPreview = memo(function MarkdownPreview({
   source,
   className,
-  onSourceChange,
+  onToggleTask,
 }: {
   source: string
   className?: string
-  /** Makes task-list boxes clickable: called with the text after a tick. */
-  onSourceChange?(next: string): void
+  /** Makes task-list boxes clickable: called with the ticked item's offset in the text. */
+  onToggleTask?(offset: number): void
 }) {
-  const tasks = useMemo(() => ({ source, onSourceChange }), [source, onSourceChange])
+  const tasks = useMemo(() => ({ source, onToggleTask }), [source, onToggleTask])
   return (
     <Tasks.Provider value={tasks}>
       <article

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { Note } from '../../domain/types'
 import { getStore } from '../../store/store'
 import { exportNote } from '../backup/actions'
+import { historyStore } from '../history/historyStore'
 import { shareStore } from '../share/shareStore'
 
 interface Props {
@@ -66,6 +67,12 @@ export function TabContextMenu({ note, onClose, children }: Props) {
             onSelect={() => shareStore.getState().open(note.id)}
           >
             Share…
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            className={itemClass}
+            onSelect={() => historyStore.getState().open(note.id)}
+          >
+            Version history…
           </ContextMenu.Item>
         </ContextMenu.Content>
       </ContextMenu.Portal>

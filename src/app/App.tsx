@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
 import { shareStore } from '../features/share/shareStore'
+import { historyStore } from '../features/history/historyStore'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
@@ -45,6 +46,9 @@ const WhatsNewDialog = lazy(() =>
 const AboutDialog = lazy(() =>
   import('../features/about/AboutDialog').then((m) => ({ default: m.AboutDialog })),
 )
+const HistoryDialog = lazy(() =>
+  import('../features/history/HistoryDialog').then((m) => ({ default: m.HistoryDialog })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -58,7 +62,9 @@ function Dialogs() {
   const whatsNew = useAppStore((s) => s.ui.whatsNewOpen)
   const importing = useStore(importStore, (s) => s.open)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
+  const history = useStore(historyStore, (s) => s.noteId !== null)
   const [seen, setSeen] = useState({
+    history,
     palette,
     settings,
     shortcuts,
@@ -74,9 +80,11 @@ function Dialogs() {
     (about && !seen.about) ||
     (whatsNew && !seen.whatsNew) ||
     (importing && !seen.importing) ||
-    (sharing && !seen.sharing)
+    (sharing && !seen.sharing) ||
+    (history && !seen.history)
   ) {
     setSeen({
+      history: seen.history || history,
       palette: seen.palette || palette,
       settings: seen.settings || settings,
       shortcuts: seen.shortcuts || shortcuts,
@@ -95,6 +103,7 @@ function Dialogs() {
       {seen.whatsNew && <WhatsNewDialog />}
       {seen.importing && <ImportDialog />}
       {seen.sharing && <ShareDialog />}
+      {seen.history && <HistoryDialog />}
     </Suspense>
   )
 }

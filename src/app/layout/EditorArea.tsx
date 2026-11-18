@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
+import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
 import { getStore, useAppStore } from '../../store/store'
@@ -10,18 +11,21 @@ const MarkdownPreview = lazy(() =>
 )
 
 function Preview({ source, noteId }: { source: string; noteId: string }) {
-  // Ticking a checklist box edits the note, unless the preview is behind fresh typing
-  // (its text would overwrite what was just typed).
-  const onSourceChange = useCallback(
-    (next: string) => {
+  // A tick applies to the note's latest text, so quick ticks in a row all count. If typing has
+  // moved the item, nothing matches at that offset and the text is left alone.
+  const onToggleTask = useCallback(
+    (offset: number) => {
       const s = getStore().getState()
-      if (s.notes[noteId]?.content === source) s.updateContent(noteId, next)
+      const content = s.notes[noteId]?.content
+      if (content === undefined) return
+      const next = toggleTaskAt(content, offset)
+      if (next !== content) s.updateContent(noteId, next)
     },
-    [noteId, source],
+    [noteId],
   )
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
-      <MarkdownPreview source={source} onSourceChange={onSourceChange} />
+      <MarkdownPreview source={source} onToggleTask={onToggleTask} />
     </Suspense>
   )
 }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { stubMedia } from '../../../tests/media'
 import { App } from '../../app/App'
@@ -7,17 +7,18 @@ import { MarkdownPreview } from '../editor/MarkdownPreview'
 import { phoneStore } from '../phone/phoneStore'
 
 describe('checklists in the Markdown preview', () => {
-  it('ticking a box updates the note text', () => {
-    const onChange = vi.fn()
+  it('ticking a box reports which item was ticked', () => {
+    const onToggle = vi.fn()
     const src = '# Today\n\n- [ ] milk\n- [x] eggs\n\n```\n- [ ] not a task\n```\n- [ ] bread'
-    render(<MarkdownPreview source={src} onSourceChange={onChange} />)
+    render(<MarkdownPreview source={src} onToggleTask={onToggle} />)
     const boxes = screen.getAllByRole('checkbox')
     expect(boxes).toHaveLength(3)
     expect(boxes[0]).toBeEnabled()
     fireEvent.click(boxes[2])
-    expect(onChange).toHaveBeenLastCalledWith(src.replace('- [ ] bread', '- [x] bread'))
+    expect(onToggle).toHaveBeenLastCalledWith(src.indexOf('- [ ] bread'))
+    expect(boxes[2]).toBeChecked() // shows at once
     fireEvent.click(boxes[1])
-    expect(onChange).toHaveBeenLastCalledWith(src.replace('- [x] eggs', '- [ ] eggs'))
+    expect(onToggle).toHaveBeenLastCalledWith(src.indexOf('- [x] eggs'))
   })
 
   it('without a change handler the boxes stay read-only', () => {
@@ -26,7 +27,7 @@ describe('checklists in the Markdown preview', () => {
   })
 
   it('each box is labelled by its item text', () => {
-    render(<MarkdownPreview source={'- [ ] buy milk'} onSourceChange={() => {}} />)
+    render(<MarkdownPreview source={'- [ ] buy milk'} onToggleTask={() => {}} />)
     expect(screen.getByRole('checkbox', { name: 'buy milk' })).toBeInTheDocument()
   })
 })
@@ -47,6 +48,25 @@ describe('in the app', () => {
     render(<App />)
     fireEvent.click(await screen.findByRole('checkbox', { name: 'call mum' }))
     expect(s().notes[id].content).toBe('- [x] call mum')
+    media.restore()
+  })
+
+  it('quick ticks in a row all count', async () => {
+    const media = stubMedia({ phone: false })
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    const id = s().newNote()
+    s().updateContent(id, '- [ ] one\n- [ ] two')
+    s().setNoteMode(id, 'markdown')
+    s().setViewState(id, { previewMode: 'preview' })
+    render(<App />)
+    const one = await screen.findByRole('checkbox', { name: 'one' })
+    const two = screen.getByRole('checkbox', { name: 'two' })
+    act(() => {
+      fireEvent.click(one)
+      fireEvent.click(two)
+    })
+    expect(s().notes[id].content).toBe('- [x] one\n- [x] two')
     media.restore()
   })
 })

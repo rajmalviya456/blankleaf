@@ -5,6 +5,7 @@
 import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
+import { historyStore } from '../features/history/historyStore'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
@@ -175,6 +176,20 @@ export const COMMANDS: Command[] = [
       st(ctx).setUi({ paletteOpen: false })
     },
   },
+  {
+    id: 'note.history',
+    title: 'Version history…',
+    section: 'Note',
+    keywords: ['versions', 'restore', 'undo', 'earlier', 'backup', 'snapshot'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) historyStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+
   {
     id: 'note.format',
     title: 'Change format…',

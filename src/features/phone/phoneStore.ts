@@ -19,7 +19,15 @@ export type PhoneOverlay =
   | { kind: 'layer'; id: string }
 
 export type AppDialog =
-  'settings' | 'about' | 'whatsNew' | 'shortcuts' | 'palette' | 'share' | 'import' | 'unpin'
+  | 'settings'
+  | 'about'
+  | 'whatsNew'
+  | 'shortcuts'
+  | 'palette'
+  | 'share'
+  | 'import'
+  | 'unpin'
+  | 'history'
 
 export type LibrarySection = 'notes' | 'search' | 'trash'
 

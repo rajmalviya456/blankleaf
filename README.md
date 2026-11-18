@@ -28,6 +28,11 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
 - **Syntax highlighting for 20+ formats** — JSON, YAML, TOML, XML, logs, diffs, Dockerfile,
   JavaScript/TypeScript, Python, SQL, HTML, CSS, shell, Java, C/C++, Go, Rust, PHP — picked
   automatically from what you type, or chosen from the format menu.
+- **Version history.** Earlier versions of each note are saved as you write; read one and restore
+  it in a click, on this device only.
+- **Text and dev tools.** Format or minify JSON, convert JSON ⇄ YAML, and encode or decode Base64
+  and URLs, on the selection or the whole note.
+- **Clickable checklists.** Tick `- [ ]` items right in the Markdown preview.
 - **Toolbar that fits the note.** Markdown notes get headings, bold, italic, lists, quotes,
   links and code blocks. Plain text, code and logs get change case, sort / dedupe / trim lines
   and insert date — no stray `**` in your code. Every button is one undo step. Turn it off in

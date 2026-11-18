@@ -7,6 +7,7 @@ import {
   CopyPlus,
   FileCode,
   Download,
+  History,
   Maximize2,
   Minus,
   Pencil,
@@ -27,6 +28,7 @@ import { toast } from '../../ui/toast'
 import { exportNote } from '../backup/actions'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
+import { historyStore } from '../history/historyStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -190,6 +192,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   }
                 />
                 <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
+                <Action
+                  icon={History}
+                  label="Version history…"
+                  onSelect={() => historyStore.getState().open(noteId)}
+                />
                 <Action
                   icon={CopyPlus}
                   label="Duplicate"

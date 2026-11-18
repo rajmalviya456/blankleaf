@@ -1,6 +1,7 @@
 import { TRASH_RETENTION_DAYS } from '../domain/defaults'
 import type { Note } from '../domain/types'
 import type { KvKey, KvMap, Meta, BlankleafDB } from './db'
+import { deleteVersions, saveVersion } from './versionsRepo'
 
 const DAY_MS = 86_400_000
 
@@ -12,13 +13,14 @@ export type SaveResult = { ok: true; rev: number } | { ok: false; current: Note 
  * On conflict nothing is written and the stored note is returned.
  */
 export function saveNote(db: BlankleafDB, note: Note, expectedRev: number): Promise<SaveResult> {
-  return db.transaction('rw', db.notes, async (): Promise<SaveResult> => {
+  return db.transaction('rw', db.notes, db.versions, async (): Promise<SaveResult> => {
     const current = await db.notes.get(note.id)
     const storedRev = current?.rev ?? 0
     if (current && storedRev !== expectedRev) return { ok: false, current }
     // A missing row with expectedRev > 0 was deleted elsewhere: re-insert so no text is lost.
     const rev = (current ? storedRev : 0) + 1
     await db.notes.put({ ...note, rev })
+    await saveVersion(db, note.id, note.content, note.updatedAt)
     return { ok: true, rev }
   })
 }
@@ -28,15 +30,19 @@ export async function insertNote(db: BlankleafDB, note: Note): Promise<void> {
 }
 
 /** Remove a note that was never trashed (e.g. empty untitled tab). No tombstone. */
-export async function hardDeleteNote(db: BlankleafDB, id: string): Promise<void> {
-  await db.notes.delete(id)
+export function hardDeleteNote(db: BlankleafDB, id: string): Promise<void> {
+  return db.transaction('rw', db.notes, db.versions, async () => {
+    await db.notes.delete(id)
+    await deleteVersions(db, [id])
+  })
 }
 
 /** Permanently delete a trashed note and remember it so imports don't resurrect it. */
 export function purgeNote(db: BlankleafDB, id: string, now: number): Promise<void> {
-  return db.transaction('rw', db.notes, db.tombstones, async () => {
+  return db.transaction('rw', db.notes, db.tombstones, db.versions, async () => {
     await db.notes.delete(id)
     await db.tombstones.put({ id, purgedAt: now })
+    await deleteVersions(db, [id])
   })
 }
 
@@ -47,10 +53,11 @@ export function purgeExpiredTrash(
   days = TRASH_RETENTION_DAYS,
 ): Promise<string[]> {
   const cutoff = now - days * DAY_MS
-  return db.transaction('rw', db.notes, db.tombstones, async () => {
+  return db.transaction('rw', db.notes, db.tombstones, db.versions, async () => {
     const expired = await db.notes.where('deletedAt').below(cutoff).primaryKeys()
     await db.notes.bulkDelete(expired)
     await db.tombstones.bulkPut(expired.map((id) => ({ id, purgedAt: now })))
+    await deleteVersions(db, expired)
     return expired
   })
 }
