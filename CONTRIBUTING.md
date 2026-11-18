@@ -56,7 +56,14 @@ npm run dev                        # http://localhost:5173/
    npm run lint && npm run format:check && npm run typecheck && npm test && npm run e2e && npm run build
    ```
 
-   `npm run format` fixes formatting.
+CI runs on Linux, where fonts and text widths differ from macOS and Windows. If you changed layout,
+also run the browser tests in Linux (needs Docker):
+
+```bash
+npm run e2e:linux
+```
+
+`npm run format` fixes formatting.
 
 5. Open a pull request describing **what** changed and **why**, with a screenshot for anything
    visible. Link the issue it closes.
