@@ -52,6 +52,8 @@ export interface Note {
   spellcheck?: boolean
   /** Labels for organizing notes (see domain/tags). */
   tags?: string[]
+  /** Target number of words for this note. */
+  wordGoal?: number
   /** Set when the note is password-locked; `content` is then empty. */
   locked?: LockedContent
   pinned: boolean

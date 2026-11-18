@@ -21,12 +21,19 @@ import {
   Search,
   Share2,
   Tag,
+  Target,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
 import { useDeferredValue, type ReactNode } from 'react'
 import { PHONE_FONT_MAX, PHONE_FONT_MIN } from '../../domain/defaults'
-import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
+import {
+  lineColAt,
+  readingMinutes,
+  selectionLabel,
+  selectionStats,
+  textStats,
+} from '../../lib/textStats'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { toast } from '../../ui/toast'
@@ -37,6 +44,7 @@ import { formatLabel } from '../editor/format'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
+import { goalStore } from '../goal/goalStore'
 import { lockStore } from '../lock/lockStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
@@ -118,6 +126,7 @@ function Stats({ noteId }: { noteId: string }) {
     <p className="px-3 pb-1 pt-2 text-[12px] tabular-nums text-fg-faint">
       Ln {line}, Col {col}
       {big ? '' : ` · ${words.toLocaleString()} words`} · {chars.toLocaleString()} chars
+      {!big && words > 0 && ` · ${readingMinutes(words)} min read`}
       {selected && <span className="block text-fg-muted">{selectionLabel(selected)}</span>}
     </p>
   )
@@ -198,6 +207,13 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                 )}
               </Group>
               <Group>
+                {!note.locked && (
+                  <Action
+                    icon={Target}
+                    label={note.wordGoal ? `Word goal: ${note.wordGoal}` : 'Set word goal…'}
+                    onSelect={() => goalStore.getState().open(noteId)}
+                  />
+                )}
                 <Action
                   icon={Tag}
                   label="Tags…"

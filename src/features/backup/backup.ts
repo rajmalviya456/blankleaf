@@ -7,6 +7,7 @@ import { mergeSettings } from '../../domain/defaults'
 import { LANGUAGES } from '../../domain/languages'
 import { cleanLocked } from '../../domain/locked'
 import { cleanTags } from '../../domain/tags'
+import { cleanWordGoal } from '../../domain/wordGoal'
 import type { LanguageId, Note, Settings } from '../../domain/types'
 
 export const BACKUP_SCHEMA_VERSION = 1
@@ -130,6 +131,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
   if (typeof r.content !== 'string') return null
   const createdAt = num(r.createdAt, now)
   const tags = cleanTags(r.tags)
+  const wordGoal = cleanWordGoal(r.wordGoal)
   const locked = cleanLocked(r.locked)
   // Damaged lock data must never turn a locked note into an empty one.
   if (r.locked !== undefined && !locked) return null
@@ -144,6 +146,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
     wrap: typeof r.wrap === 'boolean' ? r.wrap : true,
     ...(r.spellcheck === true ? { spellcheck: true } : {}),
     ...(tags.length ? { tags } : {}),
+    ...(wordGoal ? { wordGoal } : {}),
     ...(locked ? { locked, content: '' } : {}),
     pinned: r.pinned === true,
     createdAt,

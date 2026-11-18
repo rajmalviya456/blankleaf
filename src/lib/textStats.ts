@@ -3,6 +3,9 @@ export function textStats(text: string): { words: number; chars: number } {
   return { words, chars: text.length }
 }
 
+/** Minutes to read this many words, at 200 words a minute. */
+export const readingMinutes = (words: number) => Math.ceil(words / 200)
+
 /** 1-based line and column of `pos` in `text` (pos is clamped to the text). */
 export function lineColAt(text: string, pos: number): { line: number; col: number } {
   const p = Math.max(0, Math.min(pos, text.length))

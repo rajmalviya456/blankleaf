@@ -26,10 +26,16 @@ test('a saved dark theme is used from the very first paint', async ({ page, cont
   await expect(page.locator('#np-shell')).toHaveCSS('background-color', 'rgb(17, 19, 24)')
 })
 
-test('the chosen theme is remembered for the next first paint', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'dark' })
+test('following the system theme stays correct when the system changes', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' })
   await openApp(page)
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('blankleaf:theme'))).toBe('dark')
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('blankleaf:theme')))
+    .toBe('system')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.route('**/assets/*.js', (route) => route.abort())
+  await page.goto('./', { waitUntil: 'commit' })
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 })
 
 test('startup code leaves out editor features the app doesn’t use', async ({ page }) => {

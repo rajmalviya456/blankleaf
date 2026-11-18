@@ -2,7 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { exportAll } from './features/backup/actions'
+import { startFolderBackup } from './features/backup/folderBackup'
 import { initMeta } from './features/backup/meta'
+import { openLaunchedFiles, takeSharedNote } from './features/launch/launch'
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
 import { createShareHost } from './features/share/host'
@@ -55,6 +57,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
     })
     setShareHost(shareHost)
     void shareHost.resume()
+    void startFolderBackup(store, boot.db)
   } else {
     store.getState().setSaveStatus('error', boot.error)
     startMemoryJournal(store)
@@ -86,7 +89,12 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
  */
 async function main() {
   const parts = parseShareHash(location.hash)
-  if (!parts) return bootApp()
+  if (!parts) {
+    const shared = takeSharedNote()
+    await bootApp(shared ? { addNote: shared } : {})
+    openLaunchedFiles()
+    return
+  }
   // Keep the key out of the address bar and history once read.
   history.replaceState(null, '', location.pathname + location.search)
   applySettingsToDocument(DEFAULT_SETTINGS, systemPrefersDark())

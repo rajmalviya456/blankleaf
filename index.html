@@ -79,7 +79,9 @@
         try {
           saved = localStorage.getItem('blankleaf:theme')
         } catch (e) {}
-        var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+        var dark =
+          saved === 'dark' ||
+          (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
         document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
       })()
@@ -116,6 +118,18 @@
       [data-theme='dark'] #np-shell header {
         background: #0b0d10;
       }
+      #np-shell nav {
+        position: absolute;
+        right: 0;
+        bottom: 12px;
+        left: 0;
+        text-align: center;
+      }
+      #np-shell a {
+        margin: 0 8px;
+        color: inherit;
+        text-decoration: none;
+      }
       #np-shell p {
         margin: 0;
         padding: 16px 18px;
@@ -138,9 +152,13 @@
   <body>
     <div id="root">
       <!-- Painted straight away, and replaced by the app as soon as its code has loaded. -->
-      <div id="np-shell" aria-hidden="true">
-        <header>Untitled</header>
-        <p>1</p>
+      <div id="np-shell">
+        <header aria-hidden="true">Untitled</header>
+        <p aria-hidden="true">1</p>
+        <nav>
+          <a href="/blankleaf/features/">Features</a>
+          <a href="/blankleaf/faq/">FAQ</a>
+        </nav>
       </div>
     </div>
     <noscript>

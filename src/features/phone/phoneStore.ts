@@ -30,6 +30,7 @@ export type AppDialog =
   | 'history'
   | 'tags'
   | 'lock'
+  | 'goal'
 
 export type LibrarySection = 'notes' | 'search' | 'trash'
 

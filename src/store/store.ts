@@ -72,6 +72,7 @@ export interface AppActions {
   toggleWrap(id: string): void
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
+  setWordGoal(id: string, goal: number | undefined): void
   setSplitNote(id: string | null): void
   applyLock(id: string, locked: LockedContent, title: string): void
   updateLocked(id: string, locked: LockedContent): void
@@ -312,6 +313,7 @@ export function createAppStore(
           wrap: src.wrap,
           spellcheck: src.spellcheck,
           tags: src.tags,
+          wordGoal: src.wordGoal,
           title: `${displayTitle(src)} (copy)`,
         })
       },
@@ -357,6 +359,9 @@ export function createAppStore(
       },
       setSplitNote(id) {
         set({ session: { ...get().session, splitNoteId: id } })
+      },
+      setWordGoal(id, goal) {
+        patchNote(id, { wordGoal: goal })
       },
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })

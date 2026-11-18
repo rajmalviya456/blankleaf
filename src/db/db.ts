@@ -17,6 +17,8 @@ export interface KvMap {
   session: Session
   settings: Partial<Settings>
   meta: Meta
+  /** The folder chosen for automatic backups (a browser file handle). */
+  backupFolder: unknown
 }
 
 export type KvKey = keyof KvMap

@@ -3,6 +3,7 @@ import type { Settings } from '../../../domain/types'
 import { formatBytes, getStorageInfo, type StorageInfo } from '../../../lib/storageInfo'
 import { clearAllData } from '../../../store/dataReset'
 import { exportAll, pickFilesToImport } from '../../backup/actions'
+import { FolderBackupRow } from '../../backup/FolderBackupRow'
 import { getLastBackupAt } from '../../backup/meta'
 import { relativeTime } from '../../../lib/relativeTime'
 import { buttonClass, Row, Section, SelectBox } from '../controls'
@@ -53,6 +54,7 @@ export function DataSection({ settings: s, update }: Props) {
           Import…
         </button>
       </Row>
+      <FolderBackupRow />
       <Row label="Remind me to back up">
         <SelectBox
           label="Remind me to back up"

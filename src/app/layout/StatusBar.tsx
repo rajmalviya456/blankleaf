@@ -2,7 +2,14 @@ import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
 import { useDeferredValue } from 'react'
 import type { Note } from '../../domain/types'
 import { tagsStore } from '../../features/tags/tagsStore'
-import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
+import {
+  lineColAt,
+  readingMinutes,
+  selectionLabel,
+  selectionStats,
+  textStats,
+} from '../../lib/textStats'
+import { goalStore } from '../../features/goal/goalStore'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
@@ -66,6 +73,31 @@ function PreviewSwitch({ noteId }: { noteId: string }) {
   )
 }
 
+function GoalButton({ note, words }: { note: Note; words: number }) {
+  const goal = note.wordGoal
+  const reached = goal !== undefined && words >= goal
+  return (
+    <button
+      type="button"
+      aria-label={
+        goal === undefined
+          ? 'Set a word goal'
+          : `Word goal: ${words} of ${goal} words${reached ? ', reached' : ''}`
+      }
+      title="Word goal for this note"
+      onClick={() => goalStore.getState().open(note.id)}
+      className={[
+        'rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-md:hidden',
+        reached ? 'font-medium text-accent' : '',
+      ].join(' ')}
+    >
+      {goal === undefined
+        ? 'Goal'
+        : `${words.toLocaleString()} / ${goal.toLocaleString()}${reached ? ' ✓' : ''}`}
+    </button>
+  )
+}
+
 function NoteInfo({ note }: { note: Note }) {
   const head = useAppStore((s) => s.session.perTab[note.id]?.head ?? 0)
   const anchor = useAppStore((s) => s.session.perTab[note.id]?.anchor)
@@ -78,19 +110,21 @@ function NoteInfo({ note }: { note: Note }) {
     <>
       <FormatPicker noteId={note.id} />
       {note.mode === 'markdown' && <PreviewSwitch noteId={note.id} />}
-      <span>
+      <span className="max-md:hidden">
         Ln {line}, Col {col}
       </span>
-      <span>
+      <span className={selected ? 'max-md:hidden' : undefined}>
         {!big && `${words.toLocaleString()} words · `}
         {chars.toLocaleString()} chars
+        {!big && words > 0 && ` · ${readingMinutes(words)} min read`}
       </span>
+      {!note.locked && !big && <GoalButton note={note} words={words} />}
       {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
       <button
         type="button"
         title="Toggle word wrap"
         onClick={() => getStore().getState().toggleWrap(note.id)}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
       >
         Wrap: {note.wrap ? 'on' : 'off'}
       </button>
@@ -98,7 +132,7 @@ function NoteInfo({ note }: { note: Note }) {
         type="button"
         title="Edit this note's tags"
         onClick={() => tagsStore.getState().open(note.id)}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
       >
         {note.tags?.length ? `Tags: ${note.tags.length}` : 'Add tags'}
       </button>
@@ -106,7 +140,7 @@ function NoteInfo({ note }: { note: Note }) {
         type="button"
         title="Toggle spell check for this note"
         onClick={() => getStore().getState().toggleSpellcheck(note.id)}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
       >
         Spelling: {note.spellcheck ? 'on' : 'off'}
       </button>
@@ -125,10 +159,10 @@ export function StatusBar() {
     <footer
       role="status"
       aria-label="Status bar"
-      className="flex h-6 shrink-0 items-center gap-3 border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
+      className="flex h-6 shrink-0 items-center gap-3 overflow-hidden whitespace-nowrap border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
     >
       {note && <NoteInfo note={note} />}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2 bg-bg-sunken pl-2">
         <SharesIndicator />
         {note && !note.locked && (
           <button

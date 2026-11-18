@@ -41,6 +41,10 @@ one calm, keyboard-friendly window that opens on a blank page every time.
 - **Diagrams and math in Markdown.** Draw Mermaid diagrams in a ` ```mermaid ` block and write math as
   `$$x^2$$`.
 - **Two notes side by side** on wide screens.
+- **Automatic backup to a folder** in Chrome and Edge on a computer, with a dated copy for each of the last
+  seven days.
+- **Send to Blankleaf.** Installed, it appears in the Android Share menu and can open `.txt` and `.md` files
+  on a computer.
 - **Password-locked notes.** Encrypt a note in your browser with AES-256. A forgotten password can't be
   recovered.
 - **Tags.** Label notes, filter the list by tag, and find tags in search.
