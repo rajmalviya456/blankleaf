@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/rajmalviya456/blankleaf/compare/v1.4.0...v1.5.0) (2026-11-18)
+
+
+### Features
+
+* export to HTML and Word, version history in backups ([#27](https://github.com/rajmalviya456/blankleaf/issues/27)) ([4c98cd6](https://github.com/rajmalviya456/blankleaf/commit/4c98cd6c8be151e6f7885671d710b4d9cb8c85b4))
+* **lock:** password-locked notes, with review fixes ([#30](https://github.com/rajmalviya456/blankleaf/issues/30)) ([5e06f26](https://github.com/rajmalviya456/blankleaf/commit/5e06f261166db149d53f15124f61ff0571f9d222))
+* **markdown:** diagrams, math and two notes side by side ([#29](https://github.com/rajmalviya456/blankleaf/issues/29)) ([f361041](https://github.com/rajmalviya456/blankleaf/commit/f361041ac2b5ff11947eb1c17646ce81396d2779))
+* print to PDF, note templates, spell check and sort options ([#26](https://github.com/rajmalviya456/blankleaf/issues/26)) ([93288cd](https://github.com/rajmalviya456/blankleaf/commit/93288cd08229ed05d26af498cb8857215f4e7b05))
+* **seo:** add landing and FAQ pages ([#25](https://github.com/rajmalviya456/blankleaf/issues/25)) ([f348d76](https://github.com/rajmalviya456/blankleaf/commit/f348d76233ec237b3f1e6e57e85d1a65cd0fc1b9))
+* **tags:** label notes, filter the list by tag and search tags ([#28](https://github.com/rajmalviya456/blankleaf/issues/28)) ([b995e15](https://github.com/rajmalviya456/blankleaf/commit/b995e150766e7ad8f2bec69112cd730db2fd97ac))
+
 ## [1.4.0](https://github.com/rajmalviya456/blankleaf/compare/v1.3.1...v1.4.0) (2026-11-18)
 
 
