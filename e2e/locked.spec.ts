@@ -41,7 +41,10 @@ const storedEverywhere = (page: Page) =>
     return JSON.stringify(out)
   })
 
-test('a locked note is encrypted at rest and opens only with its password', async ({ page }) => {
+test('a locked note is encrypted at rest and opens only with its password', async ({
+  page,
+  context,
+}) => {
   await page.clock.install()
   await openApp(page)
   await newNote(page, SECRET)
@@ -57,25 +60,32 @@ test('a locked note is encrypted at rest and opens only with its password', asyn
   await expect(statusBar(page)).toContainText('Saved')
   await expect.poll(() => storedEverywhere(page)).not.toContain('launch code')
 
-  await page.reload()
-  await page.getByLabel('Password', { exact: true }).fill('wrong password')
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('alert')).toContainText('isn’t right')
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.keyboard.press('Enter')
-  await expect(editor(page)).toContainText(SECRET)
+  // A later visit, without the fake clock: the locked note waits in the notes list.
+  const later = await context.newPage()
+  await later.goto('./')
+  await later
+    .getByRole('navigation', { name: 'Sidebar' })
+    .getByRole('button', { name: 'Notes' })
+    .click()
+  await later.getByRole('list', { name: 'Notes' }).getByText('Locked note').click()
+  await later.getByLabel('Password', { exact: true }).fill('wrong password')
+  await later.keyboard.press('Enter')
+  await expect(later.getByRole('alert')).toContainText('isn’t right')
+  await later.getByLabel('Password', { exact: true }).fill(PASSWORD)
+  await later.keyboard.press('Enter')
+  await expect(editor(later)).toContainText(SECRET)
 
-  await editor(page).click()
-  await page.keyboard.press('ControlOrMeta+End')
-  await page.keyboard.type(' zebrafish')
-  await expect(statusBar(page)).toContainText('Saved')
-  await page.clock.fastForward('00:02')
-  await page.getByRole('button', { name: 'Lock now' }).click()
-  await expect.poll(() => storedEverywhere(page)).not.toContain('zebrafish')
+  await editor(later).click()
+  await later.keyboard.press('ControlOrMeta+End')
+  await later.keyboard.type(' zebrafish')
+  await expect(statusBar(later)).toContainText('Saved')
+  await later.waitForTimeout(700)
+  await later.getByRole('button', { name: 'Lock now' }).click()
+  await expect.poll(() => storedEverywhere(later)).not.toContain('zebrafish')
 
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.keyboard.press('Enter')
-  await expect(editor(page)).toContainText('zebrafish')
+  await later.getByLabel('Password', { exact: true }).fill(PASSWORD)
+  await later.keyboard.press('Enter')
+  await expect(editor(later)).toContainText('zebrafish')
 })
 
 test('switching tabs locks the note again', async ({ page }) => {

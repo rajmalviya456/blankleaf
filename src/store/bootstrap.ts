@@ -9,6 +9,7 @@ export interface InitialState {
   state: Pick<AppState, 'notes' | 'session' | 'settings'>
   meta: Meta
   tombstoneIds: string[]
+  firstRun: boolean
 }
 
 const DEFAULT_META: Meta = {
@@ -78,6 +79,7 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
   const meta: Meta = { ...DEFAULT_META, ...data.meta }
   const notes: Record<string, Note> = Object.fromEntries(data.notes.map((n) => [n.id, n]))
   let session = sanitizeSession(data.session, notes)
+  const firstRun = !meta.welcomeShown
 
   if (session.openTabIds.length === 0) {
     let first = newNoteDraft(now, settings)
@@ -96,7 +98,7 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
     session = { ...session, openTabIds: [first.id], activeTabId: first.id }
   }
 
-  return { state: { notes, session, settings }, meta, tombstoneIds: data.tombstoneIds }
+  return { state: { notes, session, settings }, meta, tombstoneIds: data.tombstoneIds, firstRun }
 }
 
 export interface BootResult {
@@ -104,6 +106,8 @@ export interface BootResult {
   meta: Meta | null
   db: BlankleafDB | null
   error?: string
+  /** The very first visit: the Welcome note is showing. */
+  firstRun?: boolean
 }
 
 /** Open storage and load the saved session; falls back to an in-memory session if storage fails. */
@@ -115,8 +119,8 @@ export async function bootstrap(
   try {
     db = open()
     await db.open()
-    const { state, meta } = await loadInitialState(db, now)
-    return { state, meta, db }
+    const { state, meta, firstRun } = await loadInitialState(db, now)
+    return { state, meta, db, firstRun }
   } catch (e) {
     db?.close()
     console.error('Blankleaf: storage unavailable', e)

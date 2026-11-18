@@ -15,14 +15,14 @@ installs as an app after the first visit.
 
 Most online notepads are a single text box, lose your work when the tab closes, or want you to
 sign up. Blankleaf is for quick scratch text, code snippets and logs, and long-lived notes — in
-one calm, keyboard-friendly window that remembers exactly where you left off.
+one calm, keyboard-friendly window that opens on a blank page every time.
 
 ## Features
 
 - **Uses the whole window.** Tabs on top, an optional sidebar (notes, search, trash) and a zen
   mode that hides everything but the page.
-- **Remembers your session.** Open tabs, cursor and scroll position come back after a reload or
-  restart. Several windows stay in sync.
+- **A blank page every visit.** Opening Blankleaf starts a fresh note. Earlier notes wait in the notes
+  list, and reloading keeps your tabs, cursor and scroll position.
 - **Plain text or Markdown, per note.** Markdown notes have edit / split / preview, with
   highlighted code fences.
 - **Syntax highlighting for 20+ formats** — JSON, YAML, TOML, XML, logs, diffs, Dockerfile,

@@ -15,6 +15,7 @@ import { DEFAULT_SETTINGS } from './domain/defaults'
 import type { Note } from './domain/types'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
 import { registerStorage } from './store/dataReset'
+import { isFreshVisit, startOnBlankLeaf } from './store/freshStart'
 import { startMemoryJournal } from './store/memoryJournal'
 import { startPersistence } from './store/persistence'
 import { createAppStore, initStore } from './store/store'
@@ -65,6 +66,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
   }
 
   if (opts.addNote) store.getState().newNote(opts.addNote)
+  else if (!boot.firstRun && isFreshVisit()) startOnBlankLeaf(store)
 
   createRoot(root).render(
     <StrictMode>
