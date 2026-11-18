@@ -7,6 +7,7 @@ import {
   CopyPlus,
   FileCode,
   Download,
+  History,
   Maximize2,
   Minus,
   Pencil,
@@ -20,13 +21,14 @@ import {
 } from 'lucide-react'
 import { useDeferredValue, type ReactNode } from 'react'
 import { PHONE_FONT_MAX, PHONE_FONT_MIN } from '../../domain/defaults'
-import { lineColAt, textStats } from '../../lib/textStats'
+import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { toast } from '../../ui/toast'
 import { exportNote } from '../backup/actions'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
+import { historyStore } from '../history/historyStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -74,13 +76,16 @@ const Group = ({ children }: { children: ReactNode }) => (
 function Stats({ noteId }: { noteId: string }) {
   const content = useDeferredValue(useAppStore((s) => s.notes[noteId]?.content ?? ''))
   const head = useAppStore((s) => s.session.perTab[noteId]?.head ?? 0)
+  const anchor = useAppStore((s) => s.session.perTab[noteId]?.anchor)
   const { line, col } = lineColAt(content, head)
   const big = content.length > WORD_COUNT_LIMIT
   const { words, chars } = big ? { words: 0, chars: content.length } : textStats(content)
+  const selected = selectionStats(content, anchor, head)
   return (
     <p className="px-3 pb-1 pt-2 text-[12px] tabular-nums text-fg-faint">
       Ln {line}, Col {col}
       {big ? '' : ` · ${words.toLocaleString()} words`} · {chars.toLocaleString()} chars
+      {selected && <span className="block text-fg-muted">{selectionLabel(selected)}</span>}
     </p>
   )
 }
@@ -187,6 +192,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   }
                 />
                 <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
+                <Action
+                  icon={History}
+                  label="Version history…"
+                  onSelect={() => historyStore.getState().open(noteId)}
+                />
                 <Action
                   icon={CopyPlus}
                   label="Duplicate"

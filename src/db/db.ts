@@ -57,15 +57,24 @@ export interface ShareRow {
   stopped: boolean
 }
 
+/** A saved earlier state of a note (version history). */
+export interface VersionRow {
+  id?: number
+  noteId: string
+  at: number
+  content: string
+}
+
 /** Kept from the app's former name (Notepadz): renaming it would orphan everyone's saved notes. */
 export const DB_NAME = 'notepadz'
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 export class BlankleafDB extends Dexie {
   notes!: Table<Note, string>
   kv!: Table<KvRow, KvKey>
   tombstones!: Table<Tombstone, string>
   shares!: Table<ShareRow, string>
+  versions!: Table<VersionRow, number>
 
   constructor(name: string) {
     super(name)
@@ -76,6 +85,8 @@ export class BlankleafDB extends Dexie {
     })
     // v2 only adds the shares table; existing data is untouched.
     this.version(2).stores({ shares: '&id, expiresAt, noteId' })
+    // v3 only adds version history; existing data is untouched.
+    this.version(3).stores({ versions: '++id, noteId, [noteId+at]' })
   }
 }
 

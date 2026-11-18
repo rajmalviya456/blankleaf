@@ -5,10 +5,13 @@
 import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
+import { historyStore } from '../features/history/historyStore'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
 import { phoneViewFor } from '../features/phone/phoneView'
+import { getActiveView } from '../features/editor/activeView'
+import { runTransform, TRANSFORM_IDS, TRANSFORMS } from '../features/toolbar/transforms'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
 
@@ -173,6 +176,20 @@ export const COMMANDS: Command[] = [
       st(ctx).setUi({ paletteOpen: false })
     },
   },
+  {
+    id: 'note.history',
+    title: 'Version history…',
+    section: 'Note',
+    keywords: ['versions', 'restore', 'undo', 'earlier', 'backup', 'snapshot'],
+    shortcuts: [],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) historyStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+
   {
     id: 'note.format',
     title: 'Change format…',
@@ -351,6 +368,19 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     run: (ctx) => st(ctx).setUi({ whatsNewOpen: true, paletteOpen: false }),
   },
+  // Text and dev tools (also in the toolbar's Transform menu).
+  ...TRANSFORM_IDS.map((id): Command => ({
+    id: `text.${id}`,
+    title: TRANSFORMS[id].label,
+    section: 'Note',
+    keywords: ['transform', 'convert', 'encode', 'decode', 'json', 'yaml', 'base64', 'url'],
+    shortcuts: [],
+    when: hasActive,
+    run: () => {
+      const view = getActiveView()
+      if (view) void runTransform(view, id)
+    },
+  })),
 ]
 
 /** Phones: show a Library section (the laptop sidebar isn't on screen). */

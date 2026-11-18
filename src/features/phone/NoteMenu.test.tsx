@@ -91,6 +91,13 @@ describe('Note menu', () => {
     expect(menu).toHaveTextContent('Ln 2, Col 3 · 4 words · 18 chars')
   })
 
+  it('footer counts the selection too', async () => {
+    const { s, id } = setup('one two three\nfour')
+    act(() => s().setViewState(id, { anchor: 0, head: 7 }))
+    const menu = await openMenu()
+    expect(menu).toHaveTextContent('2 words, 7 chars selected')
+  })
+
   it('format sheet filters by typing and sets the language', async () => {
     const { s, id, user } = setup()
     const menu = await openMenu()

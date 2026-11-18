@@ -22,6 +22,16 @@ describe('StatusBar', () => {
     expect(bar).toHaveTextContent('Wrap: on')
   })
 
+  it('counts the selection while text is selected', () => {
+    const { id, s } = setup()
+    const bar = screen.getByRole('status', { name: /status bar/i })
+    expect(bar).not.toHaveTextContent('selected')
+    act(() => s().setViewState(id, { anchor: 0, head: 7 }))
+    expect(bar).toHaveTextContent('2 words, 7 chars selected')
+    act(() => s().setViewState(id, { anchor: 7, head: 7 }))
+    expect(bar).not.toHaveTextContent('selected')
+  })
+
   it('shows the save state', () => {
     const { s } = setup()
     expect(screen.getByText('Saved')).toBeInTheDocument()

@@ -5,6 +5,7 @@ import { createAppStore, initStore } from '../../store/store'
 import { Editor } from '../editor/Editor'
 import { Toolbar } from './Toolbar'
 import { toastStore } from '../../ui/toast'
+import { COMMANDS } from '../../commands/registry'
 
 function setup(content: string, markdown: boolean) {
   const store = initStore(createAppStore())
@@ -118,5 +119,38 @@ describe('Toolbar', () => {
     await user.click(undoBtn())
     expect(undoBtn()).toBeDisabled()
     expect(redoBtn()).toBeEnabled()
+  })
+})
+
+describe('Transform menu', () => {
+  it('formats the note as JSON from the toolbar', async () => {
+    const user = userEvent.setup()
+    const { id, s } = setup('{"a":1}', false)
+    await user.click(screen.getByRole('button', { name: 'Transform' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Format JSON' }))
+    await vi.waitFor(() => expect(s().notes[id].content).toBe('{\n  "a": 1\n}'))
+  })
+
+  it('explains invalid input instead of changing the note', async () => {
+    const user = userEvent.setup()
+    const { id, s } = setup('not json', false)
+    await user.click(screen.getByRole('button', { name: 'Transform' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Format JSON' }))
+    await vi.waitFor(() =>
+      expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/^Not valid JSON/),
+    )
+    expect(s().notes[id].content).toBe('not json')
+  })
+
+  it('is on the compact (phone) toolbar too', () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote()
+    render(<Toolbar noteId={id} compact />)
+    expect(screen.getAllByRole('button', { name: 'Transform' }).length).toBeGreaterThan(0)
+  })
+
+  it('every transform is also a palette command', () => {
+    const ids = COMMANDS.filter((c) => c.id.startsWith('text.')).map((c) => c.title)
+    expect(ids).toEqual(expect.arrayContaining(['Format JSON', 'URL decode', 'YAML → JSON']))
   })
 })

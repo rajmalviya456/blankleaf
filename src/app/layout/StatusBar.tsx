@@ -1,7 +1,7 @@
 import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
 import { useDeferredValue } from 'react'
 import type { Note } from '../../domain/types'
-import { lineColAt, textStats } from '../../lib/textStats'
+import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
@@ -67,7 +67,9 @@ function PreviewSwitch({ noteId }: { noteId: string }) {
 
 function NoteInfo({ note }: { note: Note }) {
   const head = useAppStore((s) => s.session.perTab[note.id]?.head ?? 0)
+  const anchor = useAppStore((s) => s.session.perTab[note.id]?.anchor)
   const content = useDeferredValue(note.content)
+  const selected = selectionStats(content, anchor, head)
   const { line, col } = lineColAt(content, head)
   const big = content.length > WORD_COUNT_LIMIT
   const { words, chars } = big ? { words: 0, chars: content.length } : textStats(content)
@@ -82,6 +84,7 @@ function NoteInfo({ note }: { note: Note }) {
         {!big && `${words.toLocaleString()} words · `}
         {chars.toLocaleString()} chars
       </span>
+      {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
       <button
         type="button"
         title="Toggle word wrap"

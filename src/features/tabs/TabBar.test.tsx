@@ -95,6 +95,7 @@ describe('TabBar', () => {
       'Copy content',
       'Export',
       'Share…',
+      'Version history…',
     ])
   })
 
