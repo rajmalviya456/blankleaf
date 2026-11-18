@@ -36,6 +36,10 @@ test('asks first, then types what you say into the note', async ({ page, context
     }
     Object.defineProperty(window, 'webkitSpeechRecognition', { configurable: true, value: Fake })
     Object.defineProperty(window, 'SpeechRecognition', { configurable: true, value: undefined })
+    Object.defineProperty(navigator, 'userAgentData', {
+      configurable: true,
+      value: { brands: [{ brand: 'Google Chrome', version: '140' }] },
+    })
   })
   await openApp(page)
   await newNote(page, 'Dear team')
@@ -51,4 +55,21 @@ test('asks first, then types what you say into the note', async ({ page, context
     .getByRole('button', { name: 'Stop voice typing' })
     .click()
   await expect(page.getByRole('status', { name: 'Voice typing' })).toHaveCount(0)
+})
+
+test('Chromium browsers without a speech service don’t show it', async ({ page, context }) => {
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgentData', {
+      configurable: true,
+      value: {
+        brands: [
+          { brand: 'Brave', version: '140' },
+          { brand: 'Chromium', version: '140' },
+        ],
+      },
+    })
+  })
+  await openApp(page)
+  await expect(page.getByRole('toolbar', { name: toolbar })).toBeVisible()
+  await expect(page.getByRole('button', { name: /voice typing/i })).toHaveCount(0)
 })

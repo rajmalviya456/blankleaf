@@ -43,7 +43,7 @@ one calm, keyboard-friendly window that opens on a blank page every time.
 - **Two notes side by side** on wide screens.
 - **Automatic backup to a folder** in browsers that support it, such as Chrome and Edge on a computer, with a
   dated copy for each of the last seven days.
-- **Voice typing** on a computer, in browsers with speech recognition such as Chrome, Edge and Safari.
+- **Voice typing** on a computer, in Chrome, Edge and Safari.
 - **Send to Blankleaf.** Installed, it appears in the Android Share menu and can open `.txt` and `.md` files
   on a computer.
 - **Password-locked notes.** Encrypt a note in your browser with AES-256. A forgotten password can't be
