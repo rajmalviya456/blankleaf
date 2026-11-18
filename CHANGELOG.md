@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/rajmalviya456/notepadz/compare/v1.1.0...v1.2.0) (2026-11-18)
+
+
+### Features
+
+* **mobile:** phone layout with full laptop feature parity ([#4](https://github.com/rajmalviya456/notepadz/issues/4)) ([76baf04](https://github.com/rajmalviya456/notepadz/commit/76baf04d937a530bd05bda1d3dbf760dee22aa11))
+
 ## [1.1.0](https://github.com/rajmalviya456/notepadz/compare/v1.0.0...v1.1.0) (2026-11-17)
 
 
