@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.0](https://github.com/rajmalviya456/blankleaf/compare/v1.7.0...v1.8.0) (2026-11-18)
+
+
+### Features
+
+* **app:** voice typing in supported browsers ([214629c](https://github.com/rajmalviya456/blankleaf/commit/214629c6eb71b84fe14d717dfb1bce2068f0d084))
+
+
+### Bug Fixes
+
+* **app:** keep the blank page free of links ([214629c](https://github.com/rajmalviya456/blankleaf/commit/214629c6eb71b84fe14d717dfb1bce2068f0d084))
+
 ## [1.7.0](https://github.com/rajmalviya456/blankleaf/compare/v1.6.0...v1.7.0) (2026-11-18)
 
 
