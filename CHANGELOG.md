@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0](https://github.com/rajmalviya456/blankleaf/compare/v1.6.0...v1.7.0) (2026-11-18)
+
+
+### Features
+
+* **app:** continue the last note from the blank page ([e6509c5](https://github.com/rajmalviya456/blankleaf/commit/e6509c502422e06ad5c6a274f1f1d29ab87c3244))
+* **app:** reading time and word goals ([e6509c5](https://github.com/rajmalviya456/blankleaf/commit/e6509c502422e06ad5c6a274f1f1d29ab87c3244))
+* **app:** send text to Blankleaf and open text files with it ([e6509c5](https://github.com/rajmalviya456/blankleaf/commit/e6509c502422e06ad5c6a274f1f1d29ab87c3244))
+* **backup:** keep a backup file updated in a chosen folder ([e6509c5](https://github.com/rajmalviya456/blankleaf/commit/e6509c502422e06ad5c6a274f1f1d29ab87c3244))
+
+
+### Performance
+
+* **app:** paint the page instantly and trim startup code ([#36](https://github.com/rajmalviya456/blankleaf/issues/36)) ([0765aed](https://github.com/rajmalviya456/blankleaf/commit/0765aed995fb495c969d8917b9023c005e583c28))
+
 ## [1.6.0](https://github.com/rajmalviya456/blankleaf/compare/v1.5.1...v1.6.0) (2026-11-18)
 
 
