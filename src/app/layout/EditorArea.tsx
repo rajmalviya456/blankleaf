@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
+import { BlankPageHints } from './BlankPageHints'
 import { getStore, useAppStore } from '../../store/store'
 
 // Markdown rendering is only needed for markdown notes in split/preview, so load it on demand.
@@ -133,8 +134,9 @@ export function EditorArea({
       {activeId && toolbar && showToolbar && <Toolbar key={toolbarNote} noteId={toolbarNote!} />}
       {activeId ? (
         <div className="flex min-h-0 flex-1">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
+            <BlankPageHints noteId={activeId} />
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>

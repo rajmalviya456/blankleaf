@@ -2,7 +2,14 @@ import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
 import { useDeferredValue } from 'react'
 import type { Note } from '../../domain/types'
 import { tagsStore } from '../../features/tags/tagsStore'
-import { lineColAt, selectionLabel, selectionStats, textStats } from '../../lib/textStats'
+import {
+  lineColAt,
+  readingMinutes,
+  selectionLabel,
+  selectionStats,
+  textStats,
+} from '../../lib/textStats'
+import { goalStore } from '../../features/goal/goalStore'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
@@ -66,6 +73,31 @@ function PreviewSwitch({ noteId }: { noteId: string }) {
   )
 }
 
+function GoalButton({ note, words }: { note: Note; words: number }) {
+  const goal = note.wordGoal
+  const reached = goal !== undefined && words >= goal
+  return (
+    <button
+      type="button"
+      aria-label={
+        goal === undefined
+          ? 'Set a word goal'
+          : `Word goal: ${words} of ${goal} words${reached ? ', reached' : ''}`
+      }
+      title="Word goal for this note"
+      onClick={() => goalStore.getState().open(note.id)}
+      className={[
+        'rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg',
+        reached ? 'font-medium text-accent' : '',
+      ].join(' ')}
+    >
+      {goal === undefined
+        ? 'Goal'
+        : `${words.toLocaleString()} / ${goal.toLocaleString()}${reached ? ' ✓' : ''}`}
+    </button>
+  )
+}
+
 function NoteInfo({ note }: { note: Note }) {
   const head = useAppStore((s) => s.session.perTab[note.id]?.head ?? 0)
   const anchor = useAppStore((s) => s.session.perTab[note.id]?.anchor)
@@ -84,7 +116,9 @@ function NoteInfo({ note }: { note: Note }) {
       <span>
         {!big && `${words.toLocaleString()} words · `}
         {chars.toLocaleString()} chars
+        {!big && words > 0 && ` · ${readingMinutes(words)} min read`}
       </span>
+      {!note.locked && !big && <GoalButton note={note} words={words} />}
       {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
       <button
         type="button"

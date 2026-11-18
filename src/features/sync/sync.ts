@@ -52,6 +52,7 @@ export function resolveConflict(
     wrap: local.wrap,
     spellcheck: local.spellcheck,
     tags: local.tags,
+    wordGoal: local.wordGoal,
     locked: local.locked,
     pinned: false,
   })
