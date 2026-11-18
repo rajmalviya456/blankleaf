@@ -1,72 +1,83 @@
-# Blankleaf — Online Notepad
+<div align="center">
 
-A free online notepad that opens straight to a blank page: full-window, tabbed, and saved in your
-browser as you type. No account, no server, no database — your notes stay on your machine.
+<img src="public/logo.svg" alt="" width="84" height="84">
 
-_Formerly Notepadz._
+# Blankleaf
 
-**▶ Open it: [rajmalviya456.github.io/blankleaf](https://rajmalviya456.github.io/blankleaf/)** — works offline and
-installs as an app after the first visit.
+**A free online notepad that opens straight to a blank page.**
+
+No sign-up. No server. Your notes stay in your browser.
+
+### [Open Blankleaf →](https://rajmalviya456.github.io/blankleaf/)
 
 [![CI](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml/badge.svg)](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml)
-[![Deploy](https://github.com/rajmalviya456/blankleaf/actions/workflows/deploy.yml/badge.svg)](https://github.com/rajmalviya456/blankleaf/actions/workflows/deploy.yml)
+[![Latest release](https://img.shields.io/github/v/release/rajmalviya456/blankleaf?label=release)](https://github.com/rajmalviya456/blankleaf/releases/latest)
+[![MIT license](https://img.shields.io/github/license/rajmalviya456/blankleaf)](LICENSE)
 
-## Why
+<img src="docs/images/demo.gif" alt="Typing a note in Blankleaf, previewing it as Markdown, ticking checklist items and switching to dark mode" width="900">
 
-Most online notepads are a single text box, lose your work when the tab closes, or want you to
-sign up. Blankleaf is for quick scratch text, code snippets and logs, and long-lived notes — in
-one calm, keyboard-friendly window that opens on a blank page every time.
+</div>
+
+## Why Blankleaf
+
+Most online notepads are a single text box, lose your work when the tab closes, or ask you to sign
+up. Blankleaf gives you a real editor the moment the page opens, and it never needs an account.
+
+- **Instant.** Open the page and start typing. Every visit begins on a blank note.
+- **Private.** There is no backend. Notes are saved in your browser and work offline.
+- **Complete.** Tabs, Markdown, code highlighting, version history and encrypted sharing.
+
+![Blankleaf showing a Markdown note beside its live preview, with a checklist, table, diagram and formula](docs/images/hero.png)
 
 ## Features
 
-- **Uses the whole window.** Tabs on top, an optional sidebar (notes, search, trash) and a zen
-  mode that hides everything but the page.
-- **A blank page every visit.** Opening Blankleaf starts a fresh note. Earlier notes wait in the notes
-  list, and reloading keeps your tabs, cursor and scroll position.
-- **Plain text or Markdown, per note.** Markdown notes have edit / split / preview, with
-  highlighted code fences.
-- **Syntax highlighting for 20+ formats** — JSON, YAML, TOML, XML, logs, diffs, Dockerfile,
-  JavaScript/TypeScript, Python, SQL, HTML, CSS, shell, Java, C/C++, Go, Rust, PHP — picked
-  automatically from what you type, or chosen from the format menu.
-- **Version history.** Earlier versions of each note are saved as you write; read one and restore
-  it in a click, on this device only.
-- **Text and dev tools.** Format or minify JSON, convert JSON ⇄ YAML, and encode or decode Base64
-  and URLs, on the selection or the whole note.
-- **Clickable checklists.** Tick `- [ ]` items right in the Markdown preview.
-- **Print or save as PDF.** A clean copy of any note, with Markdown formatted.
-- **Export to HTML or Word.** Download any note as a web page or a real `.docx`, with Markdown
-  formatting kept.
-- **Note templates.** Start a daily journal, meeting notes, checklist or to-do list in one click.
-- **Spell check per note**, using your browser's own checker.
-- **Diagrams and math in Markdown.** Draw Mermaid diagrams in a ` ```mermaid ` block and write math as
-  `$$x^2$$`.
-- **Two notes side by side** on wide screens.
-- **Automatic backup to a folder** in browsers that support it, such as Chrome and Edge on a computer, with a
-  dated copy for each of the last seven days.
-- **Voice typing** on a computer, in Chrome, Edge and Safari.
-- **Send to Blankleaf.** Installed, it appears in the Android Share menu and can open `.txt` and `.md` files
-  on a computer.
-- **Password-locked notes.** Encrypt a note in your browser with AES-256. A forgotten password can't be
-  recovered.
-- **Tags.** Label notes, filter the list by tag, and find tags in search.
-- **Sort your notes** by last edited, date created or name.
-- **Toolbar that fits the note.** Markdown notes get headings, bold, italic, lists, quotes,
-  links and code blocks. Plain text, code and logs get change case, sort / dedupe / trim lines
-  and insert date — no stray `**` in your code. Every button is one undo step. Turn it off in
-  Settings if you prefer a bare page.
-- **Find & replace, search across all notes, pinned tabs, trash with restore** (kept 30 days).
-- **Share a note by link** — end-to-end encrypted, password-protected, expiring
-  ([details below](#sharing-a-note)).
-- **Backups you control.** Export everything to one JSON file, import it back, or drop text
-  files onto the window to open them. A gentle reminder nudges you to back up.
-- **Command palette (⌘K / Ctrl+K)** for every action, and a shortcuts sheet (⌘/ / Ctrl+/).
-- **Light and dark themes**, accent colour, editor font and size, line numbers, tab size.
-- **Works on phones.** Below 640px wide the note fills the screen under a slim top bar: tap
-  the title to switch tabs, ☰ for notes / search / trash, ⋯ for everything else. The toolbar
-  sits above the on-screen keyboard and every dialog opens as a bottom sheet (drag down or press
-  Back to close). Phones keep their own text size.
-- **Installable PWA** that works offline. New versions offer a _Reload_ — never a surprise
-  refresh.
+### Write
+
+- **Tabs** for many notes at once, with pinning and drag to reorder
+- **Markdown** with edit, split and preview views, clickable checklists, tables, Mermaid diagrams and math
+- **Syntax highlighting** for 20+ formats, detected as you type
+- **Templates** for a daily journal, meeting notes, checklists and to-do lists
+- **Voice typing** on a computer in Chrome, Edge and Safari
+- **Reading time, word goals and spell check** for each note
+- **Two notes side by side** on wide screens, and a zen mode that hides everything but the page
+
+### Organize and find
+
+- **Tags**, sorting and search across every note
+- **Command palette** (⌘K / Ctrl+K) for every action
+- **Trash** that keeps deleted notes for 30 days
+
+### Keep your work safe
+
+- **Autosave** in your browser as you type
+- **Version history** to read and restore earlier text
+- **Automatic backup to a folder** in browsers that support it, such as Chrome and Edge on a computer
+- **Password-locked notes**, encrypted in your browser with AES-256
+- **Backup and restore** with a single file
+
+### Share and export
+
+- **Encrypted share links** that expire, with an optional password ([how it works](#sharing-a-note))
+- **Export** to Markdown, HTML or Word, or print and save as PDF
+- **Send to Blankleaf** from the Android Share menu once installed, and open `.txt` and `.md` files on a computer
+
+### For code and data
+
+- Format or minify JSON, convert JSON ⇄ YAML, and encode or decode Base64 and URLs
+- Sort lines, remove duplicates, change case and find and replace
+
+![Blankleaf in dark mode with the Transform menu open on a JSON note](docs/images/dark-tools.png)
+
+### On your phone
+
+A layout made for small screens, with the toolbar above the keyboard. Install it like an app and it
+works offline.
+
+![Blankleaf on a phone: a Markdown note, the notes library and the note menu](docs/images/phone.png)
+
+### Never lose a good draft
+
+![The version history dialog showing earlier versions of a note](docs/images/version-history.png)
 
 ## Privacy
 
