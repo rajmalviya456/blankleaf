@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.1](https://github.com/rajmalviya456/blankleaf/compare/v1.8.0...v1.8.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **backup:** say when a browser can't back up to a folder ([#43](https://github.com/rajmalviya456/blankleaf/issues/43)) ([5f30957](https://github.com/rajmalviya456/blankleaf/commit/5f30957ba4742c27cdcf2c928502f81e5d2b3325))
+* **voice:** hide voice typing where the browser can't use it ([#45](https://github.com/rajmalviya456/blankleaf/issues/45)) ([d2fb904](https://github.com/rajmalviya456/blankleaf/commit/d2fb9048357830f7a11af7ec0cadd4da8e8c58c3))
+
 ## [1.8.0](https://github.com/rajmalviya456/blankleaf/compare/v1.7.0...v1.8.0) (2026-11-18)
 
 
