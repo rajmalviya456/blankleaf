@@ -22,6 +22,11 @@ async function createShare(page: Page, opts: { password: boolean }) {
 async function openLink(context: BrowserContext, link: string) {
   const page = await context.newPage()
   await page.goto(link)
+  // A shared note must stay out of search results.
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    'content',
+    'noindex, nofollow, noarchive',
+  )
   return page
 }
 

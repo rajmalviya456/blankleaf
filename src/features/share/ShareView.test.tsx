@@ -174,3 +174,17 @@ describe('ShareView', () => {
       expect(screen.getByRole('button', { name }).className).toContain('max-sm:h-11')
   })
 })
+
+describe('search engines', () => {
+  it('tells crawlers not to index or follow a share page, and undoes it on leaving', async () => {
+    const t = createMemoryTransport()
+    const created = await host(t).create(note(), { expiresInMs: 300_000, password: null })
+    const robots = () => document.head.querySelector('meta[name="robots"]')?.getAttribute('content')
+    document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="index, follow">')
+    view(t, created.link)
+    expect(robots()).toBe('noindex, nofollow, noarchive')
+    cleanups.pop()!() // unmount the share page
+    expect(robots()).toBe('index, follow')
+    document.head.querySelector('meta[name="robots"]')?.remove()
+  })
+})
