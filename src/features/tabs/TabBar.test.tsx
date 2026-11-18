@@ -94,6 +94,8 @@ describe('TabBar', () => {
       'Move to Trash',
       'Copy content',
       'Export',
+      'Export as web page',
+      'Export as Word',
       'Print / save as PDF…',
       'Share…',
       'Version history…',

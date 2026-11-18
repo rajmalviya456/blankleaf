@@ -28,7 +28,9 @@ test('export, clear all data, import: every note comes back', async ({ page }) =
   const dialog = page.getByRole('dialog', { name: 'Import backup' })
   await expect(dialog).toContainText('new')
   await dialog.getByRole('button', { name: 'Import' }).click()
+  await expect(dialog).toBeHidden()
   await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden()
 
   await page
     .getByRole('navigation', { name: 'Sidebar' })

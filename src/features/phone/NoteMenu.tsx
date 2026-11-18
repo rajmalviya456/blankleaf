@@ -6,6 +6,8 @@ import {
   Copy,
   CopyPlus,
   FileCode,
+  FileText,
+  Globe,
   Download,
   History,
   Maximize2,
@@ -27,6 +29,7 @@ import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { toast } from '../../ui/toast'
 import { exportNote } from '../backup/actions'
+import { exportNoteAs } from '../export/exportNote'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
 import { historyStore } from '../history/historyStore'
@@ -209,6 +212,16 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   }
                 />
                 <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
+                <Action
+                  icon={Globe}
+                  label="Export as web page"
+                  onSelect={() => void exportNoteAs(noteId, 'html')}
+                />
+                <Action
+                  icon={FileText}
+                  label="Export as Word"
+                  onSelect={() => void exportNoteAs(noteId, 'docx')}
+                />
                 <Action
                   icon={Printer}
                   label="Print / save as PDF"

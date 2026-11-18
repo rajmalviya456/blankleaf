@@ -5,7 +5,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from 'zustand'
-import { displayTitle } from '../../domain/title'
+import { documentTitle } from '../../domain/title'
 import { useAppStore } from '../../store/store'
 import { MarkdownPreview } from '../editor/MarkdownPreview'
 import { printStore } from './printStore'
@@ -39,7 +39,7 @@ export function PrintView() {
   const noteId = useStore(printStore, (s) => s.noteId)
   const note = useAppStore((s) => (noteId ? s.notes[noteId] : undefined))
   if (!note) return null
-  const title = displayTitle(note)
+  const title = documentTitle(note)
   return createPortal(
     <div id="print-root">
       {note.mode === 'markdown' ? (
