@@ -29,6 +29,17 @@ export type LanguageId =
 /** How the notes list is ordered (pinned notes always come first). */
 export type NotesSort = 'edited' | 'created' | 'title'
 
+/** A locked note's text, encrypted with its password (see features/lock). */
+export interface LockedContent {
+  v: 1
+  salt: string
+  iv: string
+  data: string
+  iterations: number
+  /** The note it was first locked on. Part of what's authenticated, and copied with the data. */
+  origin: string
+}
+
 export interface Note {
   id: string
   /** Explicit name; null means "derive from first line" (see displayTitle). */
@@ -41,6 +52,8 @@ export interface Note {
   spellcheck?: boolean
   /** Labels for organizing notes (see domain/tags). */
   tags?: string[]
+  /** Set when the note is password-locked; `content` is then empty. */
+  locked?: LockedContent
   pinned: boolean
   createdAt: number
   updatedAt: number

@@ -228,7 +228,7 @@ export function startPersistence(
           continue
         }
         // Same rev, new object → an edit. A brand-new blank note waits until it has content.
-        if (!before && note.content === '' && note.title === null) continue
+        if (!before && note.content === '' && note.title === null && !note.locked) continue
         notes.schedule(id, 'save')
         markSaving()
       }

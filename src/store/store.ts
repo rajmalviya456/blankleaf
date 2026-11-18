@@ -7,10 +7,19 @@
  *  - never trashed (empty untitled tab closed) → hard delete, no tombstone.
  */
 import { createStore, useStore, type StoreApi } from 'zustand'
+import { LOCKED_TITLE } from '../domain/locked'
 import { CLOSED_STACK_MAX, DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
 import { languageMeta } from '../domain/languages'
 import { displayTitle } from '../domain/title'
-import type { LanguageId, Note, NoteMode, Session, Settings, TabViewState } from '../domain/types'
+import type {
+  LanguageId,
+  LockedContent,
+  Note,
+  NoteMode,
+  Session,
+  Settings,
+  TabViewState,
+} from '../domain/types'
 
 export type SaveStatus = 'saved' | 'saving' | 'error'
 
@@ -32,6 +41,8 @@ export interface UiState {
   focusSearch: number
   /** The tag the notes list is filtered by, if any. */
   tagFilter: string | null
+  /** The note beside the active one has keyboard focus, so the toolbar acts on it. */
+  sideFocused: boolean
 }
 
 export interface AppState {
@@ -62,6 +73,9 @@ export interface AppActions {
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
   setSplitNote(id: string | null): void
+  applyLock(id: string, locked: LockedContent, title: string): void
+  updateLocked(id: string, locked: LockedContent): void
+  removeLock(id: string, content: string): void
   trashNote(id: string): void
   restoreNote(id: string): void
   purgeNote(id: string): void
@@ -106,6 +120,7 @@ const initialUi = (): UiState => ({
   unpinPromptId: null,
   focusSearch: 0,
   tagFilter: null,
+  sideFocused: false,
 })
 
 /** Keep pinned tabs first, preserving relative order inside each group. */
@@ -116,7 +131,7 @@ function normalizeTabs(ids: string[], notes: Record<string, Note>): string[] {
 }
 
 function isBlank(note: Note): boolean {
-  return note.title === null && note.content.trim() === ''
+  return note.title === null && note.content.trim() === '' && !note.locked
 }
 
 /** Insert `id` right after the active tab (or at the end), then normalize. */
@@ -140,6 +155,10 @@ export function createAppStore(
       })
     }
 
+    /** The note beside the active one closes with its note, even if it had no tab. */
+    const withoutSide = (session: Session, id: string): Session =>
+      session.splitNoteId === id ? { ...session, splitNoteId: null } : session
+
     /** Remove a tab from the session; returns the new session (does not touch notes). */
     const withoutTab = (session: Session, id: string): Session => {
       const idx = session.openTabIds.indexOf(id)
@@ -148,7 +167,8 @@ export function createAppStore(
       let activeTabId = session.activeTabId
       if (activeTabId === id) activeTabId = openTabIds[idx] ?? openTabIds[idx - 1] ?? null
       const { [id]: _drop, ...perTab } = session.perTab
-      return { ...session, openTabIds, activeTabId, perTab }
+      const splitNoteId = session.splitNoteId === id ? null : session.splitNoteId
+      return { ...session, openTabIds, activeTabId, perTab, splitNoteId }
     }
 
     const closeOne = (id: string) => {
@@ -283,7 +303,7 @@ export function createAppStore(
 
       duplicateNote(id) {
         const src = get().notes[id]
-        if (!src) return id
+        if (!src || src.locked) return id
         get().setActive(id)
         return get().newNote({
           content: src.content,
@@ -320,6 +340,21 @@ export function createAppStore(
         patchNote(id, { wrap: !note.wrap })
         get().setViewState(id, { wrapTouched: true })
       },
+      applyLock(id, locked, title) {
+        patchNote(id, { content: '', locked, title })
+      },
+      updateLocked(id, locked) {
+        if (get().notes[id]?.locked) patchNote(id, { locked })
+      },
+      removeLock(id, content) {
+        const note = get().notes[id]
+        if (!note?.locked) return
+        patchNote(id, {
+          content,
+          locked: undefined,
+          title: note.title === LOCKED_TITLE ? null : note.title,
+        })
+      },
       setSplitNote(id) {
         set({ session: { ...get().session, splitNoteId: id } })
       },
@@ -334,7 +369,7 @@ export function createAppStore(
       trashNote(id) {
         if (!get().notes[id]) return
         patchNote(id, { deletedAt: now(), pinned: false })
-        const session = withoutTab(get().session, id)
+        const session = withoutSide(withoutTab(get().session, id), id)
         set({
           session: { ...session, closedStack: session.closedStack.filter((x) => x !== id) },
         })
@@ -410,7 +445,7 @@ export function createAppStore(
       removeRemoteNote(id) {
         if (!get().notes[id]) return
         const { [id]: _gone, ...rest } = get().notes
-        const session = withoutTab(get().session, id)
+        const session = withoutSide(withoutTab(get().session, id), id)
         set({
           notes: rest,
           session: { ...session, closedStack: session.closedStack.filter((x) => x !== id) },

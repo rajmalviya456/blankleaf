@@ -21,6 +21,9 @@ export function getActiveDb(): BlankleafDB | null {
   return activeDb
 }
 
+/** Write everything pending to storage now. */
+export const flushStorage = async (): Promise<void> => activePersistence?.flush()
+
 /**
  * Permanently erase every note, the session and settings, then reload.
  * Persistence is stopped first so page-hide doesn't journal the old session back.

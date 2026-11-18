@@ -65,6 +65,17 @@ describe('diagrams', () => {
     expect(screen.getByText('graph TD; A-->B')).toBeInTheDocument()
   })
 
+  it('redraws when the theme changes', async () => {
+    document.documentElement.dataset.theme = 'light'
+    render(<MarkdownPreview source={src} />)
+    await screen.findByRole('img', { name: 'Diagram' })
+    document.documentElement.dataset.theme = 'dark'
+    await waitFor(() =>
+      expect(engine.renderDiagram).toHaveBeenLastCalledWith('graph TD; A-->B', true),
+    )
+    document.documentElement.dataset.theme = 'light'
+  })
+
   it('leaves other code blocks alone', () => {
     const { container } = render(<MarkdownPreview source={'```js\nconst a = 1\n```'} />)
     expect(container.querySelector('pre code')).toHaveTextContent('const a = 1')

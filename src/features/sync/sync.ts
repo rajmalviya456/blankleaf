@@ -37,6 +37,13 @@ export function resolveConflict(
   const s = store.getState()
   s.applyRemoteNote(current)
   if (s.session.openTabIds.includes(current.id)) s.setActive(current.id)
+  // Locked in another window: a readable copy of the text would undo the lock.
+  if (current.locked && !local.locked) {
+    toast('This note was locked in another window. Your last edit here wasn’t kept.', {
+      tone: 'warn',
+    })
+    return current.id
+  }
   const copyId = store.getState().newNote({
     title: `${displayTitle(current)} (conflict copy)`,
     content: local.content,
@@ -45,6 +52,7 @@ export function resolveConflict(
     wrap: local.wrap,
     spellcheck: local.spellcheck,
     tags: local.tags,
+    locked: local.locked,
     pinned: false,
   })
   toast('Edited in another window — your version was saved as a copy.', { tone: 'warn' })

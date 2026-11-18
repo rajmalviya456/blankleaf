@@ -130,7 +130,7 @@ export function StatusBar() {
       {note && <NoteInfo note={note} />}
       <div className="ml-auto flex items-center gap-2">
         <SharesIndicator />
-        {note && (
+        {note && !note.locked && (
           <button
             type="button"
             aria-label="Share note"

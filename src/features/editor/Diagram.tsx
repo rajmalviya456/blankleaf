@@ -1,11 +1,19 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
 
 /** Ready-made drawings for static copies (print, export). */
 export const ReadyDiagrams = createContext<Map<string, string> | undefined>(undefined)
 
+const watchTheme = (cb: () => void) => {
+  const observer = new MutationObserver(cb)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => observer.disconnect()
+}
+const isDark = () => document.documentElement.dataset.theme === 'dark'
+
 /** A Mermaid diagram. Shows its code until drawn, and if it can't be drawn. */
 export function Diagram({ code }: { code: string }) {
   const ready = useContext(ReadyDiagrams)
+  const dark = useSyncExternalStore(watchTheme, isDark, () => false)
   const [drawn, setDrawn] = useState<{ code: string; svg: string | null } | null>(null)
 
   useEffect(() => {
@@ -13,7 +21,6 @@ export function Diagram({ code }: { code: string }) {
     let alive = true
     // Wait for a pause in typing: drawing on every keystroke would be slow.
     const timer = setTimeout(() => {
-      const dark = document.documentElement.dataset.theme === 'dark'
       void import('./diagramEngine')
         .then((m) => m.renderDiagram(code, dark))
         .then(
@@ -25,7 +32,7 @@ export function Diagram({ code }: { code: string }) {
       alive = false
       clearTimeout(timer)
     }
-  }, [code, ready])
+  }, [code, ready, dark])
 
   const svg = ready ? ready.get(code) : drawn?.svg
   const failed = ready ? !svg : drawn?.code === code && drawn.svg === null

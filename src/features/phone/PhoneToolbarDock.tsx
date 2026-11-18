@@ -4,11 +4,13 @@
  */
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useAppStore } from '../../store/store'
 import { Toolbar } from '../toolbar/Toolbar'
 
 export function PhoneToolbarDock({ noteId }: { noteId: string }) {
   const box = useRef<HTMLDivElement>(null)
   const [more, setMore] = useState(false)
+  const locked = useAppStore((s) => !!s.notes[noteId]?.locked)
 
   useEffect(() => {
     const row = box.current?.querySelector<HTMLElement>('[role="toolbar"]')
@@ -23,6 +25,7 @@ export function PhoneToolbarDock({ noteId }: { noteId: string }) {
     }
   }, [noteId])
 
+  if (locked) return null
   return (
     <div
       ref={box}

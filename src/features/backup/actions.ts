@@ -19,11 +19,14 @@ import { importStore } from './importStore'
 import { markBackedUp } from './meta'
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024
+const MAX_BACKUP_BYTES = 500 * 1024 * 1024
 
 export async function exportAll(now: number = Date.now()): Promise<void> {
   const s = getStore().getState()
   const notes = Object.values(s.notes)
-  const { versions, complete } = await versionsForBackup(notes.map((n) => n.id))
+  const { versions, complete } = await versionsForBackup(
+    notes.filter((n) => !n.locked).map((n) => n.id),
+  )
   const { text, withVersions } = backupText(notes, s.settings, now, versions)
   downloadText(backupFileName(now), 'application/json', text)
   await markBackedUp(now)
@@ -77,7 +80,11 @@ export async function importFileList(
   const skipped: string[] = []
 
   for (const file of files) {
-    if (file.size > MAX_FILE_BYTES) {
+    // Backups can be larger than other files: their start says what they are.
+    const limit = looksLikeBackup(await file.slice(0, 2000).text())
+      ? MAX_BACKUP_BYTES
+      : MAX_FILE_BYTES
+    if (file.size > limit) {
       skipped.push(file.name)
       continue
     }
@@ -125,9 +132,11 @@ export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Pr
   if (db && plan.versions) {
     // Versions of a permanently deleted note come back only if the note itself does.
     const skipped = new Set(restoreDeleted ? [] : plan.deletedRestorable.map((n) => n.id))
+    // A locked note's earlier versions were deleted on purpose: plain text must not return.
+    const notes = getStore().getState().notes
     await importVersions(
       db,
-      plan.versions.filter((v) => !skipped.has(v.noteId)),
+      plan.versions.filter((v) => !skipped.has(v.noteId) && !notes[v.noteId]?.locked),
     )
   }
   return incoming.length

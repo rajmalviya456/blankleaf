@@ -210,7 +210,7 @@ function ReadyView({
       <main className="min-h-0 flex-1 overflow-auto">
         {preview ? (
           <Suspense fallback={null}>
-            <MarkdownPreview source={snapshot.content} />
+            <MarkdownPreview source={snapshot.content} remoteImages={false} />
           </Suspense>
         ) : (
           <CodeMirror

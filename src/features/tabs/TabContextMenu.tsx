@@ -2,11 +2,13 @@ import * as ContextMenu from '@radix-ui/react-context-menu'
 import type { ReactNode } from 'react'
 import type { Note } from '../../domain/types'
 import { getStore } from '../../store/store'
+import { useIsWide } from '../../lib/media'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
+import { lockStore } from '../lock/lockStore'
 import { shareStore } from '../share/shareStore'
 
 interface Props {
@@ -19,6 +21,7 @@ const itemClass =
   'flex cursor-default select-none items-center rounded px-2 py-1.5 text-[12.5px] text-fg outline-none data-[disabled]:text-fg-faint data-[highlighted]:bg-accent-soft data-[highlighted]:text-fg'
 
 export function TabContextMenu({ note, onClose, children }: Props) {
+  const wide = useIsWide()
   const s = () => getStore().getState()
   const copy = () => void navigator.clipboard?.writeText(note.content).catch(() => {})
 
@@ -39,7 +42,11 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           <ContextMenu.Item className={itemClass} onSelect={() => s().togglePin(note.id)}>
             {note.pinned ? 'Unpin' : 'Pin'}
           </ContextMenu.Item>
-          <ContextMenu.Item className={itemClass} onSelect={() => s().duplicateNote(note.id)}>
+          <ContextMenu.Item
+            className={itemClass}
+            disabled={!!note.locked}
+            onSelect={() => s().duplicateNote(note.id)}
+          >
             Duplicate
           </ContextMenu.Item>
           <ContextMenu.Item
@@ -50,7 +57,7 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
-            disabled={s().session.activeTabId === note.id}
+            disabled={!wide || s().session.activeTabId === note.id}
             onSelect={() => s().setSplitNote(note.id)}
           >
             Open beside
@@ -72,41 +79,57 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           >
             Move to Trash
           </ContextMenu.Item>
-          <ContextMenu.Item className={itemClass} onSelect={copy}>
+          <ContextMenu.Item className={itemClass} disabled={!!note.locked} onSelect={copy}>
             Copy content
           </ContextMenu.Item>
-          <ContextMenu.Item className={itemClass} onSelect={() => exportNote(note.id)}>
+          <ContextMenu.Item
+            className={itemClass}
+            disabled={!!note.locked}
+            onSelect={() => exportNote(note.id)}
+          >
             Export
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
+            disabled={!!note.locked}
             onSelect={() => void exportNoteAs(note.id, 'html')}
           >
             Export as web page
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
+            disabled={!!note.locked}
             onSelect={() => void exportNoteAs(note.id, 'docx')}
           >
             Export as Word
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
+            disabled={!!note.locked}
             onSelect={() => printStore.getState().open(note.id)}
           >
             Print / save as PDF…
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
+            disabled={!!note.locked}
             onSelect={() => shareStore.getState().open(note.id)}
           >
             Share…
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
+            disabled={!!note.locked}
             onSelect={() => historyStore.getState().open(note.id)}
           >
             Version history…
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            className={itemClass}
+            disabled={!!note.locked}
+            onSelect={() => lockStore.getState().open(note.id)}
+          >
+            Lock with password…
           </ContextMenu.Item>
         </ContextMenu.Content>
       </ContextMenu.Portal>

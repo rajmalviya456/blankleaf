@@ -1,7 +1,7 @@
 import { useIsTouch } from '../../lib/media'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Pin, X } from 'lucide-react'
+import { LockKeyhole, Pin, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { displayTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
@@ -84,6 +84,14 @@ export function TabItem({ note, active, onRequestClose }: Props) {
           >
             {note.pinned && (
               <Pin aria-label="Pinned" size={11} strokeWidth={2} className="shrink-0 text-warn" />
+            )}
+            {note.locked && (
+              <LockKeyhole
+                aria-label="Locked"
+                size={11}
+                strokeWidth={2}
+                className="shrink-0 text-fg-muted"
+              />
             )}
             <span className="min-w-0 flex-1 truncate">{title}</span>
           </div>

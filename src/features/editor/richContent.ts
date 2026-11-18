@@ -36,13 +36,14 @@ function diagramSources(source: string): string[] {
 /** Prepare a note for printing or exporting. A diagram that can't be drawn stays as its code. */
 export async function prepareRichContent(source: string): Promise<RichExtras> {
   const extras: RichExtras = {}
-  if (needsMath(source)) extras.math = await loadMath()
+  // Offline, these may not be downloaded yet: the note still prints, with its source showing.
+  if (needsMath(source)) extras.math = await loadMath().catch(() => undefined)
   if (needsDiagrams(source)) {
-    const { renderDiagram } = await import('./diagramEngine')
     extras.diagrams = new Map()
-    for (const code of diagramSources(source)) {
+    const engine = await import('./diagramEngine').catch(() => null)
+    for (const code of engine ? diagramSources(source) : []) {
       try {
-        extras.diagrams.set(code, await renderDiagram(code))
+        extras.diagrams.set(code, await engine!.renderDiagram(code))
       } catch {
         // Shown as code instead.
       }

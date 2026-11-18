@@ -61,12 +61,19 @@ export function NoteRowMenu({
           <DropdownMenu.Item className={item} onSelect={() => tagsStore.getState().open(note.id)}>
             <Tag size={16} aria-hidden /> Tags…
           </DropdownMenu.Item>
-          <DropdownMenu.Item className={item} onSelect={() => shareStore.getState().open(note.id)}>
-            <Share2 size={16} aria-hidden /> Share…
-          </DropdownMenu.Item>
-          <DropdownMenu.Item className={item} onSelect={() => exportNote(note.id)}>
-            <Download size={16} aria-hidden /> Download
-          </DropdownMenu.Item>
+          {!note.locked && (
+            <>
+              <DropdownMenu.Item
+                className={item}
+                onSelect={() => shareStore.getState().open(note.id)}
+              >
+                <Share2 size={16} aria-hidden /> Share…
+              </DropdownMenu.Item>
+              <DropdownMenu.Item className={item} onSelect={() => exportNote(note.id)}>
+                <Download size={16} aria-hidden /> Download
+              </DropdownMenu.Item>
+            </>
+          )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item className={item + ' text-danger'} onSelect={onTrash}>
             <Trash2 size={16} aria-hidden /> Move to Trash

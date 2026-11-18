@@ -23,13 +23,18 @@ export async function noteToHtml(note: Note): Promise<string> {
   const body =
     note.mode === 'markdown'
       ? renderToStaticMarkup(
-          <MarkdownPreview source={note.content} extras={await prepareRichContent(note.content)} />,
+          <MarkdownPreview
+            source={note.content}
+            extras={await prepareRichContent(note.content)}
+            remoteImages={false}
+          />,
         )
       : `<h1>${title}</h1><pre class="note-text">${esc(note.content)}</pre>`
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="Blankleaf">
 <title>${title}</title>

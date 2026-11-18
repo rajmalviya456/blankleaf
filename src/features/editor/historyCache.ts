@@ -29,3 +29,6 @@ export function restoreHistory(
   if (!saved || saved.doc.toString() !== content) return undefined
   return { json: saved.toJSON(fields), fields }
 }
+
+/** Drop what's remembered for a note (its text must not linger once it's locked). */
+export const forgetState = (noteId: string) => void cache.delete(noteId)

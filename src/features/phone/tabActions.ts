@@ -33,24 +33,36 @@ export function tabActionItems(noteId: string): ActionItem[] {
       icon: note.pinned ? PinOff : Pin,
       onSelect: () => getStore().getState().togglePin(noteId),
     },
-    {
-      label: 'Duplicate',
-      icon: CopyPlus,
-      onSelect: () => getStore().getState().duplicateNote(noteId),
-    },
-    { label: 'Share…', icon: Share2, onSelect: () => shareStore.getState().open(noteId) },
-    {
-      label: 'Copy text',
-      icon: Copy,
-      onSelect: () =>
-        void navigator.clipboard
-          ?.writeText(note.content)
-          .then(() => toast('Copied note text'))
-          .catch(() =>
-            toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' }),
-          ),
-    },
-    { label: 'Download', icon: Download, onSelect: () => exportNote(noteId) },
+    ...(note.locked
+      ? []
+      : [
+          {
+            label: 'Duplicate',
+            icon: CopyPlus,
+            onSelect: () => getStore().getState().duplicateNote(noteId),
+          },
+        ]),
+    ...(note.locked
+      ? []
+      : [{ label: 'Share…', icon: Share2, onSelect: () => shareStore.getState().open(noteId) }]),
+    ...(note.locked
+      ? []
+      : [
+          {
+            label: 'Copy text',
+            icon: Copy,
+            onSelect: () =>
+              void navigator.clipboard
+                ?.writeText(note.content)
+                .then(() => toast('Copied note text'))
+                .catch(() =>
+                  toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' }),
+                ),
+          },
+        ]),
+    ...(note.locked
+      ? []
+      : [{ label: 'Download', icon: Download, onSelect: () => exportNote(noteId) }]),
     { label: 'Close', icon: X, onSelect: () => requestCloseTab(noteId) },
     {
       label: 'Close others',
