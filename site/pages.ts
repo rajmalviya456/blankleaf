@@ -73,7 +73,7 @@ export const PAGES: Page[] = [
       },
       {
         heading: 'On your phone',
-        text: 'Blankleaf has a layout made for phones, with the same notes, formats and tools as on a laptop, and a toolbar that sits right above the keyboard.',
+        text: 'Blankleaf has a layout made for phones, with the same notes, formats and tools as on a laptop, and a toolbar that sits right above the keyboard. Install it on Android and it appears in the Share menu, so text from any app can become a note.',
       },
     ],
   },

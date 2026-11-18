@@ -58,6 +58,21 @@ export default defineConfig(({ command }) => ({
           'A free online notepad with tabs, Markdown and code highlighting that keeps everything in your browser.',
         categories: ['productivity', 'utilities'],
         lang: 'en',
+        // Installed, Blankleaf appears in the phone's Share menu and can open text files.
+        share_target: {
+          action: './',
+          method: 'GET',
+          params: { title: 'title', text: 'text', url: 'url' },
+        },
+        file_handlers: [
+          {
+            action: './',
+            accept: {
+              'text/plain': ['.txt', '.text', '.log'],
+              'text/markdown': ['.md', '.markdown'],
+            },
+          },
+        ],
         start_url: '.',
         scope: '.',
         display: 'standalone',
