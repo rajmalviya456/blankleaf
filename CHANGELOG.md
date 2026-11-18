@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/rajmalviya456/blankleaf/compare/v1.5.1...v1.6.0) (2026-11-18)
+
+
+### Features
+
+* **app:** open on a blank page every visit ([#34](https://github.com/rajmalviya456/blankleaf/issues/34)) ([30e6810](https://github.com/rajmalviya456/blankleaf/commit/30e68103afb68d952ab85dd83a2e89cea85d03d1))
+
 ## [1.5.1](https://github.com/rajmalviya456/blankleaf/compare/v1.5.0...v1.5.1) (2026-11-18)
 
 
