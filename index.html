@@ -73,14 +73,76 @@
     </script>
 
     <script>
-      // Set theme before first paint to avoid a light flash in dark mode.
-      document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
+      // Set the theme before first paint, so dark mode never flashes white.
+      ;(function () {
+        var saved = null
+        try {
+          saved = localStorage.getItem('blankleaf:theme')
+        } catch (e) {}
+        var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+      })()
     </script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #np-shell {
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        color: #5f6672;
+        font:
+          13px/1 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      [data-theme='dark'] #np-shell {
+        background: #111318;
+        color: #9096a2;
+      }
+      #np-shell header {
+        display: flex;
+        align-items: center;
+        height: 36px;
+        padding: 0 14px;
+        background: #eef0f3;
+      }
+      [data-theme='dark'] #np-shell header {
+        background: #0b0d10;
+      }
+      #np-shell p {
+        margin: 0;
+        padding: 16px 18px;
+        font:
+          14px/1.6 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+    </style>
+    <noscript
+      ><style>
+        #np-shell {
+          display: none;
+        }
+      </style></noscript
+    >
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Painted straight away, and replaced by the app as soon as its code has loaded. -->
+      <div id="np-shell" aria-hidden="true">
+        <header>Untitled</header>
+        <p>1</p>
+      </div>
+    </div>
     <noscript>
       <main style="max-width: 40rem; margin: 3rem auto; padding: 0 1rem; font-family: sans-serif">
         <h1>Blankleaf — Online Notepad</h1>
