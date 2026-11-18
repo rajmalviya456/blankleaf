@@ -3,6 +3,8 @@ import type { Settings } from '../domain/types'
 export type ThemePref = 'system' | 'light' | 'dark'
 export type Theme = 'light' | 'dark'
 
+const THEME_KEY = 'blankleaf:theme'
+
 export function resolveTheme(pref: ThemePref, systemDark: boolean): Theme {
   if (pref === 'system') return systemDark ? 'dark' : 'light'
   return pref
@@ -11,6 +13,12 @@ export function resolveTheme(pref: ThemePref, systemDark: boolean): Theme {
 export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme
   document.documentElement.style.colorScheme = theme
+  // index.html reads this before anything loads, so the first paint has the right colours.
+  try {
+    localStorage.setItem(THEME_KEY, theme)
+  } catch {
+    // Private browsing: the system theme is used for the first paint instead.
+  }
 }
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'

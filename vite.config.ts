@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
@@ -25,12 +26,22 @@ function sitePages(): Plugin {
 
 const pageSlugs = PAGES.map((p) => p.slug).join('|')
 
+const CODEMIRROR_SETUP_STUB = fileURLToPath(
+  new URL('./src/lib/stubs/codemirrorSetup.ts', import.meta.url),
+)
+
 const DIAGRAM_MODULES =
   /node_modules\/(@mermaid-js|mermaid|cytoscape[^/]*|d3[^/]*|dagre-d3-es|khroma|langium|chevrotain[^/]*|roughjs|@iconify|stylis|vscode-[^/]*)\//
 
 // GitHub Pages serves the app from /blankleaf/; dev server stays at /.
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/blankleaf/' : '/',
+  resolve: {
+    alias: {
+      '@uiw/codemirror-extensions-basic-setup': CODEMIRROR_SETUP_STUB,
+      '@codemirror/theme-one-dark': CODEMIRROR_SETUP_STUB,
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
