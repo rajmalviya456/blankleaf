@@ -11,8 +11,8 @@ const note = (patch: Partial<Note>): Note => ({
 const parse = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 
 describe('export as a web page', () => {
-  it('is a complete, self-contained page titled after the note', () => {
-    const html = noteToHtml(note({ content: 'hello' }))
+  it('is a complete, self-contained page titled after the note', async () => {
+    const html = await noteToHtml(note({ content: 'hello' }))
     expect(html).toMatch(/^<!doctype html>/i)
     const doc = parse(html)
     expect(doc.title).toBe('Plan')
@@ -22,9 +22,9 @@ describe('export as a web page', () => {
     expect(doc.querySelectorAll('script, link[rel="stylesheet"]')).toHaveLength(0)
   })
 
-  it('formats Markdown', () => {
+  it('formats Markdown', async () => {
     const doc = parse(
-      noteToHtml(
+      await noteToHtml(
         note({
           mode: 'markdown',
           content:
@@ -39,15 +39,15 @@ describe('export as a web page', () => {
     expect(doc.querySelector('.hljs-keyword')?.textContent).toBe('const')
   })
 
-  it('keeps plain text exactly as written', () => {
-    const doc = parse(noteToHtml(note({ content: 'a\n   b <c> & d' })))
+  it('keeps plain text exactly as written', async () => {
+    const doc = parse(await noteToHtml(note({ content: 'a\n   b <c> & d' })))
     expect(doc.querySelector('h1')?.textContent).toBe('Plan')
     expect(doc.querySelector('pre')?.textContent).toBe('a\n   b <c> & d')
   })
 
-  it('can’t be used to smuggle in scripts', () => {
+  it('can’t be used to smuggle in scripts', async () => {
     const doc = parse(
-      noteToHtml(
+      await noteToHtml(
         note({
           title: '</title><script>alert(1)</script>',
           mode: 'markdown',

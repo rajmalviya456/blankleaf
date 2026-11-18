@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react'
 
 export const PHONE_QUERY = '(max-width: 639px)'
 export const TOUCH_QUERY = '(pointer: coarse)'
+export const WIDE_QUERY = '(min-width: 900px)'
 
 function useMedia(query: string): boolean {
   return useSyncExternalStore(
@@ -21,3 +22,6 @@ function useMedia(query: string): boolean {
 export const useIsPhone = (): boolean => useMedia(PHONE_QUERY)
 /** Touch screen (any layout): no hover, long-press instead of right-click. */
 export const useIsTouch = (): boolean => useMedia(TOUCH_QUERY)
+
+/** Room for two notes side by side. */
+export const useIsWide = () => useMedia(WIDE_QUERY)

@@ -263,6 +263,31 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    id: 'view.split.open',
+    title: 'Open another note side by side',
+    section: 'View',
+    keywords: ['split', 'two', 'compare', 'beside'],
+    shortcuts: [],
+    only: 'laptop',
+    when: (s) => s.session.openTabIds.length > 1,
+    run: (ctx) => {
+      const { openTabIds, activeTabId } = st(ctx).session
+      const i = openTabIds.indexOf(activeTabId ?? '')
+      const other = openTabIds[i - 1] ?? openTabIds[i + 1]
+      if (other) st(ctx).setSplitNote(other)
+    },
+  },
+  {
+    id: 'view.split.close',
+    title: 'Close side-by-side note',
+    section: 'View',
+    keywords: ['split', 'two', 'beside'],
+    shortcuts: [],
+    only: 'laptop',
+    when: (s) => !!s.session.splitNoteId,
+    run: (ctx) => st(ctx).setSplitNote(null),
+  },
+  {
     id: 'view.spellcheck',
     title: 'Toggle spell check',
     section: 'View',

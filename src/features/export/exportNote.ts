@@ -14,7 +14,7 @@ export async function exportNoteAs(id: string, format: ExportFormat): Promise<vo
   try {
     const blob =
       format === 'html'
-        ? new Blob([(await import('./noteHtml')).noteToHtml(note)], {
+        ? new Blob([await (await import('./noteHtml')).noteToHtml(note)], {
             type: 'text/html;charset=utf-8',
           })
         : await (await import('./noteDocx')).noteToDocx(note)

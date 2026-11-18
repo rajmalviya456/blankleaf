@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { documentTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
 import { MarkdownPreview } from '../editor/MarkdownPreview'
+import { prepareRichContent } from '../editor/richContent'
 
 const CSS = `:root{color-scheme:light dark;--fg:#1b1e25;--muted:#555c6b;--line:#dfe3e8;--soft:#f4f6f8;--link:#1f5fbf;--kw:#7c2fd0;--str:#116b3a;--num:#a34a00}
 @media (prefers-color-scheme:dark){:root{--fg:#e6e8ee;--muted:#aab1bf;--line:#2c313c;--soft:#1a1d24;--link:#8db4ff;--kw:#c79bff;--str:#7fd8a4;--num:#f0a868}}
@@ -12,16 +13,18 @@ pre{background:var(--soft);border-radius:8px;padding:12px 14px;overflow-x:auto;f
 .note-text{white-space:pre-wrap}code{font-family:ui-monospace,Consolas,monospace;font-size:.92em}
 blockquote{margin:0;padding-left:14px;border-left:3px solid var(--line);color:var(--muted)}
 table{border-collapse:collapse;display:block;overflow-x:auto}th,td{border:1px solid var(--line);padding:6px 10px}th{background:var(--soft)}
-.contains-task-list{list-style:none;padding-left:4px}.hljs-keyword,.hljs-built_in{color:var(--kw)}.hljs-string{color:var(--str)}.hljs-number,.hljs-literal{color:var(--num)}.hljs-comment{color:var(--muted)}`
+.md-diagram{margin:16px 0;text-align:center}.md-diagram svg{max-width:100%;height:auto}math[display=block]{margin:12px 0;overflow-x:auto}.contains-task-list{list-style:none;padding-left:4px}.hljs-keyword,.hljs-built_in{color:var(--kw)}.hljs-string{color:var(--str)}.hljs-number,.hljs-literal{color:var(--num)}.hljs-comment{color:var(--muted)}`
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-export function noteToHtml(note: Note): string {
+export async function noteToHtml(note: Note): Promise<string> {
   const title = esc(documentTitle(note))
   const body =
     note.mode === 'markdown'
-      ? renderToStaticMarkup(<MarkdownPreview source={note.content} />)
+      ? renderToStaticMarkup(
+          <MarkdownPreview source={note.content} extras={await prepareRichContent(note.content)} />,
+        )
       : `<h1>${title}</h1><pre class="note-text">${esc(note.content)}</pre>`
   return `<!doctype html>
 <html lang="en">

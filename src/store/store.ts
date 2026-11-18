@@ -61,6 +61,7 @@ export interface AppActions {
   toggleWrap(id: string): void
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
+  setSplitNote(id: string | null): void
   trashNote(id: string): void
   restoreNote(id: string): void
   purgeNote(id: string): void
@@ -200,7 +201,10 @@ export function createAppStore(
 
       setActive(id) {
         const session = get().session
-        if (session.openTabIds.includes(id)) set({ session: { ...session, activeTabId: id } })
+        if (!session.openTabIds.includes(id)) return
+        // Choosing the note shown beside the active one swaps the two.
+        const splitNoteId = session.splitNoteId === id ? session.activeTabId : session.splitNoteId
+        set({ session: { ...session, activeTabId: id, splitNoteId } })
       },
 
       closeTab: closeOne,
@@ -315,6 +319,9 @@ export function createAppStore(
         if (!note) return
         patchNote(id, { wrap: !note.wrap })
         get().setViewState(id, { wrapTouched: true })
+      },
+      setSplitNote(id) {
+        set({ session: { ...get().session, splitNoteId: id } })
       },
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })

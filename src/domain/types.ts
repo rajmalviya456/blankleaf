@@ -71,6 +71,8 @@ export interface Session {
   perTab: Record<string, TabViewState>
   sidebar: { open: boolean; panel: SidePanel }
   zen: boolean
+  /** Note shown beside the active one on wide screens. */
+  splitNoteId?: string | null
 }
 
 export interface Settings {

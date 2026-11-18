@@ -48,6 +48,13 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           >
             Tags…
           </ContextMenu.Item>
+          <ContextMenu.Item
+            className={itemClass}
+            disabled={s().session.activeTabId === note.id}
+            onSelect={() => s().setSplitNote(note.id)}
+          >
+            Open beside
+          </ContextMenu.Item>
           <ContextMenu.Separator className="my-1 h-px bg-border" />
           <ContextMenu.Item className={itemClass} onSelect={() => onClose(note.id)}>
             Close

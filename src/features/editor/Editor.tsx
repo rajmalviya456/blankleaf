@@ -41,9 +41,10 @@ function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
 
 /**
  * CodeMirror bound to one note. Mount with `key={noteId}` so each tab gets a fresh
- * view whose selection and scroll are restored from the session.
+ * view whose selection and scroll are restored from the session. A `side` editor (the note
+ * shown beside the active one) leaves the toolbar and keyboard focus with the main editor.
  */
-export function Editor({ noteId }: { noteId: string }) {
+export function Editor({ noteId, side = false }: { noteId: string; side?: boolean }) {
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
   const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
@@ -72,7 +73,7 @@ export function Editor({ noteId }: { noteId: string }) {
 
   useEffect(() => {
     const view = viewRef.current
-    if (!view || !reveal) return
+    if (!view || !reveal || side) return
     const len = view.state.doc.length
     const clamp = (n: number) => Math.max(0, Math.min(n, len))
     view.dispatch({
@@ -80,14 +81,14 @@ export function Editor({ noteId }: { noteId: string }) {
       scrollIntoView: true,
     })
     view.focus()
-  }, [reveal])
+  }, [reveal, side])
 
   const s = () => getStore().getState()
 
   const onCreateEditor = useCallback(
     (view: EditorView) => {
       viewRef.current = view
-      setActiveView(view)
+      if (!side) setActiveView(view)
       const saved = s().session.perTab[noteId]
       if (saved) {
         const len = view.state.doc.length
@@ -112,9 +113,9 @@ export function Editor({ noteId }: { noteId: string }) {
         cancelAnimationFrame(raf)
         view.scrollDOM.removeEventListener('scroll', onScroll)
       }
-      view.focus()
+      if (!side) view.focus()
     },
-    [noteId],
+    [noteId, side],
   )
 
   useEffect(
