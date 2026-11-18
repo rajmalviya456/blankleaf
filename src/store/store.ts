@@ -10,7 +10,15 @@ import { createStore, useStore, type StoreApi } from 'zustand'
 import { CLOSED_STACK_MAX, DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
 import { languageMeta } from '../domain/languages'
 import { displayTitle } from '../domain/title'
-import type { LanguageId, Note, NoteMode, Session, Settings, TabViewState } from '../domain/types'
+import type {
+  LanguageId,
+  LockedContent,
+  Note,
+  NoteMode,
+  Session,
+  Settings,
+  TabViewState,
+} from '../domain/types'
 
 export type SaveStatus = 'saved' | 'saving' | 'error'
 
@@ -62,6 +70,9 @@ export interface AppActions {
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
   setSplitNote(id: string | null): void
+  applyLock(id: string, locked: LockedContent, title: string): void
+  updateLocked(id: string, locked: LockedContent): void
+  removeLock(id: string, content: string): void
   trashNote(id: string): void
   restoreNote(id: string): void
   purgeNote(id: string): void
@@ -116,7 +127,7 @@ function normalizeTabs(ids: string[], notes: Record<string, Note>): string[] {
 }
 
 function isBlank(note: Note): boolean {
-  return note.title === null && note.content.trim() === ''
+  return note.title === null && note.content.trim() === '' && !note.locked
 }
 
 /** Insert `id` right after the active tab (or at the end), then normalize. */
@@ -283,7 +294,7 @@ export function createAppStore(
 
       duplicateNote(id) {
         const src = get().notes[id]
-        if (!src) return id
+        if (!src || src.locked) return id
         get().setActive(id)
         return get().newNote({
           content: src.content,
@@ -319,6 +330,15 @@ export function createAppStore(
         if (!note) return
         patchNote(id, { wrap: !note.wrap })
         get().setViewState(id, { wrapTouched: true })
+      },
+      applyLock(id, locked, title) {
+        patchNote(id, { content: '', locked, title })
+      },
+      updateLocked(id, locked) {
+        if (get().notes[id]?.locked) patchNote(id, { locked })
+      },
+      removeLock(id, content) {
+        if (get().notes[id]?.locked) patchNote(id, { content, locked: undefined })
       },
       setSplitNote(id) {
         set({ session: { ...get().session, splitNoteId: id } })

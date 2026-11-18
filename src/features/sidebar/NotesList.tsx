@@ -1,4 +1,4 @@
-import { Pin, Plus, Trash2 } from 'lucide-react'
+import { LockKeyhole, Pin, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { noteHasTag, sameTag, tagCounts } from '../../domain/tags'
 import { useShallow } from 'zustand/react/shallow'
@@ -135,6 +135,9 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
               >
                 <span className="flex items-center gap-1.5">
                   {n.pinned && <Pin size={10} className="shrink-0 text-warn" aria-label="Pinned" />}
+                  {n.locked && (
+                    <LockKeyhole size={10} className="shrink-0 text-fg-muted" aria-label="Locked" />
+                  )}
                   <span className="min-w-0 flex-1 truncate text-fg">{displayTitle(n)}</span>
                   {openIds.includes(n.id) && (
                     <span

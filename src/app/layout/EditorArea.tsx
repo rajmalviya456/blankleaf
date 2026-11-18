@@ -8,6 +8,9 @@ import { Toolbar } from '../../features/toolbar/Toolbar'
 import { getStore, useAppStore } from '../../store/store'
 
 // Markdown rendering is only needed for markdown notes in split/preview, so load it on demand.
+const LockedNote = lazy(() =>
+  import('../../features/lock/LockedNote').then((m) => ({ default: m.LockedNote })),
+)
 const MarkdownPreview = lazy(() =>
   import('../../features/editor/MarkdownPreview').then((m) => ({ default: m.MarkdownPreview })),
 )
@@ -32,7 +35,17 @@ function Preview({ source, noteId }: { source: string; noteId: string }) {
   )
 }
 
-function NoteView({ noteId, viewOverride }: { noteId: string; viewOverride?: 'edit' | 'preview' }) {
+function NoteView(props: { noteId: string; viewOverride?: 'edit' | 'preview' }) {
+  const locked = useAppStore((s) => !!s.notes[props.noteId]?.locked)
+  if (!locked) return <OpenNote {...props} />
+  return (
+    <Suspense fallback={null}>
+      <LockedNote noteId={props.noteId} />
+    </Suspense>
+  )
+}
+
+function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'edit' | 'preview' }) {
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
   const saved = useAppStore((s) =>
     markdown ? (s.session.perTab[noteId]?.previewMode ?? 'edit') : 'edit',
@@ -88,7 +101,13 @@ function SideNote({ activeId }: { activeId: string }) {
           <X size={14} />
         </button>
       </div>
-      <Editor key={note.id} noteId={note.id} side />
+      {note.locked ? (
+        <p className="grid flex-1 place-items-center p-4 text-center text-[12.5px] text-fg-muted">
+          This note is locked. Open its tab to unlock it.
+        </p>
+      ) : (
+        <Editor key={note.id} noteId={note.id} side />
+      )}
     </section>
   )
 }
@@ -105,7 +124,8 @@ export function EditorArea({
   showToolbar?: boolean
 } = {}) {
   const activeId = useAppStore((s) => s.session.activeTabId)
-  const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen)
+  const locked = useAppStore((s) => !!(activeId && s.notes[activeId]?.locked))
+  const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen) && !locked
   return (
     <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
       {activeId && toolbar && showToolbar && <Toolbar noteId={activeId} />}

@@ -41,6 +41,8 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
 - **Diagrams and math in Markdown.** Draw Mermaid diagrams in a ` ```mermaid ` block and write math as
   `$$x^2$$`.
 - **Two notes side by side** on wide screens.
+- **Password-locked notes.** Encrypt a note in your browser with AES-256. A forgotten password can't be
+  recovered.
 - **Tags.** Label notes, filter the list by tag, and find tags in search.
 - **Sort your notes** by last edited, date created or name.
 - **Toolbar that fits the note.** Markdown notes get headings, bold, italic, lists, quotes,

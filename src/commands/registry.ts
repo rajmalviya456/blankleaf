@@ -9,6 +9,7 @@ import { exportNoteAs } from '../features/export/exportNote'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
 import { tagsStore } from '../features/tags/tagsStore'
+import { lockStore } from '../features/lock/lockStore'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
@@ -43,6 +44,11 @@ export interface Command {
 }
 
 const hasActive = (s: AppState) => s.session.activeTabId !== null
+/** An open note whose text is available (a locked note's isn't). */
+const hasOpenText = (s: AppState) => {
+  const id = s.session.activeTabId
+  return id !== null && !s.notes[id]?.locked
+}
 const st = (ctx: CommandContext) => ctx.store.getState()
 const activeId = (ctx: CommandContext) => st(ctx).session.activeTabId
 
@@ -149,7 +155,7 @@ export const COMMANDS: Command[] = [
     section: 'Note',
     keywords: ['copy'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) st(ctx).duplicateNote(id)
@@ -173,10 +179,23 @@ export const COMMANDS: Command[] = [
     section: 'Note',
     keywords: ['link', 'send', 'password', 'expire'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) shareStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+  {
+    id: 'note.lock',
+    title: 'Lock with password…',
+    section: 'Note',
+    keywords: ['encrypt', 'private', 'secure', 'secret'],
+    shortcuts: [],
+    when: hasOpenText,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) lockStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
   },
@@ -199,7 +218,7 @@ export const COMMANDS: Command[] = [
     section: 'Note',
     keywords: ['pdf', 'paper', 'export'],
     shortcuts: [{ code: 'KeyP', mod: true }],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) printStore.getState().open(id)
@@ -212,7 +231,7 @@ export const COMMANDS: Command[] = [
     section: 'Note',
     keywords: ['versions', 'restore', 'undo', 'earlier', 'backup', 'snapshot'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) historyStore.getState().open(id)
@@ -377,7 +396,7 @@ export const COMMANDS: Command[] = [
     section: 'Data',
     keywords: ['download', 'save as'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) exportNote(id)
@@ -389,7 +408,7 @@ export const COMMANDS: Command[] = [
     section: 'Data',
     keywords: ['download', 'html', 'save'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) void exportNoteAs(id, 'html')
@@ -401,7 +420,7 @@ export const COMMANDS: Command[] = [
     section: 'Data',
     keywords: ['download', 'word', 'docx', 'document', 'save'],
     shortcuts: [],
-    when: hasActive,
+    when: hasOpenText,
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) void exportNoteAs(id, 'docx')

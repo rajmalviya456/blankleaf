@@ -10,6 +10,7 @@ import {
   Globe,
   Download,
   History,
+  LockKeyhole,
   Maximize2,
   Minus,
   Pencil,
@@ -36,6 +37,7 @@ import { formatLabel } from '../editor/format'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
+import { lockStore } from '../lock/lockStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -195,55 +197,64 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
               </Group>
               <Group>
                 <Action
-                  icon={Share2}
-                  label="Share…"
-                  onSelect={() => shareStore.getState().open(noteId)}
-                />
-                <Action
-                  icon={Copy}
-                  label="Copy all text"
-                  onSelect={() =>
-                    void navigator.clipboard
-                      ?.writeText(note.content)
-                      .then(() => toast('Copied note text'))
-                      .catch(() =>
-                        toast('Couldn’t copy — your browser blocked clipboard access.', {
-                          tone: 'warn',
-                        }),
-                      )
-                  }
-                />
-                <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
-                <Action
-                  icon={Globe}
-                  label="Export as web page"
-                  onSelect={() => void exportNoteAs(noteId, 'html')}
-                />
-                <Action
-                  icon={FileText}
-                  label="Export as Word"
-                  onSelect={() => void exportNoteAs(noteId, 'docx')}
-                />
-                <Action
-                  icon={Printer}
-                  label="Print / save as PDF"
-                  onSelect={() => printStore.getState().open(noteId)}
-                />
-                <Action
                   icon={Tag}
                   label="Tags…"
                   onSelect={() => tagsStore.getState().open(noteId)}
                 />
-                <Action
-                  icon={History}
-                  label="Version history…"
-                  onSelect={() => historyStore.getState().open(noteId)}
-                />
-                <Action
-                  icon={CopyPlus}
-                  label="Duplicate"
-                  onSelect={() => s().duplicateNote(noteId)}
-                />
+                {!note.locked && (
+                  <>
+                    <Action
+                      icon={Share2}
+                      label="Share…"
+                      onSelect={() => shareStore.getState().open(noteId)}
+                    />
+                    <Action
+                      icon={Copy}
+                      label="Copy all text"
+                      onSelect={() =>
+                        void navigator.clipboard
+                          ?.writeText(note.content)
+                          .then(() => toast('Copied note text'))
+                          .catch(() =>
+                            toast('Couldn’t copy — your browser blocked clipboard access.', {
+                              tone: 'warn',
+                            }),
+                          )
+                      }
+                    />
+                    <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
+                    <Action
+                      icon={Globe}
+                      label="Export as web page"
+                      onSelect={() => void exportNoteAs(noteId, 'html')}
+                    />
+                    <Action
+                      icon={FileText}
+                      label="Export as Word"
+                      onSelect={() => void exportNoteAs(noteId, 'docx')}
+                    />
+                    <Action
+                      icon={Printer}
+                      label="Print / save as PDF"
+                      onSelect={() => printStore.getState().open(noteId)}
+                    />
+                    <Action
+                      icon={History}
+                      label="Version history…"
+                      onSelect={() => historyStore.getState().open(noteId)}
+                    />
+                    <Action
+                      icon={CopyPlus}
+                      label="Duplicate"
+                      onSelect={() => s().duplicateNote(noteId)}
+                    />
+                    <Action
+                      icon={LockKeyhole}
+                      label="Lock with password…"
+                      onSelect={() => lockStore.getState().open(noteId)}
+                    />
+                  </>
+                )}
                 <Action
                   icon={note.pinned ? PinOff : Pin}
                   label={note.pinned ? 'Unpin' : 'Pin'}

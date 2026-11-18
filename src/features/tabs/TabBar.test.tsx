@@ -101,6 +101,7 @@ describe('TabBar', () => {
       'Print / save as PDF…',
       'Share…',
       'Version history…',
+      'Lock with password…',
     ])
   })
 

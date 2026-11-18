@@ -45,6 +45,7 @@ export function resolveConflict(
     wrap: local.wrap,
     spellcheck: local.spellcheck,
     tags: local.tags,
+    locked: local.locked,
     pinned: false,
   })
   toast('Edited in another window — your version was saved as a copy.', { tone: 'warn' })
