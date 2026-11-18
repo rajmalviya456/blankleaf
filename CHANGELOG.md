@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/rajmalviya456/blankleaf/compare/v1.2.0...v1.3.0) (2026-11-18)
+
+
+### Features
+
+* rename Notepadz to Blankleaf, with full SEO ([#17](https://github.com/rajmalviya456/blankleaf/issues/17)) ([ced6ea0](https://github.com/rajmalviya456/blankleaf/commit/ced6ea057b9997a9607755d9ac32af4a1004ae72))
+
+
+### Bug Fixes
+
+* **share:** keep shared notes out of search results; verify Search Console ([#18](https://github.com/rajmalviya456/blankleaf/issues/18)) ([3bd918b](https://github.com/rajmalviya456/blankleaf/commit/3bd918b7007fe27f2ffa2f06f90bdeec1e9983be))
+
 ## [1.2.0](https://github.com/rajmalviya456/blankleaf/compare/v1.1.0...v1.2.0) (2026-11-18)
 
 
