@@ -80,6 +80,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
       ? r.language
       : 'auto') as LanguageId,
     wrap: typeof r.wrap === 'boolean' ? r.wrap : true,
+    ...(r.spellcheck === true ? { spellcheck: true } : {}),
     pinned: r.pinned === true,
     createdAt,
     updatedAt: num(r.updatedAt, createdAt),

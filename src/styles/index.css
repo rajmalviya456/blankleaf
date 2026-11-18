@@ -565,3 +565,87 @@ input[type='search']::-webkit-search-decoration {
     min-height: 40px;
   }
 }
+
+/* Print / save as PDF: only the note, always on white. */
+#print-root {
+  display: none;
+}
+@media print {
+  :root[data-theme='dark'] {
+    --bg: #ffffff;
+    --bg-elev: #f6f7f9;
+    --bg-sunken: #eef0f3;
+    --bg-hover: #e9ecf1;
+    --fg: #23272f;
+    --fg-muted: #4a515c;
+    --fg-faint: #5f6672;
+    --border: #e2e5ea;
+    --accent: #3d5ce6;
+    --accent-soft: #3d5ce61f;
+    --accent-fg: #ffffff;
+    --danger: #d43c4b;
+    --warn: #b7791f;
+    --ok: #2f9e5b;
+    --selection: #3d5ce633;
+    --syn-keyword: #8a3ffc;
+    --syn-string: #24855a;
+    --syn-number: #b4580a;
+    --syn-comment: #8a909a;
+    --syn-function: #2f5bd8;
+    --syn-type: #0f7f95;
+    --syn-property: #a1356f;
+    --syn-meta: #6b7280;
+    --syn-punct: #6a7180;
+    --find-match: #ffd23f73;
+    --find-current: #ff9a1fb3;
+    --find-current-ring: #e07b00;
+  }
+  html:has(#print-root),
+  body:has(#print-root) {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+  body:has(#print-root) > *:not(#print-root) {
+    display: none !important;
+  }
+  #print-root {
+    display: block;
+    color-scheme: light;
+    color: #000;
+    font-family: var(--font-ui);
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  #print-root .print-title {
+    margin: 0 0 12pt;
+    font-size: 16pt;
+    font-weight: 600;
+  }
+  #print-root .print-text {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 10pt;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #print-root .md-preview {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  #print-root .md-preview :is(pre, table, blockquote, img) {
+    break-inside: avoid;
+  }
+  #print-root .md-preview pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #print-root .md-preview :is(h1, h2, h3, h4) {
+    break-after: avoid;
+  }
+  @page {
+    margin: 18mm;
+  }
+}

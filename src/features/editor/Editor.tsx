@@ -46,6 +46,7 @@ function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
 export function Editor({ noteId }: { noteId: string }) {
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
+  const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const settings = useAppStore((s) => s.settings)
   const large = isLargeDoc(content.length)
@@ -53,6 +54,7 @@ export function Editor({ noteId }: { noteId: string }) {
   const fontSize = effectiveEditorFontSize(settings, phone)
   const base = useEditorExtensions({
     wrap,
+    spellcheck,
     settings: { ...settings, editorFontSize: fontSize },
     large,
   })

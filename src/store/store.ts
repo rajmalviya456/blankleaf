@@ -57,6 +57,7 @@ export interface AppActions {
   setNoteMode(id: string, mode: NoteMode): void
   setLanguage(id: string, lang: LanguageId): void
   toggleWrap(id: string): void
+  toggleSpellcheck(id: string): void
   trashNote(id: string): void
   restoreNote(id: string): void
   purgeNote(id: string): void
@@ -281,6 +282,7 @@ export function createAppStore(
           mode: src.mode,
           language: src.language,
           wrap: src.wrap,
+          spellcheck: src.spellcheck,
           title: `${displayTitle(src)} (copy)`,
         })
       },
@@ -308,6 +310,10 @@ export function createAppStore(
         if (!note) return
         patchNote(id, { wrap: !note.wrap })
         get().setViewState(id, { wrapTouched: true })
+      },
+      toggleSpellcheck(id) {
+        const note = get().notes[id]
+        if (note) patchNote(id, { spellcheck: !note.spellcheck })
       },
 
       trashNote(id) {

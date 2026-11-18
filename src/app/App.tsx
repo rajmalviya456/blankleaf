@@ -5,6 +5,7 @@ import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
 import { shareStore } from '../features/share/shareStore'
 import { historyStore } from '../features/history/historyStore'
+import { printStore } from '../features/print/printStore'
 import { useGlobalShortcuts } from '../commands/useGlobalShortcuts'
 import { DropZone } from '../features/backup/DropZone'
 import { useBackupReminder } from '../features/backup/useBackupReminder'
@@ -49,6 +50,9 @@ const AboutDialog = lazy(() =>
 const HistoryDialog = lazy(() =>
   import('../features/history/HistoryDialog').then((m) => ({ default: m.HistoryDialog })),
 )
+const PrintView = lazy(() =>
+  import('../features/print/PrintView').then((m) => ({ default: m.PrintView })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -63,7 +67,9 @@ function Dialogs() {
   const importing = useStore(importStore, (s) => s.open)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
   const history = useStore(historyStore, (s) => s.noteId !== null)
+  const printing = useStore(printStore, (s) => s.noteId !== null)
   const [seen, setSeen] = useState({
+    printing,
     history,
     palette,
     settings,
@@ -81,9 +87,11 @@ function Dialogs() {
     (whatsNew && !seen.whatsNew) ||
     (importing && !seen.importing) ||
     (sharing && !seen.sharing) ||
-    (history && !seen.history)
+    (history && !seen.history) ||
+    (printing && !seen.printing)
   ) {
     setSeen({
+      printing: seen.printing || printing,
       history: seen.history || history,
       palette: seen.palette || palette,
       settings: seen.settings || settings,
@@ -104,6 +112,7 @@ function Dialogs() {
       {seen.importing && <ImportDialog />}
       {seen.sharing && <ShareDialog />}
       {seen.history && <HistoryDialog />}
+      {seen.printing && <PrintView />}
     </Suspense>
   )
 }

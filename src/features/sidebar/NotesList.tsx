@@ -11,6 +11,7 @@ import { rowClass } from './rowClass'
 import { toast } from '../../ui/toast'
 import { useIsTouch } from '../../lib/media'
 import { NoteRowMenu } from './NoteRowMenu'
+import { SortMenu } from './SortMenu'
 
 /** Move a note to Trash from the list (it stays closed) and offer an Undo. */
 function trashFromList(id: string) {
@@ -50,15 +51,18 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
         title="Notes"
         count={notes.length}
         action={
-          <button
-            type="button"
-            aria-label="New note"
-            title="New note"
-            onClick={() => s().newNote()}
-            className="grid size-6 place-items-center rounded text-fg-muted hover:bg-bg-hover hover:text-fg"
-          >
-            <Plus size={14} />
-          </button>
+          <>
+            <SortMenu />
+            <button
+              type="button"
+              aria-label="New note"
+              title="New note"
+              onClick={() => s().newNote()}
+              className="grid size-6 place-items-center rounded text-fg-muted hover:bg-bg-hover hover:text-fg max-sm:size-11"
+            >
+              <Plus size={14} />
+            </button>
+          </>
         }
       />
       <ul aria-label="Notes" className="flex-1 overflow-y-auto px-1.5 pb-2">

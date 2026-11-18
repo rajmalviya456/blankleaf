@@ -17,7 +17,8 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import * as Dialog from '@radix-ui/react-dialog'
-import { GripVertical, MoreHorizontal, Pin, Plus, RotateCcw, X } from 'lucide-react'
+import { GripVertical, LayoutTemplate, MoreHorizontal, Pin, Plus, RotateCcw, X } from 'lucide-react'
+import { TemplateMenu } from '../templates/TemplateMenu'
 import { useEffect, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
@@ -183,6 +184,12 @@ export function TabsSheet({ open, onClose }: { open: boolean; onClose(): void })
             >
               <Plus size={17} /> New note
             </button>
+            <TemplateMenu
+              className="grid size-12 shrink-0 place-items-center rounded-xl text-accent active:bg-bg-hover"
+              onPicked={() => phoneStore.getState().closeAll()}
+            >
+              <LayoutTemplate size={18} />
+            </TemplateMenu>
             <button
               type="button"
               disabled={!canReopen}
