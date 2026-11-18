@@ -16,12 +16,16 @@ export function useDragToClose(onClose: () => void) {
     if (!d) return
     d.dy = Math.max(0, e.clientY - d.y)
     const sheet = sheetOf(e)
-    if (sheet) sheet.style.transform = `translateY(${d.dy}px)`
+    if (!sheet) return
+    sheet.style.transition = 'none' // follow the finger 1:1; the CSS transition is for springing back
+    sheet.style.transform = `translateY(${d.dy}px)`
   }
   const reset = (e: ReactPointerEvent) => {
     drag.current = null
     const sheet = sheetOf(e)
-    if (sheet) sheet.style.transform = ''
+    if (!sheet) return
+    sheet.style.transition = ''
+    sheet.style.transform = ''
   }
 
   return {

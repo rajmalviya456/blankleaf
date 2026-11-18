@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { stubMedia } from '../../../tests/media'
 import { App } from '../../app/App'
-import { COMMANDS, commandEnabled } from '../../commands/registry'
+import { COMMANDS, commandEnabled, commandTitle } from '../../commands/registry'
 import { createAppStore, initStore } from '../../store/store'
 import { Toaster } from '../../ui/Toaster'
 import { toast } from '../../ui/toast'
@@ -42,6 +42,13 @@ describe('command palette on phones', () => {
     media.set({ phone: false })
     cmd('view.preview.cycle').run({ store })
     expect(store.getState().session.perTab[id].previewMode).toBe('split')
+  })
+
+  it('names the preview command for what it does on each layout', () => {
+    media = stubMedia({ phone: true })
+    expect(commandTitle(cmd('view.preview.cycle'))).toBe('Markdown: edit / preview')
+    media.set({ phone: false })
+    expect(commandTitle(cmd('view.preview.cycle'))).toBe('Markdown: edit / split / preview')
   })
 })
 

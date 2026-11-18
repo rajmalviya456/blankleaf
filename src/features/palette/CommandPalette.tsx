@@ -3,7 +3,12 @@ import { Command } from 'cmdk'
 import { ChevronLeft, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { COMMANDS, commandEnabled, type CommandSection } from '../../commands/registry'
+import {
+  COMMANDS,
+  commandEnabled,
+  commandTitle,
+  type CommandSection,
+} from '../../commands/registry'
 import { detectLanguage } from '../../domain/detectLanguage'
 import { LANGUAGES } from '../../domain/languages'
 import { displayTitle } from '../../domain/title'
@@ -137,7 +142,7 @@ export function CommandPalette() {
                         {items.map((c) => (
                           <Command.Item
                             key={c.id}
-                            value={`${c.title} ${c.id}`}
+                            value={`${commandTitle(c)} ${c.id}`}
                             keywords={c.keywords}
                             onSelect={() =>
                               c.id === 'note.format'
@@ -146,7 +151,7 @@ export function CommandPalette() {
                             }
                             className={itemClass}
                           >
-                            {c.title}
+                            {commandTitle(c)}
                             {c.shortcuts[0] && <Kbd>{formatShortcut(c.shortcuts[0], p)}</Kbd>}
                           </Command.Item>
                         ))}

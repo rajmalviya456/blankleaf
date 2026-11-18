@@ -30,6 +30,8 @@ export interface Command {
   palette?: boolean
   /** Only on phones (< 640px) or only in the laptop layout. */
   only?: 'phone' | 'laptop'
+  /** Palette title on phones, when the command does something different there. */
+  phoneTitle?: string
   run(ctx: CommandContext): void
 }
 
@@ -183,6 +185,7 @@ export const COMMANDS: Command[] = [
   {
     id: 'view.preview.cycle',
     title: 'Markdown: edit / split / preview',
+    phoneTitle: 'Markdown: edit / preview', // phones have no split view
     section: 'View',
     keywords: ['markdown', 'render', 'preview'],
     shortcuts: [{ code: 'KeyP', mod2: true }],
@@ -359,6 +362,11 @@ function openLibrary(section: 'search' | 'trash') {
 
 const isPhoneNow = () =>
   typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches
+
+/** The command's palette title for the current layout. */
+export function commandTitle(c: Command): string {
+  return c.phoneTitle && isPhoneNow() ? c.phoneTitle : c.title
+}
 
 export function commandEnabled(c: Command, s: AppState): boolean {
   if (c.only && (c.only === 'phone') !== isPhoneNow()) return false

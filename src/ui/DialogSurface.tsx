@@ -15,7 +15,7 @@ type Props = ComponentPropsWithoutRef<typeof Dialog.Content> & { kind?: 'dialog'
 
 /** Classes that only position/size a centred dialog; dropped on a sheet. */
 const PLACEMENT =
-  /^(fixed|absolute|left-\S+|right-\S+|top-\S+|bottom-\S+|-?translate-[xy]-\S+|w-\S+|max-w-\S+|max-h-\S+|h-\S+|rounded-\S+|rounded|shadow(-\S+)?|border|border-border|z-\d+)$/
+  /^(fixed|absolute|left-\S+|right-\S+|top-\S+|bottom-\S+|-?translate-[xy]-\S+|w-\S+|max-w-\S+|max-h-\S+|h-\S+|rounded-\S+|rounded|shadow(-\S+)?|border|border-border|z-\d+|z-\[[^\]]+\])$/
 
 const SHEET =
   'np-sheet fixed inset-x-0 bottom-[var(--kb,0px)] z-50 max-h-[calc(92dvh-var(--kb,0px))] overflow-y-auto rounded-t-2xl border-t border-border bg-bg-elev shadow-[0_-12px_40px_rgb(0_0_0/0.25)] pb-[env(safe-area-inset-bottom)] outline-none'
@@ -35,9 +35,18 @@ export const DialogSurface = forwardRef<HTMLDivElement, Props>(function DialogSu
   const phone = useIsPhone()
   const ref = useRef<HTMLDivElement>(null)
   useImperativeHandle(forwarded, () => ref.current as HTMLDivElement)
-  const drag = useDragToClose(() =>
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })),
-  )
+  // Escape closes only the topmost layer: if a popup inside the sheet is open, the first one
+  // closes that, so keep sending until the sheet itself has closed (a few at most).
+  const drag = useDragToClose(() => {
+    let tries = 4
+    const escape = () => {
+      const el = ref.current
+      if (!el?.isConnected || el.dataset.state !== 'open' || tries-- === 0) return
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      setTimeout(escape, 0)
+    }
+    escape()
+  })
   const rest = {
     ...props,
     onInteractOutside: (e: Parameters<NonNullable<Props['onInteractOutside']>>[0]) => {

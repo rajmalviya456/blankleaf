@@ -18,7 +18,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import * as Dialog from '@radix-ui/react-dialog'
 import { GripVertical, MoreHorizontal, Pin, Plus, RotateCcw, X } from 'lucide-react'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { displayTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
@@ -41,10 +41,18 @@ function Row({ note, active }: { note: Note; active: boolean }) {
   const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const longPress = useRef(false)
   const actions = () => phoneStore.getState().open({ kind: 'tabActions', noteId: note.id })
+  const row = useRef<HTMLLIElement | null>(null)
+  // With many tabs, open the sheet scrolled to the current one.
+  useEffect(() => {
+    if (active) row.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [active])
 
   return (
     <li
-      ref={setNodeRef}
+      ref={(el) => {
+        setNodeRef(el)
+        row.current = el
+      }}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={['flex items-center gap-0.5 rounded-xl pr-1', active ? 'bg-accent-soft' : ''].join(
         ' ',
