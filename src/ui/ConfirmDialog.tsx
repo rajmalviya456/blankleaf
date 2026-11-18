@@ -1,6 +1,7 @@
 import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import type { ReactNode } from 'react'
 import { DialogSurface } from './DialogSurface'
+import { useBackStackEntry } from '../features/phone/useBackStackEntry'
 
 interface Props {
   open: boolean
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   onConfirm,
   danger = false,
 }: Props) {
+  useBackStackEntry(open, () => onOpenChange(false))
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>

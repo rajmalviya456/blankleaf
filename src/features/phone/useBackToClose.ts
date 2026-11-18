@@ -2,7 +2,7 @@
  * Lets the system Back button / gesture close phone overlays. Every overlay opened pushes one
  * history entry; Back pops it and closes that overlay. Closing from the UI removes the entry we
  * pushed. Only entries this hook pushed are ever removed, so share links and normal browser
- * navigation are untouched. Unmounting (switching to the laptop layout) closes everything.
+ * navigation are untouched (entries left over by a reload are stepped over). Unmounting (switching to the laptop layout) closes everything.
  *
  * Closing one overlay and opening another in the same moment (Library → Settings) reuses the
  * closed overlay's entry instead of going back and pushing again: history.go() is async, and a
@@ -18,6 +18,14 @@ export function useBackToClose(): void {
     let fromPop = false
     let ignorePops = 0
     let timer: ReturnType<typeof setTimeout> | undefined
+
+    // A reload with a sheet open leaves our entries in history with nothing open: step back
+    // over them, or the next Back press would do nothing visible.
+    const stale = (history.state as { npOverlay?: unknown } | null)?.npOverlay
+    if (typeof stale === 'number' && stale > 0) {
+      ignorePops++
+      history.go(-stale)
+    }
 
     const flush = () => {
       timer = undefined

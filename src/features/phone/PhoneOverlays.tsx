@@ -1,6 +1,7 @@
 /** Renders the phone overlays that are open, in stack order. Loaded lazily by PhoneShell. */
+import { useEffect } from 'react'
 import { displayTitle } from '../../domain/title'
-import { getStore } from '../../store/store'
+import { getStore, useAppStore } from '../../store/store'
 import { ActionSheet } from './ActionSheet'
 import { isTop, phoneStore, usePhone, type PhoneOverlay } from './phoneStore'
 import { tabActionItems } from './tabActions'
@@ -15,6 +16,11 @@ import { useActiveShares } from '../share/useActiveShares'
 
 function SharesSheet({ open, onClose }: { open: boolean; onClose(): void }) {
   const shares = useActiveShares()
+  const none = shares.length === 0
+  // The last share ended (or none existed): leave the Back stack along with the screen.
+  useEffect(() => {
+    if (open && none) phoneStore.getState().remove('shares')
+  }, [open, none])
   return (
     <Dialog.Root open={open && shares.length > 0} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
@@ -40,8 +46,26 @@ export default function PhoneOverlays() {
   }
   const actions = stack.filter(
     (o): o is Extract<PhoneOverlay, { kind: 'tabActions' | 'noteActions' }> =>
-      typeof o === 'object' && o.kind !== 'app',
+      typeof o === 'object' && o.kind !== 'app' && o.kind !== 'layer',
   )
+
+  // A tab's actions sheet whose tab was closed or trashed elsewhere leaves the Back stack too.
+  const gone = useAppStore((s) =>
+    actions
+      .filter((o) => {
+        const n = s.notes[o.noteId]
+        return !n || n.deletedAt !== null || !s.session.openTabIds.includes(o.noteId)
+      })
+      .map((o) => o.noteId)
+      .join(','),
+  )
+  useEffect(() => {
+    if (!gone) return
+    const ids = new Set(gone.split(','))
+    for (const o of phoneStore.getState().stack)
+      if (typeof o === 'object' && o.kind === 'tabActions' && ids.has(o.noteId))
+        phoneStore.getState().remove(o)
+  }, [gone])
 
   return (
     <>
@@ -52,7 +76,7 @@ export default function PhoneOverlays() {
       <FormatSheet open={has(stack, 'format')} onClose={closer('format')} />
       {actions.map((o) => {
         const note = getStore().getState().notes[o.noteId]
-        if (!note) return null
+        if (!note || gone.split(',').includes(o.noteId)) return null
         return (
           <ActionSheet
             key={`${o.kind}:${o.noteId}`}

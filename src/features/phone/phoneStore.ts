@@ -15,6 +15,8 @@ export type PhoneOverlay =
   | { kind: 'tabActions' | 'noteActions'; noteId: string }
   /** An app dialog (settings, share…) opened on a phone, so Back can close it. */
   | { kind: 'app'; id: AppDialog }
+  /** Any other dialog that wants Back to close it (confirm prompts…); see useBackStackEntry. */
+  | { kind: 'layer'; id: string }
 
 export type AppDialog =
   'settings' | 'about' | 'whatsNew' | 'shortcuts' | 'palette' | 'share' | 'import' | 'unpin'
@@ -28,6 +30,8 @@ interface PhoneState {
   open(o: PhoneOverlay): void
   /** Close the top overlay. */
   close(): void
+  /** Take `o` off the stack wherever it sits (the top one closes like close()). */
+  remove(o: PhoneOverlay): void
   closeAll(): void
   setLibrarySection(s: LibrarySection): void
   setPreview(noteId: string, on: boolean): void
@@ -40,6 +44,12 @@ export const phoneStore = createStore<PhoneState>()((set) => ({
   // Opening what's already on top is a no-op (e.g. long-press and contextmenu both firing).
   open: (o) => set((s) => (isTop(s.stack, o) ? s : { stack: [...s.stack, o] })),
   close: () => set((s) => ({ stack: s.stack.slice(0, -1) })),
+  remove: (o) =>
+    set((s) =>
+      s.stack.some((x) => sameOverlay(x, o))
+        ? { stack: s.stack.filter((x) => !sameOverlay(x, o)) }
+        : s,
+    ),
   closeAll: () => set({ stack: [] }),
   setLibrarySection: (librarySection) => set({ librarySection }),
   setPreview: (noteId, on) => set((s) => ({ previewByTab: { ...s.previewByTab, [noteId]: on } })),
@@ -58,7 +68,7 @@ export function isTop(stack: PhoneOverlay[], o: PhoneOverlay): boolean {
 
 export function sameOverlay(a: PhoneOverlay, b: PhoneOverlay): boolean {
   if (typeof a === 'string' || typeof b === 'string') return a === b
-  if (a.kind === 'app' || b.kind === 'app')
-    return a.kind === b.kind && (a as { id: string }).id === (b as { id: string }).id
-  return a.kind === b.kind && a.noteId === b.noteId
+  if (a.kind !== b.kind) return false
+  if ('id' in a && 'id' in b) return a.id === b.id
+  return 'noteId' in a && 'noteId' in b && a.noteId === b.noteId
 }
