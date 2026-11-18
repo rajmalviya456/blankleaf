@@ -33,6 +33,10 @@ one calm, keyboard-friendly window that remembers exactly where you left off.
 - **Text and dev tools.** Format or minify JSON, convert JSON ⇄ YAML, and encode or decode Base64
   and URLs, on the selection or the whole note.
 - **Clickable checklists.** Tick `- [ ]` items right in the Markdown preview.
+- **Print or save as PDF.** A clean copy of any note, with Markdown formatted.
+- **Note templates.** Start a daily journal, meeting notes, checklist or to-do list in one click.
+- **Spell check per note**, using your browser's own checker.
+- **Sort your notes** by last edited, date created or name.
 - **Toolbar that fits the note.** Markdown notes get headings, bold, italic, lists, quotes,
   links and code blocks. Plain text, code and logs get change case, sort / dedupe / trim lines
   and insert date — no stray `**` in your code. Every button is one undo step. Turn it off in

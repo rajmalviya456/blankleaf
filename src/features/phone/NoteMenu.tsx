@@ -12,6 +12,7 @@ import {
   Minus,
   Pencil,
   Pin,
+  Printer,
   PinOff,
   Plus,
   Search,
@@ -29,6 +30,7 @@ import { exportNote } from '../backup/actions'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
 import { historyStore } from '../history/historyStore'
+import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -207,6 +209,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   }
                 />
                 <Action icon={Download} label="Download" onSelect={() => exportNote(noteId)} />
+                <Action
+                  icon={Printer}
+                  label="Print / save as PDF"
+                  onSelect={() => printStore.getState().open(noteId)}
+                />
                 <Action
                   icon={History}
                   label="Version history…"

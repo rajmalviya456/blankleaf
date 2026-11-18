@@ -4,6 +4,7 @@ import type { Note } from '../../domain/types'
 import { getStore } from '../../store/store'
 import { exportNote } from '../backup/actions'
 import { historyStore } from '../history/historyStore'
+import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 
 interface Props {
@@ -61,6 +62,12 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           </ContextMenu.Item>
           <ContextMenu.Item className={itemClass} onSelect={() => exportNote(note.id)}>
             Export
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            className={itemClass}
+            onSelect={() => printStore.getState().open(note.id)}
+          >
+            Print / save as PDF…
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}

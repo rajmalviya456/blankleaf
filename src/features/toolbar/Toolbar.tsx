@@ -18,6 +18,7 @@ import {
   List,
   Minus,
   Plus,
+  Printer,
   Quote,
   Redo2,
   Search,
@@ -33,6 +34,7 @@ import { Fragment, type ReactNode } from 'react'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
+import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -334,6 +336,11 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
             }}
           />
           <Btn icon={Download} label="Download note" onClick={() => exportNote(noteId)} />
+          <Btn
+            icon={Printer}
+            label="Print or save as PDF"
+            onClick={() => printStore.getState().open(noteId)}
+          />
           <Btn
             icon={Share2}
             label="Share via link"

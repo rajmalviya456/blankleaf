@@ -15,7 +15,8 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
-import { Plus } from 'lucide-react'
+import { ChevronDown, Plus } from 'lucide-react'
+import { TemplateMenu } from '../templates/TemplateMenu'
 import type { ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { orderedTabs } from '../../store/selectors'
@@ -86,6 +87,9 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       >
         <Plus size={15} strokeWidth={1.75} />
       </button>
+      <TemplateMenu className="mb-1 -ml-1 grid h-7 w-4 shrink-0 place-items-center rounded-md text-fg-faint outline-none hover:bg-bg-hover hover:text-fg focus-visible:bg-bg-hover">
+        <ChevronDown size={12} />
+      </TemplateMenu>
       <div className="flex-1" />
       <div className="mb-1 flex items-center gap-0.5">
         {listed.length > 1 && <TabOverflowMenu tabs={listed} activeId={activeId} />}

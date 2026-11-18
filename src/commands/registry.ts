@@ -6,6 +6,8 @@ import type { StoreApi } from 'zustand'
 import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
 import { historyStore } from '../features/history/historyStore'
+import { printStore } from '../features/print/printStore'
+import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
@@ -173,6 +175,19 @@ export const COMMANDS: Command[] = [
     run: (ctx) => {
       const id = activeId(ctx)
       if (id) shareStore.getState().open(id)
+      st(ctx).setUi({ paletteOpen: false })
+    },
+  },
+  {
+    id: 'note.print',
+    title: 'Print / save as PDF…',
+    section: 'Note',
+    keywords: ['pdf', 'paper', 'export'],
+    shortcuts: [{ code: 'KeyP', mod: true }],
+    when: hasActive,
+    run: (ctx) => {
+      const id = activeId(ctx)
+      if (id) printStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
   },
@@ -380,6 +395,14 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     run: (ctx) => st(ctx).setUi({ whatsNewOpen: true, paletteOpen: false }),
   },
+  ...TEMPLATES.map((t): Command => ({
+    id: `note.template.${t.id}`,
+    title: `New from template: ${t.label}`,
+    section: 'Note',
+    keywords: ['template', 'journal', 'meeting', 'checklist', 'todo'],
+    shortcuts: [],
+    run: (ctx) => void newFromTemplate(ctx.store, t.id),
+  })),
   // Text and dev tools (also in the toolbar's Transform menu).
   ...TRANSFORM_IDS.map((id): Command => ({
     id: `text.${id}`,
