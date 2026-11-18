@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/rajmalviya456/blankleaf/compare/v1.5.0...v1.5.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **find:** make the Replace field match the Find field ([#32](https://github.com/rajmalviya456/blankleaf/issues/32)) ([d6454e1](https://github.com/rajmalviya456/blankleaf/commit/d6454e115a1a4bfc775de472e903b059d3cca3ae))
+
 ## [1.5.0](https://github.com/rajmalviya456/blankleaf/compare/v1.4.0...v1.5.0) (2026-11-18)
 
 
