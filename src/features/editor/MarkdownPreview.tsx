@@ -1,5 +1,5 @@
-import { createContext, memo, useContext, useMemo } from 'react'
-import ReactMarkdown, { type Components } from 'react-markdown'
+import { createContext, memo, useContext, useMemo, type ComponentProps } from 'react'
+import ReactMarkdown, { type Components, type ExtraProps } from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
@@ -25,7 +25,7 @@ const listItem: Components['li'] = ({ node, children, ...props }) => {
 }
 
 /** Task boxes tick and untick the note's text, when the preview is editable. */
-function TaskBox({ node: _node, ...props }: Parameters<NonNullable<Components['input']>>[0]) {
+function TaskBox({ node: _node, ...props }: ComponentProps<'input'> & ExtraProps) {
   const offset = useContext(TaskItem)
   const tasks = useContext(Tasks)
   if (props.type !== 'checkbox' || offset === null || !tasks?.onSourceChange)
