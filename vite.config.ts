@@ -107,8 +107,8 @@ export default defineConfig(({ command }) => ({
         // Real files and landing pages opened directly (sitemap, preview image, FAQ…) must come from the
         // server, not be answered with the app.
         navigateFallbackDenylist: [
-          /\.(xml|txt|png|ico|svg|webmanifest|json)$/,
-          new RegExp(`/(${pageSlugs})/?$`),
+          /^[^?]*\.(xml|txt|png|ico|svg|webmanifest|json)(\?.*)?$/,
+          new RegExp(`^[^?]*/(${pageSlugs})/?(\\?.*)?$`),
         ],
       },
     }),

@@ -62,6 +62,17 @@ describe('opening files with the app', () => {
     expect(Object.values(s.notes).map((n) => n.content)).toEqual(['# Plan', 'hello'])
   })
 
+  it('doesn’t open the files again when the app reloads', async () => {
+    const store = initStore(createAppStore())
+    store.getState().newNote({ content: 'in progress' })
+    vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
+      { type: 'reload' } as PerformanceNavigationTiming,
+    ])
+    await launch([new File(['hello'], 'todo.txt')])
+    expect(Object.values(store.getState().notes)).toHaveLength(1)
+    vi.restoreAllMocks()
+  })
+
   it('keeps the note you were writing', async () => {
     const store = initStore(createAppStore())
     const id = store.getState().newNote({ content: 'in progress' })

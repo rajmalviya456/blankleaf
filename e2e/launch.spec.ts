@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { editor, openApp, tabs } from './helpers'
 
+test.use({ serviceWorkers: 'allow' })
+
 test('the installed app registers for the Share menu and text files', async ({ request }) => {
   const manifest = await (await request.get('manifest.webmanifest')).json()
   expect(manifest.share_target).toEqual({
@@ -48,4 +50,22 @@ test('a file opened with the app appears as a note', async ({ page, context }) =
   })
   await openApp(page)
   await expect(editor(page)).toContainText('from a file')
+})
+
+test('a shared link ending in a file name still opens offline', async ({ page, context }) => {
+  test.skip(test.info().project.name !== 'chromium')
+  await context.addInitScript(() => {
+    const real = window.matchMedia.bind(window)
+    window.matchMedia = (q) =>
+      q === '(display-mode: standalone)' ? ({ matches: true } as MediaQueryList) : real(q)
+  })
+  await openApp(page)
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true)
+  await context.setOffline(true)
+  await page.goto('./?url=https%3A%2F%2Fexample.com%2Fphoto.png')
+  await expect(editor(page)).toContainText('photo.png')
 })

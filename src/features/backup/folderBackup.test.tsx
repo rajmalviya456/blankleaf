@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { openDb, type BlankleafDB } from '../../db/db'
+import { WELCOME_CONTENT } from '../../domain/defaults'
 import { registerStorage } from '../../store/dataReset'
 import { createAppStore, initStore } from '../../store/store'
 import { toastStore } from '../../ui/toast'
@@ -12,7 +13,9 @@ import {
   chooseBackupFolder,
   DAILY_COPIES,
   folderBackupStore,
+  FOLDER_CHANNEL,
   LATEST_FILE,
+  PREVIOUS_FILE,
   resumeFolderBackup,
   startFolderBackup,
   turnOffFolderBackup,
@@ -29,16 +32,20 @@ function fakeFolder(permission: 'granted' | 'prompt' = 'granted') {
     files,
     queryPermission: vi.fn(async () => folder.permission),
     requestPermission: vi.fn(async () => (folder.permission = 'granted')),
-    getFileHandle: vi.fn(async (name: string) => ({
-      createWritable: async () => {
-        if (folder.failWith) throw folder.failWith
-        let body = ''
-        return {
-          write: async (t: string) => void (body = t),
-          close: async () => void files.set(name, body),
-        }
-      },
-    })),
+    getFileHandle: vi.fn(async (name: string, o?: { create?: boolean }) => {
+      if (!o?.create && !files.has(name)) throw new DOMException('missing', 'NotFoundError')
+      return {
+        getFile: async () => new File([files.get(name) ?? ''], name),
+        createWritable: async () => {
+          if (folder.failWith) throw folder.failWith
+          let body = ''
+          return {
+            write: async (t: string) => void (body = t),
+            close: async () => void files.set(name, body),
+          }
+        },
+      }
+    }),
     removeEntry: vi.fn(async (name: string) => void files.delete(name)),
     keys: async function* () {
       yield* files.keys()
@@ -90,7 +97,9 @@ describe('automatic backup to a folder', () => {
     expect(folderBackupStore.getState()).toMatchObject({ status: 'on', folderName: 'Backups' })
     const saved = parseBackup(folder.files.get(LATEST_FILE)!)
     expect(saved.notes.map((n) => n.content)).toContain('my important note')
-    expect([...folder.files.keys()].some((n) => /backup-\d{4}-\d\d-\d\d\.json/.test(n))).toBe(true)
+    expect(
+      [...folder.files.keys()].some((n) => /^blankleaf-auto-\d{4}-\d\d-\d\d\.json$/.test(n)),
+    ).toBe(true)
   })
 
   it('saves again shortly after a note changes', async () => {
@@ -105,16 +114,40 @@ describe('automatic backup to a folder', () => {
     await waitFor(() => expect(folder.files.get(LATEST_FILE)).toContain('written later'))
   })
 
-  it(`keeps only the newest ${DAILY_COPIES} daily copies`, async () => {
+  it(`keeps only the newest ${DAILY_COPIES} automatic copies, and leaves your own files alone`, async () => {
     const { folder } = await setup()
     for (let d = 1; d <= DAILY_COPIES + 3; d++)
-      folder.files.set(`blankleaf-backup-2026-01-${String(d).padStart(2, '0')}.json`, '{}')
+      folder.files.set(`blankleaf-auto-2026-01-${String(d).padStart(2, '0')}.json`, '{}')
+    folder.files.set('blankleaf-backup-2026-01-01.json', 'exported by hand')
     folder.files.set('my-own-file.txt', 'not ours')
     await chooseBackupFolder()
-    const daily = [...folder.files.keys()].filter((n) => /backup-\d{4}/.test(n))
+    const daily = [...folder.files.keys()].filter((n) => n.startsWith('blankleaf-auto-'))
     expect(daily).toHaveLength(DAILY_COPIES)
-    expect(folder.files.has('blankleaf-backup-2026-01-01.json')).toBe(false)
+    expect(folder.files.has('blankleaf-auto-2026-01-01.json')).toBe(false)
+    expect(folder.files.get('blankleaf-backup-2026-01-01.json')).toBe('exported by hand')
     expect(folder.files.get('my-own-file.txt')).toBe('not ours')
+  })
+
+  it('a fresh browser showing only the Welcome note can’t overwrite an old backup', async () => {
+    const folder = fakeFolder()
+    folder.files.set(LATEST_FILE, 'the good backup')
+    setPicker(vi.fn(async () => folder))
+    const store = initStore(createAppStore())
+    store.getState().newNote({ title: 'Welcome', content: WELCOME_CONTENT })
+    stop = await startFolderBackup(store, db, mem)
+    await chooseBackupFolder()
+    expect(folder.files.get(LATEST_FILE)).toBe('the good backup')
+    const offer = toastStore.getState().toasts.at(-1)!
+    expect(offer.msg).toMatch(/already has a backup/)
+    expect(offer.action?.label).toBe('Restore')
+  })
+
+  it('keeps the folder’s old backup when real notes take over', async () => {
+    const { folder } = await setup()
+    folder.files.set(LATEST_FILE, 'the older backup')
+    await chooseBackupFolder()
+    expect(folder.files.get(PREVIOUS_FILE)).toBe('the older backup')
+    expect(folder.files.get(LATEST_FILE)).toContain('my important note')
   })
 
   it('never replaces a good backup with an empty app', async () => {
@@ -169,6 +202,47 @@ describe('automatic backup to a folder', () => {
     await backupToFolderNow()
     expect(folderBackupStore.getState().status).toBe('paused')
     expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/moved or deleted/)
+  })
+
+  it('choosing again after the folder disappears opens the picker', async () => {
+    const { folder } = await setup()
+    await chooseBackupFolder()
+    folder.failWith = new DOMException('gone', 'NotFoundError')
+    await backupToFolderNow()
+    const replacement = fakeFolder()
+    const pick = vi.fn(async () => replacement)
+    setPicker(pick)
+    await resumeFolderBackup()
+    expect(pick).toHaveBeenCalledOnce()
+    expect(folderBackupStore.getState().status).toBe('on')
+    expect(replacement.files.has(LATEST_FILE)).toBe(true)
+  })
+
+  it('tries again by itself after a failed save', async () => {
+    const folder = fakeFolder()
+    setPicker(vi.fn(async () => folder))
+    const store = initStore(createAppStore())
+    store.getState().newNote({ content: 'keep me' })
+    stop = await startFolderBackup(store, db, mem, 20)
+    await chooseBackupFolder()
+    folder.failWith = new Error('disk busy')
+    folder.files.clear()
+    await backupToFolderNow()
+    folder.failWith = null
+    await waitFor(() => expect(folder.files.has(LATEST_FILE)).toBe(true))
+  })
+
+  it('turning it off in one window stops the others', async () => {
+    const { folder } = await setup()
+    await chooseBackupFolder()
+    remembered = null
+    act(() => {
+      new BroadcastChannel(FOLDER_CHANNEL).postMessage('changed')
+    })
+    await waitFor(() => expect(folderBackupStore.getState().status).toBe('off'))
+    folder.files.clear()
+    await backupToFolderNow()
+    expect(folder.files.size).toBe(0)
   })
 
   it('closing the folder picker changes nothing', async () => {

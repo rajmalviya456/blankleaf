@@ -35,11 +35,21 @@ test('word goal and reading time in the status bar', async ({ page }) => {
   ).toBeVisible()
 })
 
-for (const width of [1024, 700])
+for (const width of [1024, 900, 768, 640])
   test(`the status bar fits at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 })
     await openApp(page)
     await newNote(page, 'a note with some words in it')
-    const fits = await statusBar(page).evaluate((b) => b.scrollWidth <= b.clientWidth + 1)
+    await page.keyboard.press('ControlOrMeta+a')
+    const bar = statusBar(page)
+    await expect(bar).toContainText('selected')
+    const fits = await bar.evaluate((b) => b.scrollWidth <= b.clientWidth + 1)
     expect(fits).toBe(true)
+    const tallest = await bar.evaluate((b) =>
+      Math.max(
+        ...[...b.querySelectorAll('span, button')].map((e) => e.getBoundingClientRect().height),
+      ),
+    )
+    expect(tallest).toBeLessThanOrEqual(24)
+    await expect(bar.getByRole('button', { name: 'Share note' })).toBeVisible()
   })

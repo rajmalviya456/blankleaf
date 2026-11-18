@@ -16,6 +16,8 @@ test('on a phone: continue the last note, and set a word goal', async ({ page })
   await openPhoneApp(page)
   const nextUp = page.getByRole('button', { name: 'Continue “phone draft”' })
   await expect(nextUp).toBeVisible()
+  const faq = (await page.getByRole('link', { name: 'FAQ' }).boundingBox())!
+  expect(Math.abs(faq.y - (await nextUp.boundingBox())!.y)).toBeLessThanOrEqual(4)
   const box = (await nextUp.boundingBox())!
   expect(box.height).toBeGreaterThanOrEqual(44)
   await nextUp.tap()

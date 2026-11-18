@@ -51,4 +51,8 @@ jobs:
       - name: Start CI on the open release pull request
         run: |
           open=$(gh pr list --head "$RELEASE_BRANCH" --state open --json number --jq 'length')
-          if [ "$open" -gt 0 ]; then gh workflow run ci.yml --ref "$RELEASE_BRANCH"; fi
+          if [ "$open" -gt 0 ]; then
+            # A release branch cut before this workflow existed can't be started; the next
+            # merge to main rebuilds it.
+            gh workflow run ci.yml --ref "$RELEASE_BRANCH" || echo "::warning::Could not start CI on $RELEASE_BRANCH"
+          fi

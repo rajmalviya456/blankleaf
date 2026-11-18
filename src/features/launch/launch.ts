@@ -3,6 +3,7 @@
  * computer. Both work once Blankleaf is installed as an app.
  */
 import type { Note } from '../../domain/types'
+import { isFreshVisit } from '../../store/freshStart'
 import { getStore } from '../../store/store'
 import { importFileList } from '../backup/actions'
 
@@ -48,7 +49,8 @@ interface LaunchQueue {
 export function openLaunchedFiles(): void {
   const queue = (window as unknown as { launchQueue?: LaunchQueue }).launchQueue
   queue?.setConsumer(async ({ files }) => {
-    if (!files?.length) return
+    // Browsers hand the same files over again on reload: they're already notes by then.
+    if (!files?.length || !isFreshVisit()) return
     const before = getStore().getState()
     const active = before.session.activeTabId
     const note = active ? before.notes[active] : undefined

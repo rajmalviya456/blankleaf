@@ -48,6 +48,7 @@ test('share with password: open in a second tab, enter password, save', async ({
     'ship the sidebar',
   )
   await expect(other.locator('[data-banner]')).toContainText(/expires in \d+:\d\d/)
+  await expect(other.locator('.cm-lineNumbers')).toBeVisible()
 
   await other.getByRole('button', { name: 'Save to my notes' }).click()
   await expect(tabs(other).filter({ hasText: 'meeting notes (shared)' })).toHaveAttribute(

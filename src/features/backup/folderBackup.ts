@@ -2,23 +2,30 @@
  * Automatic backup: keeps a backup file up to date in a folder the user picks, so notes survive
  * cleared browser data. Needs the File System Access API (Chrome and Edge on a computer).
  *
- * Writes blankleaf-backup-latest.json, plus one dated copy per day (the newest seven are kept),
- * so a mistake today can't overwrite yesterday's safety net.
+ * Writes blankleaf-backup-latest.json, plus one dated blankleaf-auto copy per day (the newest
+ * seven are kept), so a mistake today can't overwrite yesterday's safety net.
  */
 import type { StoreApi } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import type { BlankleafDB } from '../../db/db'
 import { putKv } from '../../db/notesRepo'
+import { WELCOME_CONTENT } from '../../domain/defaults'
 import { getStore, type AppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
-import { buildBackupFile } from './actions'
+import { buildBackupFile, importFileList } from './actions'
 import { backupFileName } from './backup'
 import { getLastBackupAt, markBackedUp } from './meta'
 
 export const LATEST_FILE = 'blankleaf-backup-latest.json'
+/** A backup already in the folder when it was chosen is kept here. */
+export const PREVIOUS_FILE = 'blankleaf-backup-previous.json'
 export const DAILY_COPIES = 7
 export const SAVE_DELAY_MS = 30_000
-const DAILY_FILE = /^blankleaf-backup-\d{4}-\d{2}-\d{2}\.json$/
+export const FOLDER_CHANNEL = 'blankleaf-backup-folder'
+// Its own name: backups exported by hand into the same folder are never touched.
+const DAILY_FILE = /^blankleaf-auto-\d{4}-\d{2}-\d{2}\.json$/
+const dailyName = (now: number) =>
+  backupFileName(now).replace('blankleaf-backup-', 'blankleaf-auto-')
 
 type Permission = 'granted' | 'denied' | 'prompt'
 interface Writable {
@@ -32,7 +39,7 @@ export interface BackupFolder {
   getFileHandle(
     name: string,
     o: { create: boolean },
-  ): Promise<{ createWritable(): Promise<Writable> }>
+  ): Promise<{ createWritable(): Promise<Writable>; getFile(): Promise<File> }>
   removeEntry(name: string): Promise<void>
   keys(): AsyncIterable<string>
 }
@@ -78,6 +85,7 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let dirty = false
 let delay = SAVE_DELAY_MS
 let writing: Promise<void> | null = null
+let channel: BroadcastChannel | null = null
 
 const set = (patch: Partial<FolderBackupState>) => folderBackupStore.setState(patch)
 
@@ -95,18 +103,24 @@ async function pruneDailyCopies(target: BackupFolder): Promise<void> {
   await Promise.all(old.map((name) => target.removeEntry(name)))
 }
 
-/** An empty app must never replace a good backup. */
+/** An empty app, or one showing only the Welcome note, must never replace a good backup. */
 const hasSomethingToSave = () =>
-  Object.values(getStore().getState().notes).some((n) => n.content.trim() || n.locked)
+  Object.values(getStore().getState().notes).some(
+    (n) => n.locked || (n.content.trim() && n.content !== WELCOME_CONTENT),
+  )
 
-function pause(problem: string) {
+const announce = () => {
+  channel?.postMessage('changed')
+}
+
+function pause(problem: string, action = 'Resume') {
   clearTimeout(timer)
   timer = undefined
   set({ status: 'paused' })
   toast(problem, {
     tone: 'warn',
     durationMs: 0,
-    action: { label: 'Resume', run: () => void resumeFolderBackup() },
+    action: { label: action, run: () => void resumeFolderBackup() },
   })
 }
 
@@ -117,7 +131,7 @@ async function writeNow(now: number): Promise<void> {
   try {
     const { text } = await buildBackupFile(now)
     await writeFile(target, LATEST_FILE, text)
-    await writeFile(target, backupFileName(now), text)
+    await writeFile(target, dailyName(now), text)
     await pruneDailyCopies(target)
     await markBackedUp(now)
     set({ savedAt: now })
@@ -125,10 +139,17 @@ async function writeNow(now: number): Promise<void> {
     dirty = true
     const name = e instanceof DOMException ? e.name : ''
     console.error('Blankleaf: automatic backup failed', e)
-    if (name === 'NotFoundError') pause('Your backup folder was moved or deleted. Choose it again.')
-    else if (name === 'NotAllowedError' || name === 'SecurityError')
+    if (name === 'NotFoundError') {
+      // The remembered folder is gone: the next step has to be picking a new one.
+      folder = null
+      await memory?.save(null)
+      pause('Your backup folder was moved or deleted. Choose it again.', 'Choose folder')
+    } else if (name === 'NotAllowedError' || name === 'SecurityError')
       pause('Automatic backup needs your permission again.')
-    else toast('Automatic backup couldn’t save. It will try again.', { tone: 'warn' })
+    else {
+      toast('Automatic backup couldn’t save. It will try again.', { tone: 'warn' })
+      schedule()
+    }
   }
 }
 
@@ -169,7 +190,11 @@ export async function startFolderBackup(
     if (document.visibilityState === 'hidden' && dirty) void backupToFolderNow()
   }
   document.addEventListener('visibilitychange', onHide)
+  channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(FOLDER_CHANNEL)
+  if (channel) channel.onmessage = () => void followRememberedFolder()
   const stop = () => {
+    channel?.close()
+    channel = null
     stopWatching()
     document.removeEventListener('visibilitychange', onHide)
     clearTimeout(timer)
@@ -177,15 +202,35 @@ export async function startFolderBackup(
   }
   if (!picker()) return stop
 
-  const saved = await mem.load().catch(() => null)
-  if (!saved) return stop
+  await followRememberedFolder()
+  return stop
+}
+
+/** Follow the folder saved for this browser (at startup, or after another window changed it). */
+async function followRememberedFolder(): Promise<void> {
+  const saved = await memory?.load().catch(() => null)
+  if (!saved) {
+    clearTimeout(timer)
+    timer = undefined
+    folder = null
+    set({ status: picker() ? 'off' : 'unsupported', folderName: null })
+    return
+  }
   folder = saved
   set({ folderName: saved.name })
   if ((await saved.queryPermission({ mode: 'readwrite' }).catch(() => 'denied')) === 'granted') {
     set({ status: 'on' })
     schedule()
   } else pause('Automatic backup is paused until you allow it again.')
-  return stop
+}
+
+/** A backup that was in the folder before this browser started using it. */
+async function existingBackup(target: BackupFolder): Promise<File | null> {
+  try {
+    return await (await target.getFileHandle(LATEST_FILE, { create: false })).getFile()
+  } catch {
+    return null
+  }
 }
 
 export async function chooseBackupFolder(): Promise<void> {
@@ -198,12 +243,26 @@ export async function chooseBackupFolder(): Promise<void> {
     if (e instanceof DOMException && e.name === 'AbortError') return // the picker was closed
     throw e
   }
+  const existing = await existingBackup(chosen)
   folder = chosen
   await memory?.save(chosen)
+  announce()
   set({ status: 'on', folderName: chosen.name })
+  if (existing && !hasSomethingToSave()) {
+    // Most likely a new browser or cleared data: offer the backup instead of replacing it.
+    toast('This folder already has a backup. Restore your notes from it?', {
+      durationMs: 0,
+      action: { label: 'Restore', run: () => void importFileList([existing]) },
+    })
+    return
+  }
+  if (existing) await writeFile(chosen, PREVIOUS_FILE, await existing.text())
   await backupToFolderNow()
   toast(`Automatic backup is on. Saving to “${chosen.name}”.`)
 }
+
+/** False once the remembered folder has been lost and a new one must be picked. */
+export const hasBackupFolder = () => folder !== null
 
 /** Must run from a click: browsers only show the permission prompt after one. */
 export async function resumeFolderBackup(): Promise<void> {
@@ -219,5 +278,6 @@ export async function turnOffFolderBackup(): Promise<void> {
   timer = undefined
   folder = null
   await memory?.save(null)
+  announce()
   set({ status: 'off', folderName: null })
 }

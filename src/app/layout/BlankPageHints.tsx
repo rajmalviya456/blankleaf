@@ -47,7 +47,7 @@ export function BlankPageHints({ noteId }: { noteId: string }) {
             s.openNote(lastId)
             s.closeTab(noteId)
           }}
-          className={`${link} inline-flex max-w-64 items-center gap-1 bg-bg/90`}
+          className={`${link} inline-flex max-w-64 items-center gap-1 bg-bg/90 max-sm:max-w-44`}
         >
           <span className="truncate">Continue “{lastTitle}”</span>
           <ArrowRight size={13} className="shrink-0" aria-hidden />

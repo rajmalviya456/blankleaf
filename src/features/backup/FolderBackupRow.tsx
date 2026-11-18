@@ -5,6 +5,7 @@ import {
   backupToFolderNow,
   chooseBackupFolder,
   folderBackupStore,
+  hasBackupFolder,
   resumeFolderBackup,
   turnOffFolderBackup,
 } from './folderBackup'
@@ -13,6 +14,7 @@ import {
 export function FolderBackupRow() {
   const { status, folderName, savedAt } = useStore(folderBackupStore)
   const label = 'Automatic backup'
+  const hasFolder = hasBackupFolder()
   if (status === 'unsupported')
     return (
       <Row
@@ -40,9 +42,16 @@ export function FolderBackupRow() {
   )
   if (status === 'paused')
     return (
-      <Row label={label} hint={`Paused. “${folderName}” needs your permission again.`}>
+      <Row
+        label={label}
+        hint={
+          hasFolder
+            ? `Paused. “${folderName}” needs your permission again.`
+            : 'Paused. The backup folder was moved or deleted.'
+        }
+      >
         <button type="button" onClick={() => void resumeFolderBackup()} className={buttonClass}>
-          Resume
+          {hasFolder ? 'Resume' : 'Choose folder…'}
         </button>
         {off}
       </Row>

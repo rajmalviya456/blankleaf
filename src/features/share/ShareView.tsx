@@ -3,7 +3,7 @@ import { noIndex } from '../../lib/noIndex'
  * Recipient page for a share link (spec §5.3). Deliberately lightweight: it doesn't open the
  * notes database or touch the recipient's notes. Save/Close hand over to the full app.
  */
-import { EditorView } from '@codemirror/view'
+import { EditorView, lineNumbers } from '@codemirror/view'
 import CodeMirror from '@uiw/react-codemirror'
 import { AlertTriangle, Clock, Download, Lock, Save, WifiOff, X } from 'lucide-react'
 import {
@@ -152,6 +152,7 @@ function ReadyView({
 
   const extensions = useMemo(
     () => [
+      lineNumbers(),
       EditorView.editable.of(false),
       EditorView.contentAttributes.of({ 'aria-label': 'Shared note', 'aria-readonly': 'true' }),
       ...(lineWrap ? [EditorView.lineWrapping] : []),
@@ -216,7 +217,7 @@ function ReadyView({
           <CodeMirror
             value={snapshot.content}
             editable={false}
-            basicSetup={{ lineNumbers: true, foldGutter: false, highlightActiveLine: false }}
+            basicSetup={false}
             theme={calmEditorTheme}
             extensions={extensions}
             height="100%"

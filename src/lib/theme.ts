@@ -13,12 +13,6 @@ export function resolveTheme(pref: ThemePref, systemDark: boolean): Theme {
 export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme
   document.documentElement.style.colorScheme = theme
-  // index.html reads this before anything loads, so the first paint has the right colours.
-  try {
-    localStorage.setItem(THEME_KEY, theme)
-  } catch {
-    // Private browsing: the system theme is used for the first paint instead.
-  }
 }
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
@@ -51,6 +45,12 @@ export function applySettingsToDocument(s: Settings, systemDark: boolean): void 
   const root = document.documentElement
   const theme = resolveTheme(s.theme, systemDark)
   applyTheme(theme)
+  // index.html reads this before anything loads, so the first paint has the right colours.
+  try {
+    localStorage.setItem(THEME_KEY, s.theme)
+  } catch {
+    // Private browsing: the system theme is used for the first paint instead.
+  }
   document
     .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
     ?.setAttribute('content', THEME_COLOR[theme])
