@@ -21,18 +21,29 @@ import { markBackedUp } from './meta'
 const MAX_FILE_BYTES = 50 * 1024 * 1024
 const MAX_BACKUP_BYTES = 500 * 1024 * 1024
 
-export async function exportAll(now: number = Date.now()): Promise<void> {
+/** The text of a full backup, and whether it managed to include version history. */
+export async function buildBackupFile(
+  now: number,
+): Promise<{ text: string; noteCount: number; hasHistory: boolean }> {
   const s = getStore().getState()
   const notes = Object.values(s.notes)
   const { versions, complete } = await versionsForBackup(
     notes.filter((n) => !n.locked).map((n) => n.id),
   )
   const { text, withVersions } = backupText(notes, s.settings, now, versions)
+  return {
+    text,
+    noteCount: notes.length,
+    hasHistory: complete && (withVersions || !versions.length),
+  }
+}
+
+export async function exportAll(now: number = Date.now()): Promise<void> {
+  const { text, noteCount, hasHistory } = await buildBackupFile(now)
   downloadText(backupFileName(now), 'application/json', text)
   await markBackedUp(now)
-  if (complete && (withVersions || !versions.length))
-    toast(`Backup saved (${notes.length} notes). Keep it somewhere safe.`)
-  else toast(`Backup saved (${notes.length} notes), without version history.`, { tone: 'warn' })
+  if (hasHistory) toast(`Backup saved (${noteCount} notes). Keep it somewhere safe.`)
+  else toast(`Backup saved (${noteCount} notes), without version history.`, { tone: 'warn' })
 }
 
 /** Every saved version of these notes. A problem reading them never blocks the backup. */

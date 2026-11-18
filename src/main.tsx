@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { exportAll } from './features/backup/actions'
+import { startFolderBackup } from './features/backup/folderBackup'
 import { initMeta } from './features/backup/meta'
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
@@ -55,6 +56,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
     })
     setShareHost(shareHost)
     void shareHost.resume()
+    void startFolderBackup(store, boot.db)
   } else {
     store.getState().setSaveStatus('error', boot.error)
     startMemoryJournal(store)
