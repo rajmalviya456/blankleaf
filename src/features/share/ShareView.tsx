@@ -1,3 +1,4 @@
+import { noIndex } from '../../lib/noIndex'
 /**
  * Recipient page for a share link (spec §5.3). Deliberately lightweight: it doesn't open the
  * notes database or touch the recipient's notes. Save/Close hand over to the full app.
@@ -250,6 +251,8 @@ function receiverHolder() {
 }
 
 export function ShareView({ parts, transport, onSave, onClose, onDownload }: Props) {
+  // A shared note must never end up in search results, even if its link is posted publicly.
+  useEffect(() => noIndex(), [])
   // One receiver per mount, created in the effect so StrictMode's remount gets a fresh one.
   const holder = useMemo(() => receiverHolder(), [])
   useEffect(() => {
