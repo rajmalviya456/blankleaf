@@ -45,6 +45,9 @@ export default defineConfig(({ command }) => ({
         globIgnores: ['**/og-image.png'], // link previews only; not needed offline
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
+        // Real files opened directly (sitemap, link-preview image, manifest…) must come from the
+        // server, not be answered with the app.
+        navigateFallbackDenylist: [/\.(xml|txt|png|ico|svg|webmanifest|json)$/],
       },
     }),
   ],

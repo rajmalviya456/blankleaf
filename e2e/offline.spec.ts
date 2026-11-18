@@ -17,3 +17,15 @@ test('the app opens offline after the first visit', async ({ page, context }) =>
   await expect(page.locator('.cm-editor')).toBeVisible()
   await expect(editor(page)).toContainText('written offline-ready')
 })
+
+test('with the service worker running, the sitemap is still the sitemap', async ({ page }) => {
+  await openApp(page)
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true)
+  const res = await page.goto('sitemap.xml')
+  expect(res?.headers()['content-type']).toContain('xml')
+  expect(await res?.text()).toContain('<urlset')
+})
