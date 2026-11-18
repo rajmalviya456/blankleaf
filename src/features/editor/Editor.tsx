@@ -12,7 +12,7 @@ import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
 import { effectiveEditorFontSize } from '../../domain/defaults'
 import { useIsPhone } from '../../lib/media'
-import { activeViewUpdated, releaseActiveView, setActiveView } from './activeView'
+import { activeViewUpdated, releaseActiveView, setActiveView, setMainView } from './activeView'
 import { rememberState, restoreHistory } from './historyCache'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
@@ -88,7 +88,19 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const onCreateEditor = useCallback(
     (view: EditorView) => {
       viewRef.current = view
-      if (!side) setActiveView(view)
+      if (side) {
+        // The toolbar follows whichever note you're working in.
+        view.contentDOM.addEventListener('focusin', () => {
+          setActiveView(view)
+          getStore().getState().setUi({ sideFocused: true })
+        })
+      } else {
+        setMainView(view)
+        view.contentDOM.addEventListener('focusin', () => {
+          setActiveView(view)
+          getStore().getState().setUi({ sideFocused: false })
+        })
+      }
       const saved = s().session.perTab[noteId]
       if (saved) {
         const len = view.state.doc.length
@@ -122,8 +134,9 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     () => () => {
       scrollCleanup.current()
       if (viewRef.current) releaseActiveView(viewRef.current)
+      if (side) getStore().getState().setUi({ sideFocused: false })
     },
-    [],
+    [side],
   )
 
   const onChange = useCallback((value: string) => s().updateContent(noteId, value), [noteId])

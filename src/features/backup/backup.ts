@@ -100,7 +100,9 @@ function cleanVersions(raw: unknown, notes: Note[]): BackupVersion[] {
     if (typeof noteId !== 'string' || !ids.has(noteId)) continue
     if (typeof at !== 'number' || !Number.isFinite(at)) continue
     if (typeof content !== 'string' || !content) continue
-    perNote.set(noteId, [...(perNote.get(noteId) ?? []), { noteId, at, content }])
+    const list = perNote.get(noteId)
+    if (list) list.push({ noteId, at, content })
+    else perNote.set(noteId, [{ noteId, at, content }])
   }
   return [...perNote.values()].flatMap((list) =>
     list.sort((a, b) => b.at - a.at).slice(0, VERSIONS_KEPT),
@@ -129,6 +131,8 @@ function cleanNote(raw: unknown, now: number): Note | null {
   const createdAt = num(r.createdAt, now)
   const tags = cleanTags(r.tags)
   const locked = cleanLocked(r.locked)
+  // Damaged lock data must never turn a locked note into an empty one.
+  if (r.locked !== undefined && !locked) return null
   return {
     id: r.id,
     title: typeof r.title === 'string' && r.title.trim() ? r.title : null,

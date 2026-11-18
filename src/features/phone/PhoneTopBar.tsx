@@ -41,6 +41,7 @@ export function PhoneTopBar() {
   const sharing = useActiveShares().length > 0
   const title = note ? displayTitle(note) : 'Blankleaf'
   const markdown = note?.mode === 'markdown'
+  const locked = useAppStore((s) => !!(activeId && s.notes[activeId]?.locked))
   const view = activeId ? phoneViewFor(previewByTab, activeId, saved) : 'edit'
   const open = phoneStore.getState().open
 
@@ -70,7 +71,7 @@ export function PhoneTopBar() {
         </span>
         <SaveState />
       </button>
-      {markdown && activeId && (
+      {markdown && !locked && activeId && (
         <button
           type="button"
           aria-label={view === 'preview' ? 'Edit' : 'Preview'}

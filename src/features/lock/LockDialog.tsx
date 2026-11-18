@@ -30,9 +30,10 @@ function Form({ noteId }: { noteId: string }) {
     if (!ready) return
     setBusy(true)
     try {
-      await lockNote(noteId, password)
-      close()
-      toast('Note locked.')
+      if (await lockNote(noteId, password)) {
+        close()
+        toast('Note locked.')
+      }
     } catch (err) {
       console.error('Blankleaf: could not lock the note', err)
       setBusy(false)

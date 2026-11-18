@@ -64,39 +64,38 @@ describe('encryption', () => {
   })
 
   it('opens with the right password only', async () => {
-    const lock = await newLockKey(PASSWORD)
-    const locked = await seal(lock, 'n1', SECRET)
-    expect((await unseal(PASSWORD, 'n1', locked)).text).toBe(SECRET)
-    await expect(unseal('wrong password', 'n1', locked)).rejects.toBeInstanceOf(WrongPasswordError)
+    const lock = await newLockKey(PASSWORD, 'n1')
+    const locked = await seal(lock, SECRET)
+    expect((await unseal(PASSWORD, locked)).text).toBe(SECRET)
+    await expect(unseal('wrong password', locked)).rejects.toBeInstanceOf(WrongPasswordError)
   })
 
   it('never contains the text, and differs every time', async () => {
-    const lock = await newLockKey(PASSWORD)
-    const a = await seal(lock, 'n1', SECRET)
-    const b = await seal(lock, 'n1', SECRET)
+    const lock = await newLockKey(PASSWORD, 'n1')
+    const a = await seal(lock, SECRET)
+    const b = await seal(lock, SECRET)
     expect(JSON.stringify(a)).not.toContain('bank')
     expect(atob(a.data)).not.toContain('bank')
     expect(a.iv).not.toBe(b.iv)
     expect(a.data).not.toBe(b.data)
   })
 
-  it('detects tampering, and can’t be moved onto another note', async () => {
-    const locked = await seal(await newLockKey(PASSWORD), 'n1', SECRET)
+  it('detects tampering', async () => {
+    const locked = await seal(await newLockKey(PASSWORD, 'n1'), SECRET)
     const bytes = Uint8Array.from(atob(locked.data), (c) => c.charCodeAt(0))
     bytes[0] ^= 1
     const altered = { ...locked, data: btoa(String.fromCharCode(...bytes)) }
-    await expect(unseal(PASSWORD, 'n1', altered)).rejects.toBeInstanceOf(WrongPasswordError)
-    await expect(unseal(PASSWORD, 'n2', locked)).rejects.toBeInstanceOf(WrongPasswordError)
+    await expect(unseal(PASSWORD, altered)).rejects.toBeInstanceOf(WrongPasswordError)
   })
 
   it('handles long text and every language', async () => {
     const text = 'नमस्ते 🌿 '.repeat(20_000)
-    const lock = await newLockKey(PASSWORD)
-    expect((await unseal(PASSWORD, 'n1', await seal(lock, 'n1', text))).text).toBe(text)
+    const lock = await newLockKey(PASSWORD, 'n1')
+    expect((await unseal(PASSWORD, await seal(lock, text))).text).toBe(text)
   })
 
   it('rejects damaged or hostile locked data from files', () => {
-    const ok = { v: 1, salt: 'AAAA', iv: 'AAAA', data: 'AAAA', iterations: 600_000 }
+    const ok = { v: 1, salt: 'AAAA', iv: 'AAAA', data: 'AAAA', iterations: 600_000, origin: 'n1' }
     expect(cleanLocked(ok)).toEqual(ok)
     expect(cleanLocked({ ...ok, iterations: 1e12 })).toBeUndefined()
     expect(cleanLocked({ ...ok, data: '<script>' })).toBeUndefined()
@@ -109,7 +108,9 @@ describe('locking a note leaves no readable copy', () => {
     const { s, id } = setup()
     await persistence.flush()
     await saveVersion(db, id, 'an older secret', 5)
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     await persistence.flush()
 
     const note = s().notes[id]
@@ -126,22 +127,28 @@ describe('locking a note leaves no readable copy', () => {
 
   it('keeps a title the user chose', async () => {
     const { s, id } = setup({ title: 'Passwords' })
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     expect(s().notes[id].title).toBe('Passwords')
   })
 
   it('survives a backup and can still be opened afterwards', async () => {
     const { s, id } = setup()
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     const restored = parseBackup(backupText(Object.values(s().notes), s().settings, 1, []).text)
     const note = restored.notes.find((n) => n.id === id)!
-    expect((await unseal(PASSWORD, id, note.locked!)).text).toBe(SECRET)
+    expect((await unseal(PASSWORD, note.locked!)).text).toBe(SECRET)
   })
 
   it('is never treated as an empty note and thrown away', async () => {
     const { s, id } = setup()
     s().newNote({ content: 'keep a tab open' })
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     act(() => s().renameNote(id, ''))
     act(() => s().closeTab(id))
     await persistence.flush()
@@ -151,7 +158,9 @@ describe('locking a note leaves no readable copy', () => {
 
   it('hides actions that need the text', async () => {
     const { s, id } = setup()
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     for (const c of ['note.share', 'note.print', 'note.export', 'data.exportDocx', 'note.history'])
       expect(
         commandEnabled(
@@ -171,7 +180,9 @@ describe.each([
   it('asks for the password, then edits stay encrypted', async () => {
     media = stubMedia({ phone, touch: phone })
     const { s, id } = setup()
+    lockStore.getState().open(id)
     await lockNote(id, PASSWORD)
+    act(() => lockStore.getState().close())
     const user = userEvent.setup()
     const { container } = render(<App />)
     const field = await screen.findByLabelText('Password')
@@ -189,7 +200,7 @@ describe.each([
     await user.keyboard(' more')
     await waitFor(() => expect(s().notes[id].locked).not.toEqual(before))
     expect(s().notes[id].content).toBe('')
-    expect((await unseal(PASSWORD, id, s().notes[id].locked!)).text).toContain('more')
+    expect((await unseal(PASSWORD, s().notes[id].locked!)).text).toContain('more')
 
     await user.click(screen.getByRole('button', { name: 'Lock now' }))
     expect(await screen.findByLabelText('Password')).toBeInTheDocument()
@@ -199,7 +210,9 @@ describe.each([
 
 it('removing the lock gives the note back as normal text', async () => {
   const { s, id } = setup()
+  lockStore.getState().open(id)
   await lockNote(id, PASSWORD)
+  act(() => lockStore.getState().close())
   const user = userEvent.setup()
   render(<App />)
   await user.type(await screen.findByLabelText('Password'), `${PASSWORD}{Enter}`)

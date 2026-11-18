@@ -2,6 +2,7 @@ import * as ContextMenu from '@radix-ui/react-context-menu'
 import type { ReactNode } from 'react'
 import type { Note } from '../../domain/types'
 import { getStore } from '../../store/store'
+import { useIsWide } from '../../lib/media'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { historyStore } from '../history/historyStore'
@@ -20,6 +21,7 @@ const itemClass =
   'flex cursor-default select-none items-center rounded px-2 py-1.5 text-[12.5px] text-fg outline-none data-[disabled]:text-fg-faint data-[highlighted]:bg-accent-soft data-[highlighted]:text-fg'
 
 export function TabContextMenu({ note, onClose, children }: Props) {
+  const wide = useIsWide()
   const s = () => getStore().getState()
   const copy = () => void navigator.clipboard?.writeText(note.content).catch(() => {})
 
@@ -55,7 +57,7 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           </ContextMenu.Item>
           <ContextMenu.Item
             className={itemClass}
-            disabled={s().session.activeTabId === note.id}
+            disabled={!wide || s().session.activeTabId === note.id}
             onSelect={() => s().setSplitNote(note.id)}
           >
             Open beside

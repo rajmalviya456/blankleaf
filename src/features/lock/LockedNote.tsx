@@ -13,7 +13,7 @@ import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { calmEditorTheme } from '../editor/theme'
 import { useEditorExtensions } from '../editor/useEditorExtensions'
-import { seal, unseal, WrongPasswordError, type LockKey } from './lockCrypto'
+import { seal, unseal, unsealWith, WrongPasswordError, type LockKey } from './lockCrypto'
 
 const SAVE_DELAY = 300
 
@@ -30,12 +30,18 @@ function UnlockedEditor({
 }) {
   const settings = useAppStore((s) => s.settings)
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
+  const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
+  const stored = useAppStore((s) => s.notes[noteId]?.locked)
   const phone = useIsPhone()
   const extensions = useEditorExtensions({
     wrap,
+    spellcheck,
     settings: { ...settings, editorFontSize: effectiveEditorFontSize(settings, phone) },
   })
+  const [shown, setShown] = useState({ text: initial, version: 0 })
   const latest = useRef(initial)
+  /** The encrypted version this window is editing on top of. */
+  const base = useRef(getStore().getState().notes[noteId]?.locked)
   const unsaved = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const queue = useRef<Promise<void>>(Promise.resolve())
@@ -47,16 +53,49 @@ function UnlockedEditor({
     unsaved.current = false
     const text = latest.current
     queue.current = queue.current
-      .then(async () =>
-        getStore()
-          .getState()
-          .updateLocked(noteId, await seal(lock, noteId, text)),
-      )
+      .then(async () => {
+        const sealed = await seal(lock, text)
+        const s = getStore().getState()
+        // Another window saved first: `stored` below keeps this text as a copy instead.
+        if (s.notes[noteId]?.locked !== base.current) return void (unsaved.current = true)
+        base.current = sealed
+        s.updateLocked(noteId, sealed)
+      })
       .catch((e) => {
         console.error('Blankleaf: could not save the locked note', e)
         toast('Couldn’t save this locked note. Keep it open and try again.', { tone: 'error' })
       })
   })
+
+  // Another window changed this note: show its text, keeping anything typed here as a copy.
+  useEffect(() => {
+    if (!stored || stored === base.current) return
+    let alive = true
+    const incoming = stored
+    void queue.current.then(async () => {
+      if (!alive || incoming === base.current) return
+      const text = await unsealWith(lock, incoming).catch(() => null)
+      if (text === null || !alive) return
+      if (unsaved.current && latest.current !== text) {
+        const s = getStore().getState()
+        const id = crypto.randomUUID()
+        const title = `${displayTitle(s.notes[noteId] ?? { title: null, content: '' })} (conflict copy)`
+        s.newNote({ id, title, content: '', locked: await seal(lock, latest.current) })
+        s.setActive(noteId)
+        toast('Edited in another window — your version was saved as a locked copy.', {
+          tone: 'warn',
+        })
+      }
+      clearTimeout(timer.current)
+      unsaved.current = false
+      base.current = incoming
+      latest.current = text
+      setShown((v) => ({ text, version: v.version + 1 }))
+    })
+    return () => {
+      alive = false
+    }
+  }, [stored, lock, noteId])
 
   useEffect(() => {
     const save = saveNow.current
@@ -98,7 +137,8 @@ function UnlockedEditor({
         </button>
       </div>
       <CodeMirror
-        value={initial}
+        key={shown.version}
+        value={shown.text}
         autoFocus
         onChange={(text) => {
           latest.current = text
@@ -143,7 +183,7 @@ export function LockedNote({ noteId }: { noteId: string }) {
     setBusy(true)
     setError(null)
     try {
-      setOpen(await unseal(password, noteId, locked))
+      setOpen(await unseal(password, locked))
       setPassword('')
     } catch (err) {
       setError(

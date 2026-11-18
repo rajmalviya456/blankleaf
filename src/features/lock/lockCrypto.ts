@@ -16,6 +16,7 @@ export interface LockKey {
   key: CryptoKey
   salt: string
   iterations: number
+  origin: string
 }
 
 const toB64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
@@ -44,22 +45,22 @@ async function deriveKey(password: string, salt: Uint8Array, rounds: number): Pr
   )
 }
 
-/** The encrypted data is tied to its note, so it can't be swapped onto another one. */
-const params = (iv: Uint8Array, noteId: string): AesGcmParams => ({
+/** Everything stored beside the text is authenticated with it. */
+const params = (iv: Uint8Array, origin: string): AesGcmParams => ({
   name: 'AES-GCM',
   iv: iv as BufferSource,
-  additionalData: new TextEncoder().encode(`blankleaf-lock-v1|${noteId}`),
+  additionalData: new TextEncoder().encode(`blankleaf-lock-v1|${origin}`),
 })
 
-export async function newLockKey(password: string): Promise<LockKey> {
+export async function newLockKey(password: string, origin: string): Promise<LockKey> {
   const salt = crypto.getRandomValues(new Uint8Array(16))
-  return { key: await deriveKey(password, salt, iterations), salt: toB64(salt), iterations }
+  return { key: await deriveKey(password, salt, iterations), salt: toB64(salt), iterations, origin }
 }
 
-export async function seal(lock: LockKey, noteId: string, text: string): Promise<LockedContent> {
+export async function seal(lock: LockKey, text: string): Promise<LockedContent> {
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const data = await crypto.subtle.encrypt(
-    params(iv, noteId),
+    params(iv, lock.origin),
     lock.key,
     new TextEncoder().encode(text),
   )
@@ -69,27 +70,34 @@ export async function seal(lock: LockKey, noteId: string, text: string): Promise
     iv: toB64(iv),
     data: toB64Long(new Uint8Array(data)),
     iterations: lock.iterations,
+    origin: lock.origin,
+  }
+}
+
+async function decrypt(key: CryptoKey, locked: LockedContent): Promise<string> {
+  try {
+    const plain = await crypto.subtle.decrypt(
+      params(fromB64(locked.iv), locked.origin),
+      key,
+      fromB64(locked.data) as BufferSource,
+    )
+    return new TextDecoder().decode(plain)
+  } catch {
+    throw new WrongPasswordError('Wrong password')
   }
 }
 
 /** Decrypt a note. Throws WrongPasswordError if the password is wrong or the data was altered. */
 export async function unseal(
   password: string,
-  noteId: string,
   locked: LockedContent,
 ): Promise<{ text: string; lock: LockKey }> {
   const key = await deriveKey(password, fromB64(locked.salt), locked.iterations)
-  try {
-    const plain = await crypto.subtle.decrypt(
-      params(fromB64(locked.iv), noteId),
-      key,
-      fromB64(locked.data) as BufferSource,
-    )
-    return {
-      text: new TextDecoder().decode(plain),
-      lock: { key, salt: locked.salt, iterations: locked.iterations },
-    }
-  } catch {
-    throw new WrongPasswordError('Wrong password')
+  return {
+    text: await decrypt(key, locked),
+    lock: { key, salt: locked.salt, iterations: locked.iterations, origin: locked.origin },
   }
 }
+
+/** Decrypt a newer copy of an already unlocked note (saved by another window). */
+export const unsealWith = (lock: LockKey, locked: LockedContent) => decrypt(lock.key, locked)

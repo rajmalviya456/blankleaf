@@ -76,3 +76,27 @@ test('two notes side by side, both editable', async ({ page }) => {
   await side.getByRole('button', { name: 'Close side note' }).click()
   await expect(side).toBeHidden()
 })
+
+test('a diagram can’t contact another site', async ({ page }) => {
+  const outside: string[] = []
+  await page.route(
+    (url) => url.hostname.endsWith('evil.test'),
+    (route) => {
+      outside.push(route.request().url())
+      return route.abort()
+    },
+  )
+  const article = await preview(
+    page,
+    [
+      '```mermaid',
+      '%%{init:{"themeCSS":".node rect{fill:url(https://evil.test/a)}","fontFamily":"x;background:url(https://evil.test/b)"}}%%',
+      'graph TD',
+      '  A@{ img: "https://evil.test/c.png", label: "Start" } --> B',
+      '```',
+    ].join('\n'),
+  )
+  await expect(article.locator('svg, .md-diagram-error').first()).toBeVisible({ timeout: 15_000 })
+  await page.waitForTimeout(500)
+  expect(outside).toEqual([])
+})

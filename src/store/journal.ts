@@ -96,3 +96,10 @@ export function clearAllJournals(): void {
   for (const { key } of readAllJournals()) clearJournal(key)
   clearJournal(LEGACY_KEY)
 }
+
+/** Remove a note from every saved journal (its text must not outlive being locked). */
+export function scrubJournals(noteId: string): void {
+  for (const { key, journal } of readAllJournals())
+    if (journal.notes.some((n) => n.id === noteId))
+      writeJournal({ ...journal, notes: journal.notes.filter((n) => n.id !== noteId) }, key)
+}

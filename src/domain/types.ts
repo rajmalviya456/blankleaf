@@ -36,6 +36,8 @@ export interface LockedContent {
   iv: string
   data: string
   iterations: number
+  /** The note it was first locked on. Part of what's authenticated, and copied with the data. */
+  origin: string
 }
 
 export interface Note {

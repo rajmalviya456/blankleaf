@@ -186,14 +186,16 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                     </button>
                   </span>
                 </div>
-                <Action
-                  icon={Search}
-                  label="Find & replace"
-                  onSelect={() => {
-                    const view = getActiveView()
-                    if (view) openSearchPanel(view)
-                  }}
-                />
+                {!note.locked && (
+                  <Action
+                    icon={Search}
+                    label="Find & replace"
+                    onSelect={() => {
+                      const view = getActiveView()
+                      if (view) openSearchPanel(view)
+                    }}
+                  />
+                )}
               </Group>
               <Group>
                 <Action

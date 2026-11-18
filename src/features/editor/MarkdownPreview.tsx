@@ -79,6 +79,15 @@ const preBlock: Components['pre'] = ({ node, children, ...props }) => {
 
 const components: Components = { a: link, li: listItem, input: TaskBox, pre: preBlock }
 
+/** Loading an outside image would tell its site who opened the note, so it becomes a link. */
+const imageAsLink: Components['img'] = ({ src, alt }) =>
+  typeof src === 'string' && /^https?:/i.test(src) ? (
+    <a href={src} target="_blank" rel="noopener noreferrer">
+      {alt || 'Image'} (image link)
+    </a>
+  ) : null
+const noRemoteImages: Components = { ...components, img: imageAsLink }
+
 /** Math plugins for this text: given up front (static copies) or loaded when first needed. */
 function useMath(source: string, given?: MathPlugins): MathPlugins | undefined {
   const wanted = !given && needsMath(source)
@@ -100,6 +109,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   className,
   onToggleTask,
   extras,
+  remoteImages = true,
 }: {
   source: string
   className?: string
@@ -107,6 +117,8 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   onToggleTask?(offset: number): void
   /** Math and diagrams prepared in advance, for print and export. */
   extras?: RichExtras
+  /** False for notes from other people and for exported pages. */
+  remoteImages?: boolean
 }) {
   const math = useMath(source, extras?.math)
   const tasks = useMemo(() => ({ source, onToggleTask }), [source, onToggleTask])
@@ -126,7 +138,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
               ...(math?.rehype ?? []),
               [rehypeHighlight, { detect: false }],
             ]}
-            components={components}
+            components={remoteImages ? components : noRemoteImages}
           >
             {source}
           </ReactMarkdown>

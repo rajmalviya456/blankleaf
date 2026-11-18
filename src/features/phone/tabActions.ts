@@ -33,11 +33,15 @@ export function tabActionItems(noteId: string): ActionItem[] {
       icon: note.pinned ? PinOff : Pin,
       onSelect: () => getStore().getState().togglePin(noteId),
     },
-    {
-      label: 'Duplicate',
-      icon: CopyPlus,
-      onSelect: () => getStore().getState().duplicateNote(noteId),
-    },
+    ...(note.locked
+      ? []
+      : [
+          {
+            label: 'Duplicate',
+            icon: CopyPlus,
+            onSelect: () => getStore().getState().duplicateNote(noteId),
+          },
+        ]),
     ...(note.locked
       ? []
       : [{ label: 'Share…', icon: Share2, onSelect: () => shareStore.getState().open(noteId) }]),

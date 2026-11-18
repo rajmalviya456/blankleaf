@@ -125,10 +125,12 @@ export function EditorArea({
 } = {}) {
   const activeId = useAppStore((s) => s.session.activeTabId)
   const locked = useAppStore((s) => !!(activeId && s.notes[activeId]?.locked))
+  const sideNote = useAppStore((s) => (s.ui.sideFocused ? s.session.splitNoteId : null))
+  const toolbarNote = sideNote ?? activeId
   const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen) && !locked
   return (
     <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
-      {activeId && toolbar && showToolbar && <Toolbar noteId={activeId} />}
+      {activeId && toolbar && showToolbar && <Toolbar key={toolbarNote} noteId={toolbarNote!} />}
       {activeId ? (
         <div className="flex min-h-0 flex-1">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">

@@ -5,16 +5,19 @@
  */
 import type { StoreApi } from 'zustand'
 import { writeJournal } from './journal'
+import type { Note } from '../domain/types'
 import type { AppStore } from './store'
+
+const keep = (n: Note) => !!(n.content.trim() || n.title || n.locked)
 
 export function startMemoryJournal(store: StoreApi<AppStore>, target: Window = window): () => void {
   const s = () => store.getState()
-  const hasText = () => Object.values(s().notes).some((n) => n.content.trim() || n.title)
+  const hasText = () => Object.values(s().notes).some(keep)
 
   const save = () =>
     writeJournal({
       at: Date.now(),
-      notes: Object.values(s().notes).filter((n) => n.content.trim() || n.title),
+      notes: Object.values(s().notes).filter(keep),
       session: s().session,
       settings: s().settings,
     })
