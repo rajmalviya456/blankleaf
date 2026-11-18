@@ -5,6 +5,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   ArrowDownAZ,
   Bold,
+  Braces,
   CaseSensitive,
   ChevronDown,
   Clock,
@@ -28,7 +29,7 @@ import {
   WrapText,
   type LucideIcon,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
@@ -48,6 +49,10 @@ import {
   toggleLinePrefix,
   trimLines,
 } from './editCommands'
+import { runTransform, TRANSFORM_IDS, TRANSFORMS, type TransformId } from './transforms'
+
+/** Where a new group starts in the Transform menu (a separator goes before it). */
+const TRANSFORM_GROUP_START = new Set<TransformId>(['json.toYaml', 'base64.encode', 'url.encode'])
 
 const btn =
   'grid h-7 min-w-7 shrink-0 place-items-center rounded-md px-1 text-fg-muted outline-none hover:bg-bg-hover hover:text-fg focus-visible:bg-bg-hover focus-visible:text-fg disabled:pointer-events-none disabled:opacity-35 aria-pressed:bg-accent-soft aria-pressed:text-accent'
@@ -219,6 +224,16 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
         <Item onSelect={run(sortLines)}>Sort lines A→Z</Item>
         <Item onSelect={run(dedupeLines)}>Remove duplicate lines</Item>
         <Item onSelect={run(trimLines)}>Trim trailing spaces</Item>
+      </Menu>
+      <Menu icon={Braces} label="Transform" disabled={off}>
+        {TRANSFORM_IDS.map((id, i) => (
+          <Fragment key={id}>
+            {i > 0 && TRANSFORM_GROUP_START.has(id) && (
+              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+            )}
+            <Item onSelect={run((v) => runTransform(v, id))}>{TRANSFORMS[id].label}</Item>
+          </Fragment>
+        ))}
       </Menu>
       <Btn
         icon={Clock}

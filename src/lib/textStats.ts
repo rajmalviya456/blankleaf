@@ -14,3 +14,19 @@ export function lineColAt(text: string, pos: number): { line: number; col: numbe
   }
   return { line, col: p - lineStart + 1 }
 }
+
+/** Word and character counts of the selection from `anchor` to `head`, or null if none. */
+export function selectionStats(
+  text: string,
+  anchor: number | undefined,
+  head: number | undefined,
+): { words: number; chars: number } | null {
+  const a = Math.max(0, Math.min(anchor ?? 0, text.length))
+  const h = Math.max(0, Math.min(head ?? a, text.length))
+  if (a === h) return null
+  return textStats(text.slice(Math.min(a, h), Math.max(a, h)))
+}
+
+/** "2 words, 7 chars selected" */
+export const selectionLabel = (s: { words: number; chars: number }) =>
+  `${s.words.toLocaleString()} ${s.words === 1 ? 'word' : 'words'}, ${s.chars.toLocaleString()} ${s.chars === 1 ? 'char' : 'chars'} selected`
