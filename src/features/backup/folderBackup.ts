@@ -1,6 +1,6 @@
 /**
  * Automatic backup: keeps a backup file up to date in a folder the user picks, so notes survive
- * cleared browser data. Needs the File System Access API (Chrome and Edge on a computer).
+ * cleared browser data. Offered wherever the browser has the File System Access API.
  *
  * Writes blankleaf-backup-latest.json, plus one dated blankleaf-auto copy per day (the newest
  * seven are kept), so a mistake today can't overwrite yesterday's safety net.

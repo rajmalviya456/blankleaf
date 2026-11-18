@@ -41,8 +41,8 @@ one calm, keyboard-friendly window that opens on a blank page every time.
 - **Diagrams and math in Markdown.** Draw Mermaid diagrams in a ` ```mermaid ` block and write math as
   `$$x^2$$`.
 - **Two notes side by side** on wide screens.
-- **Automatic backup to a folder** in Chrome and Edge on a computer, with a dated copy for each of the last
-  seven days.
+- **Automatic backup to a folder** in browsers that support it, such as Chrome and Edge on a computer, with a
+  dated copy for each of the last seven days.
 - **Voice typing** on a computer, in browsers with speech recognition such as Chrome, Edge and Safari.
 - **Send to Blankleaf.** Installed, it appears in the Android Share menu and can open `.txt` and `.md` files
   on a computer.

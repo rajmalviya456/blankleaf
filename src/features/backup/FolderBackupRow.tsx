@@ -19,7 +19,7 @@ export function FolderBackupRow() {
     return (
       <Row
         label={label}
-        hint="Available in Chrome and Edge on a computer. Here, export a backup now and then."
+        hint="Your browser doesn’t support automatic backup to a folder. Export a backup now and then instead."
       >
         <span className="text-[12px] text-fg-muted">Not available</span>
       </Row>
