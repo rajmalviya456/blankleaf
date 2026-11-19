@@ -23,6 +23,32 @@ const cases: [string, string][] = [
   ['ruby', 'def greet(name)\n  puts "Hello, #{name}"\nend\n\ngreet("Ann")'],
   ['ruby', '[1, 2, 3].each do |n|\n  puts n * 2\nend'],
   ['ruby', "Rails.application.routes.draw do\n  resources :users\n  root to: 'home#index'\nend"],
+  [
+    'csharp',
+    'using System;\n\nnamespace Demo\n{\n    public class Hi\n    {\n        static void Main() { Console.WriteLine("hi"); }\n    }\n}',
+  ],
+  ['kotlin', 'fun main() {\n    val name = "Ann"\n    println("Hi $name")\n}'],
+  [
+    'swift',
+    'import SwiftUI\n\nstruct ContentView: View {\n    var body: some View { Text("Hi") }\n}',
+  ],
+  [
+    'lua',
+    'local function greet(name)\n  print("Hi " .. name)\nend\n\nfor i = 1, 3 do\n  greet(i)\nend',
+  ],
+  ['perl', '#!/usr/bin/perl\nuse strict;\nuse warnings;\nmy $name = "Ann";\nprint "Hi $name\\n";'],
+  ['powershell', 'param([string]$Name)\n$files = Get-ChildItem -Path .\nWrite-Host "Hi $Name"'],
+  ['r', 'library(ggplot2)\ndata <- read.csv("x.csv")\nsummary(data)'],
+  [
+    'nginx',
+    'server {\n    listen 80;\n    server_name example.com;\n    location / {\n        proxy_pass http://app;\n    }\n}',
+  ],
+  ['ini', 'DATABASE_URL=postgres://localhost/db\nPORT=3000\nDEBUG=true'],
+  [
+    'scss',
+    '$brand: #c00;\n\n.btn {\n  color: $brand;\n  &:hover {\n    color: darken($brand, 10%);\n  }\n}',
+  ],
+  ['less', '@brand: #c00;\n\n.btn {\n  color: @brand;\n  .mixin();\n}'],
   ['java', 'public class Hello {\n  public static void main(String[] args) {}\n}'],
   ['cpp', '#include <iostream>\nint main() { std::cout << "hi"; }'],
   ['typescript', 'interface User {\n  id: string\n  age: number\n}'],

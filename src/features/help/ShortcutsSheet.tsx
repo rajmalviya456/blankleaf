@@ -8,6 +8,19 @@ import { DialogSurface } from '../../ui/DialogSurface'
 
 const SECTIONS: CommandSection[] = ['Note', 'Tabs', 'View', 'App']
 
+/** CodeMirror's own keys, worth knowing: [what it does, Mac keys, other keys]. */
+const EDITOR_KEYS: [string, string[], string[]][] = [
+  ['Find and replace', ['⌘F'], ['Ctrl+F']],
+  ['Go to line', ['⌘⌥G'], ['Ctrl+Alt+G']],
+  ['Select next match', ['⌘D'], ['Ctrl+D']],
+  ['Comment line (code notes)', ['⌘/'], ['Ctrl+/']],
+  ['Fold or unfold block (code notes)', ['⌘⌥[', '⌘⌥]'], ['Ctrl+Shift+[', 'Ctrl+Shift+]']],
+  ['Indent / outdent', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
+]
+
+const kbdClass = 'rounded border border-border bg-bg-sunken px-1.5 py-px text-[11px] text-fg-muted'
+const rowClass = 'flex items-center gap-3 px-3 py-1.5 text-[12.5px]'
+
 /** Cheat sheet generated from the command registry. */
 export function ShortcutsSheet() {
   const open = useAppStore((s) => s.ui.shortcutsOpen)
@@ -66,6 +79,28 @@ export function ShortcutsSheet() {
               </section>
             )
           })}
+          <section aria-labelledby="np-editor-keys" className="mb-3">
+            <h3
+              id="np-editor-keys"
+              className="pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint"
+            >
+              In the editor
+            </h3>
+            <dl className="divide-y divide-border rounded-lg border border-border bg-bg">
+              {EDITOR_KEYS.map(([what, mac, other]) => (
+                <div key={what} className={rowClass}>
+                  <dt className="flex-1 text-fg">{what}</dt>
+                  <dd className="flex gap-1.5">
+                    {(p === 'mac' ? mac : other).map((k) => (
+                      <kbd key={k} className={kbdClass}>
+                        {k}
+                      </kbd>
+                    ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
           <p className="text-[11px] text-fg-faint">
             {p === 'mac'
               ? '⌃⌥ is Control+Option. Option alone is left alone so you can type [ ] | @.'

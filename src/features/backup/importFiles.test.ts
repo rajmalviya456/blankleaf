@@ -24,6 +24,23 @@ describe('fileToNote', () => {
     expect(fileToNote('tasks.rake', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
     expect(fileToNote('Gemfile', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
     expect(fileToNote('Rakefile', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
+    for (const [name, lang] of [
+      ['App.kt', 'kotlin'],
+      ['build.gradle.kts', 'kotlin'],
+      ['Program.cs', 'csharp'],
+      ['View.swift', 'swift'],
+      ['init.lua', 'lua'],
+      ['run.pl', 'perl'],
+      ['deploy.ps1', 'powershell'],
+      ['plot.R', 'r'],
+      ['nginx.conf', 'nginx'],
+      ['.env', 'ini'],
+      ['app.properties', 'ini'],
+      ['setup.cfg', 'ini'],
+      ['main.scss', 'scss'],
+      ['theme.less', 'less'],
+    ])
+      expect(fileToNote(name, 'x', 5, DEFAULT_SETTINGS).language, name).toBe(lang)
     expect(fileToNote('Dockerfile', 'FROM x', 5, DEFAULT_SETTINGS).language).toBe('dockerfile')
   })
 })

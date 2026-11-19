@@ -1,9 +1,21 @@
-import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands'
+import type { StateCommand } from '@codemirror/state'
+import {
+  indentLess,
+  indentMore,
+  redo,
+  redoDepth,
+  toggleComment,
+  undo,
+  undoDepth,
+} from '@codemirror/commands'
 import { openSearchPanel } from '@codemirror/search'
 import type { EditorView } from '@codemirror/view'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   ArrowDownAZ,
+  IndentDecrease,
+  IndentIncrease,
+  MessageSquareCode,
   Bold,
   Braces,
   CaseSensitive,
@@ -40,6 +52,7 @@ import { exportNoteAs } from '../export/exportNote'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
 import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
+import { languageMeta } from '../../domain/languages'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { SizeInput } from '../../ui/SizeInput'
@@ -218,9 +231,28 @@ function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: stri
 function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
+  const code = useAppStore((s) => languageMeta(s.notes[noteId]?.language ?? 'auto').kind === 'code')
   const run = (fn: (v: EditorView) => unknown) => () => view && fn(view)
+  // Phones have no Tab key and no Cmd/Ctrl+/, so code notes get buttons for both.
+  const edit = (fn: StateCommand) => () => {
+    if (!view) return
+    fn(view)
+    view.focus()
+  }
   return (
     <>
+      {code && (
+        <>
+          <Btn icon={IndentIncrease} label="Indent" disabled={off} onClick={edit(indentMore)} />
+          <Btn icon={IndentDecrease} label="Outdent" disabled={off} onClick={edit(indentLess)} />
+          <Btn
+            icon={MessageSquareCode}
+            label="Comment line"
+            disabled={off}
+            onClick={edit(toggleComment)}
+          />
+        </>
+      )}
       <Menu icon={CaseSensitive} label="Change case" disabled={off}>
         <Item onSelect={run((v) => changeCase(v, 'upper'))}>UPPERCASE</Item>
         <Item onSelect={run((v) => changeCase(v, 'lower'))}>lowercase</Item>
