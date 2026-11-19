@@ -84,7 +84,13 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
   if (session.openTabIds.length === 0) {
     let first = newNoteDraft(now, settings)
     if (!meta.welcomeShown) {
-      first = { ...first, title: 'Welcome', content: WELCOME_CONTENT }
+      first = {
+        ...first,
+        title: 'Welcome',
+        content: WELCOME_CONTENT,
+        mode: 'markdown',
+        language: 'markdown',
+      }
       meta.welcomeShown = true
       try {
         const res = await saveNote(db, first, 0)
@@ -96,6 +102,15 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
     }
     notes[first.id] = first
     session = { ...session, openTabIds: [first.id], activeTabId: first.id }
+    // The welcome note opens beside its preview, so the Markdown shows rendered straight away.
+    if (first.content === WELCOME_CONTENT)
+      session = {
+        ...session,
+        perTab: {
+          ...session.perTab,
+          [first.id]: { anchor: 0, head: 0, scrollTop: 0, previewMode: 'split' },
+        },
+      }
   }
 
   return { state: { notes, session, settings }, meta, tombstoneIds: data.tombstoneIds, firstRun }

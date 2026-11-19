@@ -21,15 +21,16 @@
   --ok: #2f9e5b;
   --selection: #3d5ce633;
 
-  --syn-keyword: #8a3ffc;
-  --syn-string: #24855a;
-  --syn-number: #b4580a;
-  --syn-comment: #8a909a;
+  /* Each at least 4.6:1 on code blocks and the highlighted line, not only on white. */
+  --syn-keyword: #823bed;
+  --syn-string: #207650;
+  --syn-number: #a45009;
+  --syn-comment: #63676e;
   --syn-function: #2f5bd8;
-  --syn-type: #0f7f95;
+  --syn-type: #0d7084;
   --syn-property: #a1356f;
-  --syn-meta: #6b7280;
-  --syn-punct: #6a7180;
+  --syn-meta: #626875;
+  --syn-punct: #616775;
 
   --find-match: #ffd23f73;
   --find-current: #ff9a1fb3;
@@ -626,15 +627,15 @@ input[type='search']::-webkit-search-decoration {
     --warn: #b7791f;
     --ok: #2f9e5b;
     --selection: #3d5ce633;
-    --syn-keyword: #8a3ffc;
-    --syn-string: #24855a;
-    --syn-number: #b4580a;
-    --syn-comment: #8a909a;
+    --syn-keyword: #823bed;
+    --syn-string: #207650;
+    --syn-number: #a45009;
+    --syn-comment: #63676e;
     --syn-function: #2f5bd8;
-    --syn-type: #0f7f95;
+    --syn-type: #0d7084;
     --syn-property: #a1356f;
-    --syn-meta: #6b7280;
-    --syn-punct: #6a7180;
+    --syn-meta: #626875;
+    --syn-punct: #616775;
     --find-match: #ffd23f73;
     --find-current: #ff9a1fb3;
     --find-current-ring: #e07b00;

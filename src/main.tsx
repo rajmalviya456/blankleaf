@@ -71,6 +71,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
   if (opts.addNote) store.getState().newNote(opts.addNote)
   else if (!boot.firstRun && isFreshVisit()) startOnBlankLeaf(store)
 
+
   createRoot(root).render(
     <StrictMode>
       <App />

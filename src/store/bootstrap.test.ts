@@ -38,6 +38,14 @@ describe('loadInitialState', () => {
     expect(welcome.rev).toBe(1)
   })
 
+  it('the first note is the Markdown sample, beside its preview', async () => {
+    const { state } = await loadInitialState(db, NOW)
+    const [welcome] = Object.values(state.notes!)
+    expect(welcome).toMatchObject({ mode: 'markdown', language: 'markdown' })
+    expect(welcome.content).toContain('```mermaid')
+    expect(state.session!.perTab[welcome.id]?.previewMode).toBe('split')
+  })
+
   it('later runs with no tabs open an empty note instead of Welcome', async () => {
     await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null, welcomeShown: true })
     const { state } = await loadInitialState(db, NOW)
