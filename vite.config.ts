@@ -6,6 +6,7 @@ import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import pkg from './package.json' with { type: 'json' }
 import { PAGES, renderPage, renderSitemap } from './site/pages.ts'
+import { OPENABLE_EXTENSIONS } from './src/domain/fileExtensions.ts'
 
 /** Writes the static landing pages and the sitemap into the build. */
 function sitePages(): Plugin {
@@ -68,8 +69,8 @@ export default defineConfig(({ command }) => ({
           {
             action: './',
             accept: {
-              'text/plain': ['.txt', '.text', '.log'],
               'text/markdown': ['.md', '.markdown'],
+              'text/plain': OPENABLE_EXTENSIONS.filter((e) => e !== '.md' && e !== '.markdown'),
             },
           },
         ],

@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { platform } from '../lib/platform'
 import { matchShortcut } from '../lib/shortcuts'
-import { getStore } from '../store/store'
+import { languageMeta } from '../domain/languages'
+import { getStore, type AppState } from '../store/store'
 import { COMMANDS, commandEnabled } from './registry'
 
 /** Running as an installed app (no browser tabs competing for Cmd/Ctrl+T/W). */
@@ -10,6 +11,14 @@ function isStandalone(): boolean {
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(display-mode: standalone)').matches
   )
+}
+
+/** The key went to the editor of a note written as code. */
+function typingInCode(e: KeyboardEvent, state: AppState): boolean {
+  if (!(e.target instanceof Element) || !e.target.closest('.cm-editor')) return false
+  const id = state.session.activeTabId
+  const lang = id ? state.notes[id]?.language : undefined
+  return !!lang && languageMeta(lang).kind === 'code'
 }
 
 /**
@@ -25,7 +34,10 @@ export function useGlobalShortcuts(): void {
       const state = store.getState()
       for (const cmd of COMMANDS) {
         const hit = cmd.shortcuts.some(
-          (s) => matchShortcut(e, s, p) && (!s.standaloneOnly || isStandalone()),
+          (s) =>
+            matchShortcut(e, s, p) &&
+            (!s.standaloneOnly || isStandalone()) &&
+            !(s.yieldsToCode && typingInCode(e, state)),
         )
         if (!hit) continue
         if (!commandEnabled(cmd, state)) return

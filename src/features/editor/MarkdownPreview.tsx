@@ -8,6 +8,10 @@ import {
   type ComponentProps,
 } from 'react'
 import ReactMarkdown, { type Components, type ExtraProps } from 'react-markdown'
+import dockerfile from 'highlight.js/lib/languages/dockerfile'
+import nginx from 'highlight.js/lib/languages/nginx'
+import powershell from 'highlight.js/lib/languages/powershell'
+import { common } from 'lowlight'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
@@ -35,6 +39,9 @@ const listItem: Components['li'] = ({ node, children, ...props }) => {
 }
 
 /** Task boxes tick and untick the note's text, when the preview is editable. */
+/** highlight.js's common set, plus formats the editor highlights that it leaves out. */
+const FENCE_LANGUAGES = { ...common, dockerfile, nginx, powershell }
+
 function TaskBox({ node: _node, ...props }: ComponentProps<'input'> & ExtraProps) {
   const offset = useContext(TaskItem)
   const tasks = useContext(Tasks)
@@ -136,7 +143,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
             rehypePlugins={[
               rehypeSanitize,
               ...(math?.rehype ?? []),
-              [rehypeHighlight, { detect: false }],
+              [rehypeHighlight, { detect: false, languages: FENCE_LANGUAGES }],
             ]}
             components={remoteImages ? components : noRemoteImages}
           >

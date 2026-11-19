@@ -1,4 +1,11 @@
-import { isLargeDoc, LANGUAGES, languageMeta, LARGE_DOC_CHARS } from './languages'
+import {
+  EXTENSION_ALIASES,
+  isLargeDoc,
+  LANGUAGES,
+  languageMeta,
+  LARGE_DOC_CHARS,
+  OPENABLE_EXTENSIONS,
+} from './languages'
 
 describe('LANGUAGES', () => {
   it('has unique ids and extensions for every selectable format', () => {
@@ -40,5 +47,20 @@ describe('isLargeDoc', () => {
 
   it('assigns every format to a picker group', () => {
     for (const l of LANGUAGES) expect(['text', 'data', 'code']).toContain(l.group)
+  })
+})
+
+describe('openable files', () => {
+  it('lists every format’s extension and the common aliases', () => {
+    const exts = OPENABLE_EXTENSIONS
+    for (const l of LANGUAGES) expect(exts).toContain(`.${l.ext}`)
+    for (const e of ['.yml', '.tsx', '.jsx', '.mjs', '.h', '.rake', '.markdown', '.text'])
+      expect(exts).toContain(e)
+    expect(new Set(exts).size).toBe(exts.length)
+  })
+
+  it('maps an alias to its format', () => {
+    expect(EXTENSION_ALIASES.yml).toBe('yaml')
+    expect(EXTENSION_ALIASES.rake).toBe('ruby')
   })
 })

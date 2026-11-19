@@ -488,7 +488,7 @@ export const COMMANDS: Command[] = [
     title: 'Keyboard shortcuts',
     section: 'App',
     keywords: ['keys', 'help'],
-    shortcuts: [{ code: 'Slash', mod: true }],
+    shortcuts: [{ code: 'Slash', mod: true, yieldsToCode: true }],
     run: (ctx) => st(ctx).setUi({ shortcutsOpen: true, paletteOpen: false }),
   },
   {

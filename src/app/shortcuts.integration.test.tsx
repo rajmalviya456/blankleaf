@@ -57,6 +57,29 @@ describe('global shortcuts', () => {
   })
 })
 
+describe('Ctrl+/', () => {
+  it('opens the shortcuts list from outside the editor', async () => {
+    setup()
+    press('Slash', { ctrlKey: true, key: '/' })
+    expect(await screen.findByRole('dialog', { name: /shortcuts/i })).toBeInTheDocument()
+  })
+
+  it('toggles a comment inside a code note instead', async () => {
+    const { s, id } = setup()
+    act(() => {
+      s().updateContent(id, 'let x = 1')
+      s().setLanguage(id, 'javascript')
+    })
+    const editor = await screen.findByRole('textbox', { name: 'Note text' })
+    await vi.waitFor(() =>
+      expect(document.querySelector('.cm-line .tok-keyword, .cm-line span')).not.toBeNull(),
+    )
+    act(() => void fireEvent.keyDown(editor, { code: 'Slash', key: '/', ctrlKey: true }))
+    expect(screen.queryByRole('dialog', { name: /shortcuts/i })).toBeNull()
+    expect(s().notes[id].content).toBe('// let x = 1')
+  })
+})
+
 describe('zen mode', () => {
   it('Ctrl+. hides the chrome and Escape brings it back', () => {
     const { s } = setup()

@@ -2,18 +2,27 @@
  * Text and developer tools: JSON, YAML, Base64 and URL encoding. Each acts on the selection,
  * or on the whole note when nothing is selected, as one undoable edit.
  */
+import { indentUnit } from '@codemirror/language'
 import type { EditorView } from '@codemirror/view'
 
 export class TransformError extends Error {}
 
 const why = (e: unknown) => (e instanceof Error ? e.message.split('\n')[0] : String(e))
 
+const JSON_TOKEN = /"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g
+
 function parseJson(text: string): unknown {
+  let value: unknown
   try {
-    return JSON.parse(text)
+    value = JSON.parse(text)
   } catch (e) {
     throw new TransformError(`Not valid JSON: ${why(e)}`)
   }
+  // JavaScript numbers round whole numbers past 2^53 (IDs, snowflakes): refuse, don't corrupt.
+  for (const [tok] of text.matchAll(JSON_TOKEN))
+    if (/^-?\d+$/.test(tok) && !Number.isSafeInteger(Number(tok)))
+      throw new TransformError(`Not changed: ${tok} is too large to keep exact.`)
+  return value
 }
 
 async function yaml() {
@@ -40,7 +49,7 @@ function fromBase64(text: string): string {
 export const TRANSFORMS = {
   'json.format': {
     label: 'Format JSON',
-    run: (t: string) => JSON.stringify(parseJson(t), null, 2),
+    run: (t: string, indent = '  ') => JSON.stringify(parseJson(t), null, indent),
   },
   'json.minify': { label: 'Minify JSON', run: (t: string) => JSON.stringify(parseJson(t)) },
   'json.toYaml': {
@@ -85,13 +94,14 @@ export const TRANSFORM_IDS = Object.keys(TRANSFORMS) as TransformId[]
 export async function applyTransform(view: EditorView, id: TransformId): Promise<void> {
   const { state } = view
   const ranges = state.selection.ranges.filter((r) => !r.empty)
+  const indent = state.facet(indentUnit)
   const targets = ranges.length
     ? ranges.map((r) => ({ from: r.from, to: r.to }))
     : [{ from: 0, to: state.doc.length }]
   const results = await Promise.all(
     targets.map(async (r) => ({
       ...r,
-      insert: await TRANSFORMS[id].run(state.doc.sliceString(r.from, r.to)),
+      insert: await TRANSFORMS[id].run(state.doc.sliceString(r.from, r.to), indent),
     })),
   )
   // The note changed while a lazy load was in flight: don't apply stale offsets.

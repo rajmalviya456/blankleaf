@@ -1,4 +1,5 @@
 import { EditorState, EditorSelection } from '@codemirror/state'
+import { indentUnit } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { describe, expect, it } from 'vitest'
 import { applyTransform, TRANSFORMS, type TransformId } from './transforms'
@@ -55,6 +56,22 @@ describe('applyTransform', () => {
     const v = view('{"a":1}')
     await applyTransform(v, 'json.format')
     expect(v.state.doc.toString()).toBe('{\n  "a": 1\n}')
+  })
+
+  it('formats JSON with the note’s indent width', async () => {
+    const v = new EditorView({
+      state: EditorState.create({ doc: '{"a":1}', extensions: [indentUnit.of('    ')] }),
+    })
+    await applyTransform(v, 'json.format')
+    expect(v.state.doc.toString()).toBe('{\n    "a": 1\n}')
+  })
+
+  it('refuses JSON whose big numbers would be rounded', async () => {
+    await expect(run('json.format', '{"id": 12345678901234567890}')).rejects.toThrow(/too large/)
+    await expect(run('json.minify', '[9007199254740993]')).rejects.toThrow(/too large/)
+    expect(await run('json.minify', '[9007199254740991, 1.5e300]')).toBe(
+      '[9007199254740991,1.5e+300]',
+    )
   })
 
   it('transforms only the selection', async () => {

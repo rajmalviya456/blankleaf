@@ -41,6 +41,20 @@ const cases: [string, string][] = [
   ['yaml', '# deploy config\nservices:\n  - web\n  - db\nregion: eu\nreplicas: 2'],
   ['plaintext', 'Meeting went fine. Need to call Sam tomorrow about the budget.'],
   ['plaintext', ''],
+  // Prose that looks like code at a glance.
+  ['plaintext', 'Name: Bob Smith\nPhone: 555 0100\nNotes: call back after lunch'],
+  ['plaintext', 'Select a vendor from the shortlist by Friday.'],
+  ['plaintext', 'Rooms to do: kitchen => paint, hall => tiles'],
+  // Code that used to be misread.
+  ['python', 'import os\n\nconfig = {\n    "debug": True,\n}\n\ndef main():\n    print(config)\n'],
+  [
+    'javascript',
+    'import React from \'react\'\n\nexport function App() {\n  return <div className="app">Hi</div>\n}',
+  ],
+  ['markdown', '# Links\n\nSee <a href="https://x.dev">the docs</a> and **this**.\n\n- one\n- two'],
+  ['cpp', '#include <vector>\n\nclass Stack {\npublic:\n  void push(int v);\n};'],
+  ['sql', 'SELECT id,\n       name\nFROM users\nWHERE active = 1;'],
+  ['dockerfile', '# syntax=docker/dockerfile:1\nFROM node:24\nRUN npm ci'],
 ]
 
 describe('detectLanguage', () => {

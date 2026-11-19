@@ -38,6 +38,15 @@ describe('MarkdownPreview', () => {
     expect(container.querySelector('.hljs-number')?.textContent).toBe('1')
   })
 
+  it.each([
+    ['dockerfile', 'FROM node:24\nRUN npm ci'],
+    ['powershell', 'Get-ChildItem -Path C:\\ | Where-Object { $_.Length -gt 1 }'],
+    ['nginx', 'server {\n  listen 80;\n}'],
+  ])('highlights %s fences like the editor does', (lang, code) => {
+    const { container } = render(<MarkdownPreview source={`\`\`\`${lang}\n${code}\n\`\`\``} />)
+    expect(container.querySelectorAll('[class*="hljs-"]').length).toBeGreaterThan(0)
+  })
+
   it('leaves unknown or unlabeled fences as plain text', () => {
     const { container } = render(
       <MarkdownPreview source={'```\nplain words\n```\n\n```nosuchlang\nx\n```'} />,
