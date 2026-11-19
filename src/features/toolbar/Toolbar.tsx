@@ -55,6 +55,7 @@ import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { languageMeta } from '../../domain/languages'
 import { OutlineMenu } from './OutlineMenu'
+import { SymbolPicker } from '../symbols/SymbolPicker'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { SizeInput } from '../../ui/SizeInput'
@@ -361,6 +362,7 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
         disabled={off}
         onClick={() => view && openSearchPanel(view)}
       />
+      <SymbolPicker className={btn} disabled={off} />
       {!compact && (
         <Btn icon={Maximize2} label="Zen mode" onClick={() => getStore().getState().toggleZen()} />
       )}
