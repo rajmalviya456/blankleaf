@@ -83,6 +83,9 @@
           saved === 'dark' ||
           (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+        // Never opened here before (nothing saved yet): the app will open the welcome note, so
+        // the instant first paint shows its opening lines rather than an empty page.
+        if (saved === null) document.documentElement.dataset.firstVisit = '1'
         document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
       })()
     </script>
@@ -129,6 +132,37 @@
           font-weight: 600;
         }
       }
+      .np-shell-welcome,
+      .np-shell-welcome-title,
+      [data-first-visit] #np-shell p,
+      [data-first-visit] .np-shell-untitled {
+        display: none;
+      }
+      [data-first-visit] .np-shell-welcome-title {
+        display: inline;
+      }
+      [data-first-visit] .np-shell-welcome {
+        display: block;
+        margin: 0;
+        padding: 16px 18px 0 46px;
+        color: #23272f;
+        white-space: pre-wrap;
+        font:
+          14px/1.6 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      [data-theme='dark'][data-first-visit] .np-shell-welcome {
+        color: #e6e8ec;
+      }
+      @media (max-width: 639px) {
+        [data-first-visit] .np-shell-welcome {
+          font-size: 16px;
+          padding-left: 47px;
+        }
+      }
       #np-shell p {
         margin: 0;
         padding: 16px 18px;
@@ -152,8 +186,17 @@
     <div id="root">
       <!-- Painted straight away, and replaced by the app as soon as its code has loaded. -->
       <div id="np-shell" aria-hidden="true">
-        <header>Untitled</header>
+        <header>
+          <span class="np-shell-untitled">Untitled</span
+          ><span class="np-shell-welcome-title">Welcome</span>
+        </header>
         <p>1</p>
+        <pre class="np-shell-welcome">
+# Welcome to Blankleaf
+
+This is a **sample note**. Change anything, it's yours, and delete it when you're done.
+Everything saves in this browser as you type. Nothing leaves your device unless you share it.
+</pre>
       </div>
     </div>
     <noscript>
