@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.0](https://github.com/rajmalviya456/blankleaf/compare/v1.10.1...v1.11.0) (2026-11-19)
+
+
+### Features
+
+* **zen:** laptop zen shows only the note, full screen ([#65](https://github.com/rajmalviya456/blankleaf/issues/65)) ([0fcbe9b](https://github.com/rajmalviya456/blankleaf/commit/0fcbe9b0d7fe514778ebc5aa84fae221108fdc18))
+
+
+### Bug Fixes
+
+* **backup:** don't show the backup reminder during zen mode ([798adcc](https://github.com/rajmalviya456/blankleaf/commit/798adcc418d54007d6221fbefbb783bdae637c0f))
+
 ## [1.10.1](https://github.com/rajmalviya456/blankleaf/compare/v1.10.0...v1.10.1) (2026-11-19)
 
 
