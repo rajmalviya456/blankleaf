@@ -6,6 +6,7 @@ import { detectLanguage } from '../../domain/detectLanguage'
 import { isLargeDoc } from '../../domain/languages'
 import { detectStore } from './DetectChip'
 import { noteLinks } from '../links/linkEditor'
+import { useSpellCheck } from '../spell/useSpellCheck'
 import { calmSyntax } from './highlight'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
@@ -60,7 +61,6 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const fontSize = effectiveEditorFontSize(settings, phone)
   const base = useEditorExtensions({
     wrap,
-    spellcheck,
     // Zen: just the words, no line numbers or highlighted line.
     settings: {
       ...settings,
@@ -72,10 +72,12 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   })
   const langExt = useLanguageExtension(lang, large)
   const links = useMemo(() => noteLinks(noteId), [noteId])
-  const extensions = useMemo(
-    () => (langExt ? [...base, links, langExt, calmSyntax] : [...base, links]),
-    [base, links, langExt],
-  )
+  const spell = useSpellCheck(spellcheck && !large)
+  const extensions = useMemo(() => {
+    const ext = [...base, links]
+    if (spell) ext.push(spell)
+    return langExt ? [...ext, langExt, calmSyntax] : ext
+  }, [base, links, spell, langExt])
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)

@@ -5,13 +5,14 @@
  */
 import CodeMirror from '@uiw/react-codemirror'
 import { LockKeyhole, LockKeyholeOpen } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { effectiveEditorFontSize } from '../../domain/defaults'
 import { displayTitle } from '../../domain/title'
 import { useIsPhone } from '../../lib/media'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { calmEditorTheme } from '../editor/theme'
+import { useSpellCheck } from '../spell/useSpellCheck'
 import { useEditorExtensions } from '../editor/useEditorExtensions'
 import { seal, unseal, unsealWith, WrongPasswordError, type LockKey } from './lockCrypto'
 
@@ -33,11 +34,15 @@ function UnlockedEditor({
   const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
   const stored = useAppStore((s) => s.notes[noteId]?.locked)
   const phone = useIsPhone()
-  const extensions = useEditorExtensions({
+  const editorBase = useEditorExtensions({
     wrap,
-    spellcheck,
     settings: { ...settings, editorFontSize: effectiveEditorFontSize(settings, phone) },
   })
+  const spell = useSpellCheck(spellcheck)
+  const extensions = useMemo(
+    () => (spell ? [...editorBase, spell] : editorBase),
+    [editorBase, spell],
+  )
   const [shown, setShown] = useState({ text: initial, version: 0 })
   const latest = useRef(initial)
   /** The encrypted version this window is editing on top of. */

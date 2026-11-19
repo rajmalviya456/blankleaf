@@ -42,12 +42,16 @@ test('a template opens ready to fill in', async ({ page }) => {
 
 test('spell check turns on for one note', async ({ page }) => {
   await openApp(page)
-  await newNote(page, 'teh')
-  await expect(editor(page)).toHaveAttribute('spellcheck', 'false')
+  await newNote(page, 'I saw teh cat ')
+  const marks = page.locator('.np-misspelled')
+  await page.waitForTimeout(500)
+  await expect(marks).toHaveCount(0)
   await statusBar(page).getByRole('button', { name: 'Spelling: off' }).click()
-  await expect(editor(page)).toHaveAttribute('spellcheck', 'true')
+  await expect(marks).toHaveText(['teh'])
+  // Blankleaf's own check: the browser's stays off.
+  await expect(editor(page)).toHaveAttribute('spellcheck', 'false')
   await page.reload()
-  await expect(editor(page)).toHaveAttribute('spellcheck', 'true')
+  await expect(marks).toHaveText(['teh'])
 })
 
 test('the notes list sorts by name', async ({ page }) => {

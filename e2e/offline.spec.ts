@@ -29,3 +29,23 @@ test('with the service worker running, the sitemap is still the sitemap', async 
   expect(res?.headers()['content-type']).toContain('xml')
   expect(await res?.text()).toContain('<urlset')
 })
+
+test('spell check underlines typos, and keeps working offline', async ({ page, context }) => {
+  await openApp(page)
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true)
+  await newNote(page, 'I recieve teh notes from Blankleaf. ')
+  await page.keyboard.press('ControlOrMeta+K')
+  await page.getByRole('combobox').fill('Toggle spell check')
+  await page.keyboard.press('Enter')
+  const marks = page.locator('.np-misspelled')
+  await expect(marks).toHaveText(['recieve', 'teh'])
+
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.locator('.cm-editor')).toBeVisible()
+  await expect(marks).toHaveText(['recieve', 'teh'])
+})

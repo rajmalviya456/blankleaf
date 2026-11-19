@@ -726,3 +726,49 @@ input[type='search']::-webkit-search-decoration {
 .np-zen .cm-scroller {
   font-size: 1.06em;
 }
+
+/* Spelling: a red wavy underline, and fixes in a small popup under the word. */
+.np-misspelled {
+  text-decoration: underline wavy var(--danger);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+}
+.cm-tooltip.np-spell-tip {
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  padding: 4px;
+  font: 13px var(--font-ui);
+  color: var(--fg-muted);
+}
+.np-spell-fixes {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 6px 4px;
+}
+.np-spell-fixes:has(button) {
+  padding: 0;
+}
+.np-spell-tip button {
+  min-height: 32px;
+  border-radius: 6px;
+  padding: 0 10px;
+  text-align: left;
+  color: var(--fg);
+  font-weight: 500;
+}
+.np-spell-tip button:hover {
+  background: var(--bg-hover);
+}
+.np-spell-tip .np-spell-add {
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+  color: var(--fg-muted);
+  font-weight: 400;
+}
