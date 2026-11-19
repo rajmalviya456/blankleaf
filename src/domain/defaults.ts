@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   lineNumbers: true,
   tabSize: 2,
   highlightActiveLine: true,
+  codeRuler: 80,
   showToolbar: true,
   backupReminderDays: 7,
   notesSort: 'edited',
@@ -36,6 +37,7 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
     if (value !== undefined && typeof value === typeof DEFAULT_SETTINGS[key]) target[key] = value
   }
   if (!['edited', 'created', 'title'].includes(out.notesSort)) out.notesSort = 'edited'
+  if (![0, 80, 100, 120].includes(out.codeRuler)) out.codeRuler = DEFAULT_SETTINGS.codeRuler
   return out
 }
 
