@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/rajmalviya456/blankleaf/compare/v1.13.0...v1.13.1) (2026-11-19)
+
+
+### Performance
+
+* **first-visit:** paint the welcome note's opening at once ([#83](https://github.com/rajmalviya456/blankleaf/issues/83)) ([e535403](https://github.com/rajmalviya456/blankleaf/commit/e535403772abd0d210511bde02efc26d23abfbe4))
+
 ## [1.13.0](https://github.com/rajmalviya456/blankleaf/compare/v1.12.1...v1.13.0) (2026-11-19)
 
 
