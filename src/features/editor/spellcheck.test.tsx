@@ -20,10 +20,11 @@ describe('spell check per note', () => {
     const other = s().newNote()
     const { container } = render(<Editor noteId={id} />)
     const content = () => container.querySelector('.cm-content')!
-    expect(content()).toHaveAttribute('spellcheck', 'false')
     act(() => s().toggleSpellcheck(id))
-    expect(content()).toHaveAttribute('spellcheck', 'true')
+    expect(s().notes[id].spellcheck).toBe(true)
     expect(s().notes[other].spellcheck).toBeFalsy()
+    // Blankleaf checks spelling itself; the browser's own check stays off either way.
+    expect(content()).toHaveAttribute('spellcheck', 'false')
   })
 
   it('has a status bar switch', async () => {

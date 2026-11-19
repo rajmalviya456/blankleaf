@@ -17,8 +17,6 @@ import { newlineKeepingIndent } from './keepIndent'
 
 interface Options {
   wrap: boolean
-  /** Let the browser underline misspelled words. */
-  spellcheck?: boolean
   /** Very large document: drop per-line decorations to stay responsive. */
   large?: boolean
   settings: Pick<
@@ -32,12 +30,7 @@ interface Options {
   >
 }
 
-export function useEditorExtensions({
-  wrap,
-  spellcheck = false,
-  settings,
-  large = false,
-}: Options): Extension[] {
+export function useEditorExtensions({ wrap, settings, large = false }: Options): Extension[] {
   const {
     lineNumbers: showNumbers,
     highlightActiveLine: activeLine,
@@ -65,7 +58,10 @@ export function useEditorExtensions({
       ]),
       EditorView.contentAttributes.of({
         'aria-label': 'Note text',
-        spellcheck: spellcheck ? 'true' : 'false',
+        // Blankleaf checks spelling itself (features/spell): the browser's check lags behind the
+        // editor's redraws, misses older words and flags code, so it stays off.
+        spellcheck: 'false',
+        autocorrect: 'off',
       }),
     ]
     if (showNumbers) ext.push(lineNumbers(), highlightActiveLineGutter())
@@ -84,15 +80,5 @@ export function useEditorExtensions({
       }),
     )
     return ext
-  }, [
-    wrap,
-    spellcheck,
-    showNumbers,
-    activeLine,
-    tabSize,
-    large,
-    editorFontSize,
-    lineHeight,
-    editorFont,
-  ])
+  }, [wrap, showNumbers, activeLine, tabSize, large, editorFontSize, lineHeight, editorFont])
 }

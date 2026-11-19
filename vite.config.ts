@@ -102,6 +102,12 @@ export default defineConfig(({ command }) => ({
             handler: 'CacheFirst',
             options: { cacheName: 'diagrams', expiration: { maxEntries: 120 } },
           },
+          // The spell check dictionary (~550 KB): only for people who turn spell check on.
+          {
+            urlPattern: /\/assets\/[^/]+\.(dic|aff)$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'dictionary', expiration: { maxEntries: 4 } },
+          },
         ],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',

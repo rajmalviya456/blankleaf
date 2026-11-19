@@ -1,3 +1,5 @@
+import { EditorView } from '@codemirror/view'
+import { setSpellServiceForTests } from '../spell/spellService'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -162,8 +164,19 @@ describe('controls on locked notes', () => {
   it('spell check applies while unlocked', async () => {
     const { s, id } = await lockedNote('secret')
     act(() => s().toggleSpellcheck(id))
+    setSpellServiceForTests({
+      check: async (words) => new Set(words.filter((w) => w === 'secrt')),
+      suggest: async () => [],
+      add: () => {},
+    })
+    act(() => s().updateContent(id, ''))
     const { container } = await unlockInApp()
-    expect(container.querySelector('.cm-content')).toHaveAttribute('spellcheck', 'true')
+    const view = EditorView.findFromDOM(container.querySelector('.cm-editor') as HTMLElement)!
+    act(() => view.dispatch({ changes: { from: 0, insert: 'my secrt ' } }))
+    await waitFor(() =>
+      expect(container.querySelector('.np-misspelled')?.textContent).toBe('secrt'),
+    )
+    setSpellServiceForTests(null)
   })
 })
 
