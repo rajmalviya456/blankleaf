@@ -69,3 +69,9 @@ test('a shared link ending in a file name still opens offline', async ({ page, c
   await page.goto('./?url=https%3A%2F%2Fexample.com%2Fphoto.png')
   await expect(editor(page)).toContainText('photo.png')
 })
+
+test("the app icon's Today's note shortcut opens today's journal", async ({ page }) => {
+  await page.goto('./?shortcut=today')
+  await expect(page.locator('.cm-content')).toContainText('# Journal:')
+  expect(new URL(page.url()).search).toBe('')
+})

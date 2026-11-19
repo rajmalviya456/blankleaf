@@ -94,3 +94,17 @@ export function newFromTemplate(
   s.setViewState(note, { anchor: content.length, head: content.length })
   return note
 }
+
+/** Today's journal: opened if it exists (by its heading), made from the template if not. */
+export function openToday(store: StoreApi<AppStore>, now: number = Date.now()): string {
+  const s = store.getState()
+  const heading = `# Journal: ${longDate(now)}`
+  const existing = Object.values(s.notes).find(
+    (n) => n.deletedAt === null && n.content.startsWith(heading + '\n'),
+  )
+  if (existing) {
+    s.openNote(existing.id)
+    return existing.id
+  }
+  return newFromTemplate(store, 'journal', now)
+}

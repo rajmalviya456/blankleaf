@@ -2,7 +2,11 @@
  * Getting text into Blankleaf from outside: the phone's Share menu and opening files from the
  * computer. Both work once Blankleaf is installed as an app.
  */
+import type { StoreApi } from 'zustand'
+import { COMMANDS } from '../../commands/registry'
 import type { Note } from '../../domain/types'
+import type { AppStore } from '../../store/store'
+import { openToday } from '../templates/templates'
 import { isFreshVisit } from '../../store/freshStart'
 import { getStore } from '../../store/store'
 import { importFileList } from '../backup/actions'
@@ -60,4 +64,26 @@ export function openLaunchedFiles(): void {
     const now = getStore().getState()
     if (startedBlank && active && now.session.activeTabId !== active) now.closeTab(active)
   })
+}
+
+/** The installed app's icon menu: New note, Today's note, Search notes. */
+export type LaunchShortcut = 'new' | 'today' | 'search'
+const SHORTCUTS: readonly LaunchShortcut[] = ['new', 'today', 'search']
+
+/** The icon shortcut this launch came from, if any; taken out of the address bar once read. */
+export function takeLaunchShortcut(): LaunchShortcut | null {
+  const url = new URL(location.href)
+  const value = url.searchParams.get('shortcut')
+  if (value === null) return null
+  url.searchParams.delete('shortcut')
+  history.replaceState(history.state, '', url.pathname + url.search + url.hash)
+  return (SHORTCUTS as readonly string[]).includes(value) ? (value as LaunchShortcut) : null
+}
+
+export function runLaunchShortcut(shortcut: LaunchShortcut, store: StoreApi<AppStore>): void {
+  const s = store.getState()
+  if (shortcut === 'today') return void openToday(store)
+  if (shortcut === 'search') return COMMANDS.find((c) => c.id === 'view.search')?.run({ store })
+  const active = s.session.activeTabId ? s.notes[s.session.activeTabId] : undefined
+  if (!active || active.content || active.locked) s.newNote()
 }
