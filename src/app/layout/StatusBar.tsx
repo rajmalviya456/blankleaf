@@ -140,7 +140,9 @@ function MoreSettings({ note, line, col }: { note: Note; line: number; col: numb
             onCheckedChange={() => s().toggleWrap(note.id)}
             className={menuItem}
           >
-            <span aria-hidden className="w-3">{note.wrap ? '✓' : ''}</span>
+            <span aria-hidden className="w-3">
+              {note.wrap ? '✓' : ''}
+            </span>
             Wrap long lines
           </DropdownMenu.CheckboxItem>
           <DropdownMenu.CheckboxItem
@@ -148,7 +150,9 @@ function MoreSettings({ note, line, col }: { note: Note; line: number; col: numb
             onCheckedChange={() => s().toggleSpellcheck(note.id)}
             className={menuItem}
           >
-            <span aria-hidden className="w-3">{note.spellcheck ? '✓' : ''}</span>
+            <span aria-hidden className="w-3">
+              {note.spellcheck ? '✓' : ''}
+            </span>
             Spell check
           </DropdownMenu.CheckboxItem>
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
