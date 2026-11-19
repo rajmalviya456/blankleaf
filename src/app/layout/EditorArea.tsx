@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
+import { SampleHint } from '../../features/sample/SampleHint'
 import { VoiceStatus } from '../../features/voice/VoiceStatus'
 import { getStore, useAppStore } from '../../store/store'
 
@@ -137,6 +138,7 @@ export function EditorArea({
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
             <VoiceStatus />
+            <SampleHint noteId={activeId} />
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>

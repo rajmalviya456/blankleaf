@@ -38,12 +38,16 @@ test('following the system theme stays correct when the system changes', async (
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 })
 
-test('startup code leaves out editor features the app doesn’t use', async ({ page }) => {
+test('startup code leaves out editor features the app doesn’t use', async ({ page, context }) => {
+  // A returning visit, which starts on a blank page. The first visit's sample note loads extra
+  // language packs for its code blocks on purpose.
+  await openApp(page)
+  const again = await context.newPage()
   const startup: string[] = []
-  page.on('response', async (r) => {
+  again.on('response', async (r) => {
     if (r.url().endsWith('.js')) startup.push(await r.text().catch(() => ''))
   })
-  await openApp(page)
+  await openApp(again)
   const code = startup.join('\n')
   expect(code).not.toContain('cm-completionIcon')
   expect(code).not.toContain('cm-lintRange')

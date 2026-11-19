@@ -14,6 +14,7 @@ import { goalStore } from '../features/goal/goalStore'
 import { isVoiceSupported, toggleVoice } from '../features/voice/voice'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
+import { openSample } from '../features/sample/sample'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
 import { phoneViewFor } from '../features/phone/phoneView'
@@ -501,6 +502,17 @@ export const COMMANDS: Command[] = [
     keywords: ['keys', 'help'],
     shortcuts: [{ code: 'Slash', mod: true, yieldsToCode: true }],
     run: (ctx) => st(ctx).setUi({ shortcutsOpen: true, paletteOpen: false }),
+  },
+  {
+    id: 'help.sample',
+    title: 'Open sample note',
+    section: 'App',
+    keywords: ['demo', 'example', 'tour', 'help', 'markdown'],
+    shortcuts: [],
+    run: (ctx) => {
+      openSample(ctx.store)
+      st(ctx).setUi({ paletteOpen: false })
+    },
   },
   {
     id: 'app.about',

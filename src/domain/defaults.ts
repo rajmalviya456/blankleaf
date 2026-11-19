@@ -70,22 +70,54 @@ export function newNoteDraft(
   }
 }
 
-export const WELCOME_CONTENT = `Welcome to Blankleaf
+/** The first note anyone sees, and the "sample note": shows off Markdown, beside its preview. */
+export const WELCOME_CONTENT = `# Welcome to Blankleaf
 
-Everything you type is saved in this browser automatically. Nothing leaves your machine.
+This is a **sample note**. Change anything, it's yours, and delete it when you're done.
+Everything saves in this browser as you type. Nothing leaves your device unless you share it.
 
-Shortcuts (⌘ = Ctrl on Windows/Linux, Mod2 = ⌃⌥ on Mac, Alt elsewhere)
-  ⌘K          Command palette
-  Mod2+N      New note
-  Mod2+W      Close tab
-  Mod2+1…9    Jump to tab
-  ⌘B          Toggle sidebar
-  ⌘⇧F         Search all notes
-  ⌘.          Zen mode
-  F2          Rename tab
+## A checklist
 
-Back up regularly: Settings → Data → Export.
-Delete this note whenever you like — it won't come back.
+Tick the boxes in the preview.
+
+- [x] Open Blankleaf
+- [ ] Write something
+- [ ] Share a note with an encrypted link
+
+## A diagram
+
+\`\`\`mermaid
+flowchart LR
+  Idea --> Draft --> Share
+\`\`\`
+
+## Code
+
+\`\`\`js
+const greet = (name) => \`Hello, \${name}!\`
+\`\`\`
+
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+\`\`\`
+
+## Math
+
+$$
+e^{i\\pi} + 1 = 0
+$$
+
+## Keys
+
+| Keys | What it does |
+| --- | --- |
+| Ctrl/⌘ K | Command palette |
+| Alt N (⌃⌥N on a Mac) | New note |
+| Ctrl/⌘ Shift F | Search all notes |
+| Ctrl/⌘ / | All keyboard shortcuts |
+
+Back up now and then: Settings → Data → Export, or pick a backup folder there.
 `
 
 /** Editor text size for this device: phones use their own size, never below 16px. */
