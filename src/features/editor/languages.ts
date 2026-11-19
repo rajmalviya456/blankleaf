@@ -24,7 +24,13 @@ const LOADERS: Partial<Record<LanguageId, Loader>> = {
     return markdown({ base: markdownLanguage, codeLanguages: languages })
   },
   log: async () => logLanguage,
-  json: async () => (await import('@codemirror/lang-json')).json(),
+  json: async () => {
+    const [{ json }, { jsonLint }] = await Promise.all([
+      import('@codemirror/lang-json'),
+      import('./jsonLint'),
+    ])
+    return [json(), jsonLint]
+  },
   javascript: async () => (await import('@codemirror/lang-javascript')).javascript({ jsx: true }),
   typescript: async () =>
     (await import('@codemirror/lang-javascript')).javascript({ typescript: true, jsx: true }),
