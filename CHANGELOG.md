@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/rajmalviya456/blankleaf/compare/v1.10.0...v1.10.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **backup:** don't ask first-time visitors to back up the welcome note ([#63](https://github.com/rajmalviya456/blankleaf/issues/63)) ([ca3202a](https://github.com/rajmalviya456/blankleaf/commit/ca3202aa2d48c2f8c96847917b1c0c8a4d1c5251))
+
 ## [1.10.0](https://github.com/rajmalviya456/blankleaf/compare/v1.9.0...v1.10.0) (2026-11-19)
 
 
