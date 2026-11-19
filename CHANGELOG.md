@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.13.0](https://github.com/rajmalviya456/blankleaf/compare/v1.12.1...v1.13.0) (2026-11-19)
+
+
+### Features
+
+* **app:** shortcuts on the installed app's icon ([#76](https://github.com/rajmalviya456/blankleaf/issues/76)) ([0ce2e3d](https://github.com/rajmalviya456/blankleaf/commit/0ce2e3d00a2d7b59e8c6d6ae967c0488c9d12d51))
+* **code:** a faint column ruler in code notes ([#78](https://github.com/rajmalviya456/blankleaf/issues/78)) ([10ebd79](https://github.com/rajmalviya456/blankleaf/commit/10ebd7976ad20d14a7075e21772a254f74b2916f))
+* **editor:** insert symbols and emoji from a picker ([#79](https://github.com/rajmalviya456/blankleaf/issues/79)) ([20cae23](https://github.com/rajmalviya456/blankleaf/commit/20cae23f217721e77be160a457fbf2fb40c1bc36))
+* **spell:** spell check in UK, Australian, Canadian English and Spanish ([#80](https://github.com/rajmalviya456/blankleaf/issues/80)) ([e21e158](https://github.com/rajmalviya456/blankleaf/commit/e21e15817a152d2122aabcd4eb88362f08f6f301))
+* **writing:** readability panel ([#81](https://github.com/rajmalviya456/blankleaf/issues/81)) ([19ea451](https://github.com/rajmalviya456/blankleaf/commit/19ea4515f1c66d14d68052710286dc49dddfe78a))
+
+
+### Bug Fixes
+
+* **palette:** rank whole-word matches first ([#74](https://github.com/rajmalviya456/blankleaf/issues/74)) ([fcaa294](https://github.com/rajmalviya456/blankleaf/commit/fcaa2940fef81347676c44c7d15543ab6a4b5452))
+* **status-bar:** a … menu for the settings that don't fit ([#75](https://github.com/rajmalviya456/blankleaf/issues/75)) ([f5f5b72](https://github.com/rajmalviya456/blankleaf/commit/f5f5b722ce5f14796db0c390337802045c522469))
+
+
+### Performance
+
+* **preview:** draw big previews in chunks, without freezing ([#82](https://github.com/rajmalviya456/blankleaf/issues/82)) ([ee65f92](https://github.com/rajmalviya456/blankleaf/commit/ee65f92df6290bcfca65192f4a88ddbb9b0874b5))
+
 ## [1.12.1](https://github.com/rajmalviya456/blankleaf/compare/v1.12.0...v1.12.1) (2026-11-19)
 
 
