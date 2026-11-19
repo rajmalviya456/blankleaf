@@ -4,6 +4,7 @@ import type { Extension } from '@codemirror/state'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { detectLanguage } from '../../domain/detectLanguage'
 import { isLargeDoc } from '../../domain/languages'
+import { detectStore } from './DetectChip'
 import { calmSyntax } from './highlight'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
@@ -35,7 +36,9 @@ function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
   useEffect(() => {
     if (lang !== 'auto' || deferred.trim().length < 8) return
     const guess = detectLanguage(deferred)
-    if (guess !== 'plaintext') getStore().getState().setLanguage(noteId, guess)
+    if (guess === 'plaintext') return
+    getStore().getState().setLanguage(noteId, guess)
+    detectStore.getState().show(noteId, guess)
   }, [noteId, lang, deferred])
 }
 
