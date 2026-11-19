@@ -78,3 +78,18 @@ describe('StatusBar for assistive tech', () => {
     expect(within(bar).getByRole('status', { name: 'Save status' })).toHaveTextContent('Saved')
   })
 })
+
+describe('StatusBar with two notes side by side', () => {
+  it('describes the note being edited, including the side note', () => {
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    const side = s().newNote({ content: 'one two three four five' })
+    s().newNote({ content: 'main' })
+    s().setSplitNote(side)
+    render(<StatusBar />)
+    const bar = screen.getByRole('contentinfo', { name: 'Status bar' })
+    expect(bar).toHaveTextContent('1 word')
+    act(() => s().setUi({ sideFocused: true }))
+    expect(bar).toHaveTextContent('5 words')
+  })
+})

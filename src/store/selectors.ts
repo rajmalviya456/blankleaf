@@ -12,6 +12,12 @@ export function activeNote(s: AppState): Note | null {
   return (id && s.notes[id]) || null
 }
 
+/** The note being edited: the side note while it has the cursor, else the active tab's. */
+export function editingNote(s: AppState): Note | null {
+  const side = s.ui.sideFocused ? s.session.splitNoteId : null
+  return (side && s.notes[side]) || activeNote(s)
+}
+
 const byName = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 const ORDER: Record<NotesSort, (a: Note, b: Note) => number> = {

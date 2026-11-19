@@ -77,6 +77,34 @@ test('two notes side by side, both editable', async ({ page }) => {
   await expect(side).toBeHidden()
 })
 
+test('only the note with the cursor shows its highlighted line and is marked as edited', async ({
+  page,
+}) => {
+  await openApp(page)
+  await newNote(page, 'left note')
+  await newNote(page, 'right note')
+  await tabs(page).filter({ hasText: 'left note' }).click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Open beside' }).click()
+  const side = page.getByRole('region', { name: 'Side note: left note' })
+  const main = page.locator('main .cm-editor').first()
+  const lineBg = (scope: ReturnType<typeof page.locator>) =>
+    scope
+      .locator('.cm-activeLine')
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor)
+  const clear = 'rgba(0, 0, 0, 0)'
+
+  await side.locator('.cm-content').click()
+  await expect.poll(() => lineBg(main)).toBe(clear)
+  await expect.poll(() => lineBg(side)).not.toBe(clear)
+  await expect(side).toHaveAttribute('data-editing', 'true')
+
+  await main.locator('.cm-content').click()
+  await expect.poll(() => lineBg(side)).toBe(clear)
+  await expect.poll(() => lineBg(main)).not.toBe(clear)
+  await expect(side).not.toHaveAttribute('data-editing', 'true')
+})
+
 test('a diagram can’t contact another site', async ({ page }) => {
   const outside: string[] = []
   await page.route(
