@@ -53,6 +53,7 @@ import { getActiveView, useActiveView, useActiveViewValue } from '../editor/acti
 import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { languageMeta } from '../../domain/languages'
+import { OutlineMenu } from './OutlineMenu'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { SizeInput } from '../../ui/SizeInput'
@@ -182,11 +183,13 @@ function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorVi
 
 function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
+  const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
   const run = (fn: (v: EditorView) => unknown) => () => {
     if (view) formatAsMarkdown(noteId, view, fn)
   }
   return (
     <>
+      {markdown && <OutlineMenu noteId={noteId} className={menuBtn} disabled={off} />}
       <Menu icon={Heading} label="Heading" disabled={off}>
         {[1, 2, 3].map((n) => (
           <Item key={n} onSelect={run((v) => setHeading(v, n))}>

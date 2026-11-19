@@ -177,3 +177,41 @@ describe('code tools', () => {
     expect(screen.queryByRole('button', { name: 'Comment line' })).toBeNull()
   })
 })
+
+describe('Outline', () => {
+  const DOC = '# Title\n\nintro\n\n## Part one\n\ntext\n\n## Part two\n\nend'
+
+  it('lists a Markdown note’s headings and jumps to one', async () => {
+    const { id, s, view } = setup(DOC, true)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Outline' }))
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map((i) => i.textContent)).toEqual(['Title', 'Part one', 'Part two'])
+    await user.click(screen.getByRole('menuitem', { name: 'Part two' }))
+    const at = DOC.indexOf('## Part two')
+    expect(s().ui.reveal).toMatchObject({ noteId: id, from: at, to: at })
+    await vi.waitFor(() => expect(view.state.selection.main.head).toBe(at))
+  })
+
+  it('switches from preview-only to side by side, so the jump is visible', async () => {
+    const { id, s } = setup(DOC, true)
+    act(() => s().setViewState(id, { previewMode: 'preview' }))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Outline' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Part one' }))
+    expect(s().session.perTab[id]?.previewMode).toBe('split')
+  })
+
+  it('says when there are no headings yet', async () => {
+    setup('no headings', true)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Outline' }))
+    expect(await screen.findByText(/No headings yet/)).toBeInTheDocument()
+  })
+
+  it('isn’t offered for plain text notes', () => {
+    const { id, s } = setup(DOC, false)
+    act(() => s().setLanguage(id, 'plaintext'))
+    expect(screen.queryByRole('button', { name: 'Outline' })).toBeNull()
+  })
+})
