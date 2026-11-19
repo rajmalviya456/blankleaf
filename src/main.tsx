@@ -4,7 +4,12 @@ import { App } from './app/App'
 import { exportAll } from './features/backup/actions'
 import { startFolderBackup } from './features/backup/folderBackup'
 import { initMeta } from './features/backup/meta'
-import { openLaunchedFiles, takeSharedNote } from './features/launch/launch'
+import {
+  openLaunchedFiles,
+  runLaunchShortcut,
+  takeLaunchShortcut,
+  takeSharedNote,
+} from './features/launch/launch'
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
 import { createShareHost } from './features/share/host'
@@ -20,7 +25,7 @@ import { registerStorage } from './store/dataReset'
 import { isFreshVisit, startOnBlankLeaf } from './store/freshStart'
 import { startMemoryJournal } from './store/memoryJournal'
 import { startPersistence } from './store/persistence'
-import { createAppStore, initStore } from './store/store'
+import { createAppStore, getStore, initStore } from './store/store'
 import './styles/index.css'
 import { toast } from './ui/toast'
 import { renameStorageKeys } from './lib/renameStorageKeys'
@@ -91,7 +96,9 @@ async function main() {
   const parts = parseShareHash(location.hash)
   if (!parts) {
     const shared = takeSharedNote()
+    const shortcut = takeLaunchShortcut()
     await bootApp(shared ? { addNote: shared } : {})
+    if (shortcut) runLaunchShortcut(shortcut, getStore())
     openLaunchedFiles()
     return
   }

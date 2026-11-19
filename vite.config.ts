@@ -90,6 +90,12 @@ export default defineConfig(({ command }) => ({
             purpose: 'maskable',
           },
         ],
+        // Right-click (computer) or long-press (phone) the installed app's icon.
+        shortcuts: [
+          { name: 'New note', short_name: 'New', url: './?shortcut=new' },
+          { name: "Today's note", short_name: 'Today', url: './?shortcut=today' },
+          { name: 'Search notes', short_name: 'Search', url: './?shortcut=search' },
+        ].map((s) => ({ ...s, icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }] })),
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
