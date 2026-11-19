@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
 import { shareStore } from '../features/share/shareStore'
+import { compareStore } from '../features/compare/compareStore'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
 import { tagsStore } from '../features/tags/tagsStore'
@@ -51,6 +52,9 @@ const WhatsNewDialog = lazy(() =>
 const AboutDialog = lazy(() =>
   import('../features/about/AboutDialog').then((m) => ({ default: m.AboutDialog })),
 )
+const CompareDialog = lazy(() =>
+  import('../features/compare/CompareDialog').then((m) => ({ default: m.CompareDialog })),
+)
 const HistoryDialog = lazy(() =>
   import('../features/history/HistoryDialog').then((m) => ({ default: m.HistoryDialog })),
 )
@@ -83,6 +87,7 @@ function Dialogs() {
   const importing = useStore(importStore, (s) => s.open)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
   const history = useStore(historyStore, (s) => s.noteId !== null)
+  const comparing = useStore(compareStore, (s) => s.noteId !== null)
   const printing = useStore(printStore, (s) => s.noteId !== null)
   const tagging = useStore(tagsStore, (s) => s.noteId !== null)
   const locking = useStore(lockStore, (s) => s.noteId !== null)
@@ -95,6 +100,7 @@ function Dialogs() {
     tagging,
     printing,
     history,
+    comparing,
     palette,
     settings,
     shortcuts,
@@ -112,6 +118,7 @@ function Dialogs() {
     (importing && !seen.importing) ||
     (sharing && !seen.sharing) ||
     (history && !seen.history) ||
+    (comparing && !seen.comparing) ||
     (printing && !seen.printing) ||
     (tagging && !seen.tagging) ||
     (locking && !seen.locking) ||
@@ -125,6 +132,7 @@ function Dialogs() {
       tagging: seen.tagging || tagging,
       printing: seen.printing || printing,
       history: seen.history || history,
+      comparing: seen.comparing || comparing,
       palette: seen.palette || palette,
       settings: seen.settings || settings,
       shortcuts: seen.shortcuts || shortcuts,
@@ -144,6 +152,7 @@ function Dialogs() {
       {seen.importing && <ImportDialog />}
       {seen.sharing && <ShareDialog />}
       {seen.history && <HistoryDialog />}
+      {seen.comparing && <CompareDialog />}
       {seen.printing && <PrintView />}
       {seen.tagging && <TagsDialog />}
       {seen.locking && <LockDialog />}

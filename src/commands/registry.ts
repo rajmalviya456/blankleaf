@@ -14,6 +14,7 @@ import { goalStore } from '../features/goal/goalStore'
 import { isVoiceSupported, toggleVoice } from '../features/voice/voice'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
+import { compareStore } from '../features/compare/compareStore'
 import { openSample } from '../features/sample/sample'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
@@ -200,6 +201,20 @@ export const COMMANDS: Command[] = [
     run: (ctx) => {
       st(ctx).setUi({ paletteOpen: false })
       toggleVoice(getActiveView())
+    },
+  },
+  {
+    id: 'note.compare',
+    title: 'Compare with another note…',
+    section: 'Note',
+    keywords: ['diff', 'difference', 'changes', 'side by side'],
+    shortcuts: [],
+    when: hasOpenText,
+    run: (ctx) => {
+      const s = st(ctx)
+      const id = s.session.activeTabId
+      s.setUi({ paletteOpen: false })
+      if (id) compareStore.getState().open(id)
     },
   },
   {

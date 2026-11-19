@@ -23,6 +23,7 @@ import {
   Tag,
   Target,
   Trash2,
+  GitCompare,
   type LucideIcon,
   Link2,
 } from 'lucide-react'
@@ -43,6 +44,7 @@ import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
+import { compareStore } from '../compare/compareStore'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
@@ -282,6 +284,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                       icon={History}
                       label="Version history…"
                       onSelect={() => historyStore.getState().open(noteId)}
+                    />
+                    <Action
+                      icon={GitCompare}
+                      label="Compare with…"
+                      onSelect={() => compareStore.getState().open(noteId)}
                     />
                     <Action
                       icon={CopyPlus}

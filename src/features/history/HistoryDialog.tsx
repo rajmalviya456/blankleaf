@@ -14,6 +14,7 @@ import { getActiveDb } from '../../store/dataReset'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { toast } from '../../ui/toast'
+import { compareStore } from '../compare/compareStore'
 import { historyStore } from './historyStore'
 import { whenLabel } from './whenLabel'
 
@@ -154,6 +155,21 @@ export function HistoryDialog() {
             <p id="history-hint" className="mr-auto text-[11.5px] text-fg-faint">
               Saved every few minutes while you write · the latest 50 are kept, on this device only.
             </p>
+            <button
+              type="button"
+              disabled={!current || current.at === null || !note}
+              onClick={() => {
+                if (!current || !note) return
+                close()
+                compareStore.getState().open(note.id, {
+                  label: `Version from ${current.label.toLowerCase()}`,
+                  text: current.content,
+                })
+              }}
+              className="rounded-md border border-border px-3 py-1.5 text-[12.5px] text-fg hover:bg-bg-hover disabled:opacity-40 max-sm:min-h-11"
+            >
+              Compare with now
+            </button>
             <button
               type="button"
               disabled={!current || current.at === null}

@@ -28,6 +28,7 @@ export type AppDialog =
   | 'import'
   | 'unpin'
   | 'history'
+  | 'compare'
   | 'tags'
   | 'lock'
   | 'goal'
