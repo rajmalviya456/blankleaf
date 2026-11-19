@@ -4,6 +4,7 @@
  */
 import { StreamLanguage } from '@codemirror/language'
 import type { Extension } from '@codemirror/state'
+import { languageMeta } from '../../domain/languages'
 import type { LanguageId } from '../../domain/types'
 import { logLanguage } from './logLanguage'
 
@@ -67,11 +68,16 @@ export function loadLanguage(id: LanguageId): Promise<Extension | null> {
   if (!loader) return Promise.resolve(null)
   let p = cache.get(id)
   if (!p) {
-    p = loader().catch((e) => {
-      cache.delete(id)
-      console.error(`Blankleaf: failed to load ${id} highlighting`, e)
-      return null
-    })
+    // Code notes also get bracket and folding help; loaded with the language, so its
+    // autocomplete dependency stays out of the startup download.
+    const code = languageMeta(id).kind === 'code'
+    p = Promise.all([loader(), code ? import('./codeEditing') : null])
+      .then(([ext, help]): Extension => (help ? [ext, help.codeEditing] : ext))
+      .catch((e) => {
+        cache.delete(id)
+        console.error(`Blankleaf: failed to load ${id} highlighting`, e)
+        return null
+      })
     cache.set(id, p)
   }
   return p
