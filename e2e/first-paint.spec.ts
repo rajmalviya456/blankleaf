@@ -52,3 +52,17 @@ test('startup code leaves out editor features the app doesn’t use', async ({ p
   expect(code).not.toContain('cm-completionIcon')
   expect(code).not.toContain('cm-lintRange')
 })
+
+test('a first visit paints the welcome note’s opening at once; a returning one paints a blank page', async ({
+  page,
+}) => {
+  await page.route('**/assets/*.js', (route) => route.abort())
+  await page.goto('./')
+  const welcome = page.locator('#np-shell .np-shell-welcome')
+  await expect(welcome).toBeVisible()
+  await expect(welcome).toContainText('# Welcome to Blankleaf')
+  await page.evaluate(() => localStorage.setItem('blankleaf:theme', 'system'))
+  await page.goto('./')
+  await expect(welcome).toBeHidden()
+  await expect(page.locator('#np-shell p')).toHaveText('1')
+})
