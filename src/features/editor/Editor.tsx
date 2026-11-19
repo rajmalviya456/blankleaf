@@ -8,6 +8,9 @@ import { detectStore } from './DetectChip'
 import { noteLinks } from '../links/linkEditor'
 import { useSpellCheck } from '../spell/useSpellCheck'
 import { calmSyntax } from './highlight'
+import { longSentences } from '../readability/longSentences'
+import { readabilityStore } from '../readability/readabilityStore'
+import { useStore } from 'zustand'
 import { columnRuler } from './ruler'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
@@ -73,15 +76,17 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   })
   const langExt = useLanguageExtension(lang, large)
   const links = useMemo(() => noteLinks(noteId), [noteId])
+  const longOn = useStore(readabilityStore, (r) => r.highlight && r.noteId === noteId)
   const rulerAt = languageMeta(lang).kind === 'code' ? settings.codeRuler : 0
   const ruler = useMemo(() => (rulerAt ? columnRuler(rulerAt) : null), [rulerAt])
   const spell = useSpellCheck(spellcheck && !large)
   const extensions = useMemo(() => {
     const ext = [...base, links]
     if (spell) ext.push(spell)
+    if (longOn) ext.push(longSentences)
     if (ruler) ext.push(ruler)
     return langExt ? [...ext, langExt, calmSyntax] : ext
-  }, [base, links, spell, ruler, langExt])
+  }, [base, links, spell, ruler, longOn, langExt])
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)

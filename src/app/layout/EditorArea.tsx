@@ -8,6 +8,7 @@ import { DetectChip } from '../../features/editor/DetectChip'
 import { openLink } from '../../features/links/openLink'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
+import { ReadabilityPanel } from '../../features/readability/ReadabilityPanel'
 import { SampleHint } from '../../features/sample/SampleHint'
 import { VoiceStatus } from '../../features/voice/VoiceStatus'
 import { getStore, useAppStore } from '../../store/store'
@@ -155,6 +156,7 @@ export function EditorArea({
             <VoiceStatus />
             {!zen && <SampleHint noteId={activeId} />}
             {!zen && <DetectChip noteId={activeId} />}
+            {!zen && <ReadabilityPanel noteId={activeId} />}
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>

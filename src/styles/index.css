@@ -792,3 +792,9 @@ input[type='search']::-webkit-search-decoration {
   background: var(--border);
   pointer-events: none;
 }
+
+/* Readability: sentences over 25 words. */
+.np-long-sentence {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  border-radius: 2px;
+}
