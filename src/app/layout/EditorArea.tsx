@@ -4,6 +4,7 @@ import { useIsWide } from '../../lib/media'
 import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { DetectChip } from '../../features/editor/DetectChip'
+import { openLink } from '../../features/links/openLink'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
 import { SampleHint } from '../../features/sample/SampleHint'
@@ -33,7 +34,7 @@ function Preview({ source, noteId }: { source: string; noteId: string }) {
   )
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
-      <MarkdownPreview source={source} onToggleTask={onToggleTask} />
+      <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
     </Suspense>
   )
 }

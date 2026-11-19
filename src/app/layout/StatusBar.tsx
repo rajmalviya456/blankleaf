@@ -13,6 +13,7 @@ import { goalStore } from '../../features/goal/goalStore'
 import { activeNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
+import { LinkedFromMenu } from '../../features/links/LinkedFrom'
 import { shareStore } from '../../features/share/shareStore'
 import { SharesIndicator } from '../../features/share/SharesIndicator'
 import { isLargeDoc } from '../../domain/languages'
@@ -172,6 +173,7 @@ export function StatusBar() {
       {note && <NoteInfo note={note} />}
       <div className="ml-auto flex shrink-0 items-center gap-2 bg-bg-sunken pl-2">
         <SharesIndicator />
+        {note && <LinkedFromMenu noteId={note.id} />}
         {note && !note.locked && (
           <button
             type="button"

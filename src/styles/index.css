@@ -689,3 +689,29 @@ input[type='search']::-webkit-search-decoration {
     margin: 18mm;
   }
 }
+
+/* [[Note links]] in the editor, and the Open/Create button at the cursor. */
+.np-note-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.cm-tooltip.np-link-tip,
+.np-link-tip {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  padding: 2px;
+}
+.np-link-tip button {
+  min-height: 32px;
+  border-radius: 6px;
+  padding: 0 10px;
+  font: 12.5px var(--font-ui);
+  color: var(--accent);
+}
+.np-link-tip button:hover {
+  background: var(--bg-hover);
+}

@@ -5,6 +5,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { detectLanguage } from '../../domain/detectLanguage'
 import { isLargeDoc } from '../../domain/languages'
 import { detectStore } from './DetectChip'
+import { noteLinks } from '../links/linkEditor'
 import { calmSyntax } from './highlight'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
@@ -63,9 +64,10 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     large,
   })
   const langExt = useLanguageExtension(lang, large)
+  const links = useMemo(() => noteLinks(noteId), [noteId])
   const extensions = useMemo(
-    () => (langExt ? [...base, langExt, calmSyntax] : base),
-    [base, langExt],
+    () => (langExt ? [...base, links, langExt, calmSyntax] : [...base, links]),
+    [base, links, langExt],
   )
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})

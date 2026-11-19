@@ -16,12 +16,32 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import { taskLabelAt } from '../checklist/taskToggle'
+import { NOTE_HREF, remarkNoteLinks } from '../links/remarkNoteLinks'
 import { Diagram, ReadyDiagrams } from './Diagram'
 import { loadMath, needsMath, type MathPlugins, type RichExtras } from './richContent'
 
-const link: Components['a'] = ({ node: _node, ...props }) => (
-  <a {...props} target="_blank" rel="noopener noreferrer" />
-)
+/** Opens `[[Title]]` links as notes; only given in the editor's own preview. */
+const NoteLinkOpener = createContext<((title: string) => void) | null>(null)
+
+function Link({ node: _node, href, ...props }: ComponentProps<'a'> & ExtraProps) {
+  const openNote = useContext(NoteLinkOpener)
+  if (openNote && href?.startsWith(NOTE_HREF)) {
+    const title = decodeURIComponent(href.slice(NOTE_HREF.length))
+    return (
+      <a
+        {...props}
+        href={href}
+        className="np-note-link"
+        onClick={(e) => {
+          e.preventDefault()
+          openNote(title)
+        }}
+      />
+    )
+  }
+  return <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
+}
+const link: Components['a'] = Link
 
 /** The source offset of the task item a checkbox belongs to (set by its <li>). */
 const TaskItem = createContext<number | null>(null)
@@ -117,6 +137,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   onToggleTask,
   extras,
   remoteImages = true,
+  onOpenNote,
 }: {
   source: string
   className?: string
@@ -126,31 +147,39 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   extras?: RichExtras
   /** False for notes from other people and for exported pages. */
   remoteImages?: boolean
+  /** Makes `[[Title]]` links open notes. Left out for shared, printed and exported notes. */
+  onOpenNote?(title: string): void
 }) {
   const math = useMath(source, extras?.math)
   const tasks = useMemo(() => ({ source, onToggleTask }), [source, onToggleTask])
   return (
     <ReadyDiagrams.Provider value={extras?.diagrams}>
-      <Tasks.Provider value={tasks}>
-        <article
-          aria-label="Markdown preview"
-          className={className ? `md-preview ${className}` : 'md-preview'}
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, ...(math?.remark ?? [])]}
-            // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
-            // highlighting only wraps text in spans, so it can't reintroduce anything unsafe.
-            rehypePlugins={[
-              rehypeSanitize,
-              ...(math?.rehype ?? []),
-              [rehypeHighlight, { detect: false, languages: FENCE_LANGUAGES }],
-            ]}
-            components={remoteImages ? components : noRemoteImages}
+      <NoteLinkOpener.Provider value={onOpenNote ?? null}>
+        <Tasks.Provider value={tasks}>
+          <article
+            aria-label="Markdown preview"
+            className={className ? `md-preview ${className}` : 'md-preview'}
           >
-            {source}
-          </ReactMarkdown>
-        </article>
-      </Tasks.Provider>
+            <ReactMarkdown
+              remarkPlugins={[
+                remarkGfm,
+                ...(onOpenNote ? [remarkNoteLinks] : []),
+                ...(math?.remark ?? []),
+              ]}
+              // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
+              // highlighting only wraps text in spans, so it can't reintroduce anything unsafe.
+              rehypePlugins={[
+                rehypeSanitize,
+                ...(math?.rehype ?? []),
+                [rehypeHighlight, { detect: false, languages: FENCE_LANGUAGES }],
+              ]}
+              components={remoteImages ? components : noRemoteImages}
+            >
+              {source}
+            </ReactMarkdown>
+          </article>
+        </Tasks.Provider>
+      </NoteLinkOpener.Provider>
     </ReadyDiagrams.Provider>
   )
 })
