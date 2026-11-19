@@ -19,16 +19,33 @@ const SKIP = [
 ]
 const WORD = /\p{L}[\p{L}\p{M}'’]*/gu
 
-/** Ranges (relative to `text`) that aren't prose. */
-function skipped(text: string): [number, number][] {
-  const ranges: [number, number][] = []
+/** Whether `pos` is inside a fenced code block, counting the fences before it. */
+export function startsInFence(text: string, pos: number): boolean {
   let fence: string | null = null
+  let at = 0
+  for (const line of text.slice(0, pos).split('\n')) {
+    if (at + line.length >= pos) break
+    const f = FENCE.exec(line)
+    if (fence) {
+      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null
+    } else if (f) fence = f[1]
+    at += line.length + 1
+  }
+  return fence !== null
+}
+
+/** Ranges (relative to `text`) that aren't prose, sorted by start. */
+function skipped(text: string, inFence: boolean): [number, number][] {
+  const ranges: [number, number][] = []
+  let fence: string | null = inFence ? '```' : null
   let fenceFrom = 0
   let at = 0
   for (const line of text.split('\n')) {
     const f = FENCE.exec(line)
     if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) {
+      // A part that starts inside a block closes it at the first fence line of any kind.
+      const closes = f && (inFence && !ranges.length ? true : f[1][0] === fence[0])
+      if (f && closes && f[1].length >= fence.length) {
         ranges.push([fenceFrom, at + line.length])
         fence = null
       }
@@ -41,15 +58,25 @@ function skipped(text: string): [number, number][] {
   if (fence) ranges.push([fenceFrom, text.length])
   for (const re of SKIP)
     for (const m of text.matchAll(re)) ranges.push([m.index, m.index + m[0].length])
-  return ranges
+  return ranges.sort((a, b) => a[0] - b[0])
 }
 
 /** Spelled that way on purpose: acronyms (HTML), camelCase and brand names (useState, iPhone). */
 const deliberate = (w: string) => (w.length > 1 && w === w.toUpperCase()) || /\p{Ll}\p{Lu}/u.test(w)
 
-export function wordsToCheck(text: string, offset: number): Word[] {
-  const skip = skipped(text)
-  const inSkip = (from: number, to: number) => skip.some(([a, b]) => from < b && to > a)
+/**
+ * The words to check in `text`, which starts at `offset` in the note. `inFence`: the text starts
+ * inside a code block (when checking only part of a big note).
+ */
+export function wordsToCheck(text: string, offset: number, inFence = false): Word[] {
+  const skip = skipped(text, inFence)
+  // Words come in order, so one pass over the sorted skipped ranges is enough.
+  let next = 0
+  let reach = -1 // furthest end among ranges already started
+  const inSkip = (from: number, to: number) => {
+    while (next < skip.length && skip[next][0] < to) reach = Math.max(reach, skip[next++][1])
+    return reach > from
+  }
   const out: Word[] = []
   for (const m of text.matchAll(WORD)) {
     const word = m[0].replace(/['’]+$/, '')

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS, newNoteDraft } from './defaults'
-import { backlinks, findLinks, noteForLink } from './links'
+import { backlinks, findLinks, linkKeys, noteForLink } from './links'
 import type { Note } from './types'
 
 let n = 0
@@ -51,5 +51,17 @@ describe('backlinks', () => {
     const binned = note({ title: 'C', content: '[[Plan]]', deletedAt: 1 })
     const notes = { [self.id]: self, [a.id]: a, [b.id]: b, [binned.id]: binned }
     expect(backlinks(notes, self.id).map((x) => x.id)).toEqual([a.id])
+  })
+})
+
+describe('linkKeys', () => {
+  it('reads a note’s links once, until its text changes', () => {
+    const a = note({ content: 'see [[Plan]] and [[Ideas]]' })
+    const first = linkKeys(a)
+    expect([...first].sort()).toEqual(['ideas', 'plan'])
+    expect(linkKeys(a)).toBe(first)
+    const edited = { ...a, content: a.content + ' [[More]]' }
+    expect(linkKeys(edited)).not.toBe(first)
+    expect(linkKeys(edited).has('more')).toBe(true)
   })
 })

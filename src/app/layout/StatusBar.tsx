@@ -1,5 +1,6 @@
 import { AlertTriangle, Check, Loader, Share2 } from 'lucide-react'
-import { useDeferredValue } from 'react'
+import { useDeferredValue, useMemo } from 'react'
+import { useCalmValue } from '../../lib/useCalmValue'
 import type { Note } from '../../domain/types'
 import { tagsStore } from '../../features/tags/tagsStore'
 import {
@@ -114,8 +115,13 @@ function NoteInfo({ note }: { note: Note }) {
   const content = useDeferredValue(note.content)
   const selected = selectionStats(content, anchor, head)
   const { line, col } = lineColAt(content, head)
-  const big = content.length > WORD_COUNT_LIMIT
-  const { words, chars } = big ? { words: 0, chars: content.length } : textStats(content)
+  // Counting every word of a big note on each keystroke slows typing: count when typing pauses.
+  const calm = useCalmValue(note.content)
+  const big = calm.length > WORD_COUNT_LIMIT
+  const { words, chars } = useMemo(
+    () => (big ? { words: 0, chars: calm.length } : textStats(calm)),
+    [calm, big],
+  )
   return (
     <>
       <FormatPicker noteId={note.id} />

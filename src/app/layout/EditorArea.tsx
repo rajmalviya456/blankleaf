@@ -1,7 +1,8 @@
 import { Plus, X } from 'lucide-react'
 import { displayTitle } from '../../domain/title'
 import { useIsWide } from '../../lib/media'
-import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
+import { lazy, Suspense, useCallback } from 'react'
+import { useCalmValue } from '../../lib/useCalmValue'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { DetectChip } from '../../features/editor/DetectChip'
 import { openLink } from '../../features/links/openLink'
@@ -60,12 +61,13 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
   // Zen shows the text alone, not beside its preview.
   const view = zen && chosen === 'split' ? 'edit' : chosen
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
-  const deferred = useDeferredValue(content)
+  // A big note's preview is rebuilt when typing pauses, not on every keystroke.
+  const deferred = useCalmValue(content)
 
   if (view === 'edit') return <Editor noteId={noteId} />
   if (view === 'preview')
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="np-preview-pane min-h-0 flex-1 overflow-y-auto">
         <Preview source={deferred} noteId={noteId} />
       </div>
     )
@@ -74,7 +76,7 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
       <div className="flex min-h-0 min-w-0 flex-col border-r border-border">
         <Editor noteId={noteId} />
       </div>
-      <div className="min-h-0 min-w-0 overflow-y-auto bg-bg">
+      <div className="np-preview-pane min-h-0 min-w-0 overflow-y-auto bg-bg">
         <Preview source={deferred} noteId={noteId} />
       </div>
     </div>

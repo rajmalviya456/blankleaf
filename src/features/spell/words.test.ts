@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { wordsToCheck } from './words'
+import { startsInFence, wordsToCheck } from './words'
 
 const words = (text: string) => wordsToCheck(text, 0).map((w) => w.word)
 
@@ -38,5 +38,32 @@ describe('wordsToCheck', () => {
 
   it('skips one-letter words', () => {
     expect(words('a I x go')).toEqual(['go'])
+  })
+})
+
+describe('wordsToCheck on part of a note', () => {
+  it('knows when the part starts inside a code block', () => {
+    expect(wordsToCheck('cnst x = 1\n```\nafter the code', 0, true).map((w) => w.word)).toEqual([
+      'after',
+      'the',
+      'code',
+    ])
+  })
+
+  it('handles a big note with many links quickly', () => {
+    const text = 'Some wordz and [[a link]] here. '.repeat(10_000)
+    const start = performance.now()
+    const found = wordsToCheck(text, 0)
+    expect(found.length).toBe(40_000)
+    expect(performance.now() - start).toBeLessThan(400)
+  })
+})
+
+describe('startsInFence', () => {
+  it('counts the code fences before a position', () => {
+    const text = 'a\n```\ncode\n```\nb\n~~~\nmore'
+    expect(startsInFence(text, text.indexOf('code'))).toBe(true)
+    expect(startsInFence(text, text.indexOf('b'))).toBe(false)
+    expect(startsInFence(text, text.indexOf('more'))).toBe(true)
   })
 })

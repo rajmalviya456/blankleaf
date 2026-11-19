@@ -57,19 +57,27 @@ export function noteForLink(notes: Record<string, Note>, title: string): Note | 
   return best
 }
 
+/** Each note's link targets, read once per version of its text (notes are replaced, not edited). */
+const keysCache = new WeakMap<Note, Set<string>>()
+
+/** The (compared-form) titles a note links to. */
+export function linkKeys(note: Note): Set<string> {
+  let keys = keysCache.get(note)
+  if (!keys) {
+    keys = new Set(
+      note.content.includes('[[') ? findLinks(note.content).map((l) => linkKey(l.title)) : [],
+    )
+    keysCache.set(note, keys)
+  }
+  return keys
+}
+
 /** Notes whose text links to this one (locked notes' text can't be read, so they don't count). */
 export function backlinks(notes: Record<string, Note>, noteId: string): Note[] {
   const target = notes[noteId]
   if (!target) return []
   const key = linkKey(documentTitle(target))
   return Object.values(notes)
-    .filter(
-      (n) =>
-        n.id !== noteId &&
-        n.deletedAt === null &&
-        !n.locked &&
-        n.content.includes('[[') &&
-        findLinks(n.content).some((l) => linkKey(l.title) === key),
-    )
+    .filter((n) => n.id !== noteId && n.deletedAt === null && !n.locked && linkKeys(n).has(key))
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }
