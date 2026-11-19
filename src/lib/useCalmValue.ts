@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 
 /** Below this many characters the preview keeps up with every keystroke. */
 const INSTANT_CHARS = 20_000
@@ -19,7 +19,8 @@ export function useCalmValue(value: string): string {
   const [calm, setCalm] = useState(value)
   useEffect(() => {
     if (!delay) return
-    const t = setTimeout(() => setCalm(value), delay)
+    // A transition: React can pause a big redraw (the preview's chunks) to handle typing.
+    const t = setTimeout(() => startTransition(() => setCalm(value)), delay)
     return () => clearTimeout(t)
   }, [value, delay])
   const deferred = useDeferredValue(value)

@@ -1,11 +1,15 @@
 import {
+  type ComponentProps,
   createContext,
   memo,
+  useCallback,
   useContext,
+  useDeferredValue,
+  useLayoutEffect,
   useEffect,
   useMemo,
+  useRef,
   useState,
-  type ComponentProps,
 } from 'react'
 import ReactMarkdown, { type Components, type ExtraProps } from 'react-markdown'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
@@ -18,6 +22,7 @@ import remarkGfm from 'remark-gfm'
 import { taskLabelAt } from '../checklist/taskToggle'
 import { NOTE_HREF, remarkNoteLinks } from '../links/remarkNoteLinks'
 import { Diagram, ReadyDiagrams } from './Diagram'
+import { previewChunks, type Chunk } from './previewChunks'
 import { loadMath, needsMath, type MathPlugins, type RichExtras } from './richContent'
 
 /** Opens `[[Title]]` links as notes; only given in the editor's own preview. */
@@ -138,6 +143,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   extras,
   remoteImages = true,
   onOpenNote,
+  bare = false,
 }: {
   source: string
   className?: string
@@ -149,6 +155,8 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   remoteImages?: boolean
   /** Makes `[[Title]]` links open notes. Left out for shared, printed and exported notes. */
   onOpenNote?(title: string): void
+  /** One chunk of a bigger preview: no landmark of its own. */
+  bare?: boolean
 }) {
   const math = useMath(source, extras?.math)
   const tasks = useMemo(() => ({ source, onToggleTask }), [source, onToggleTask])
@@ -157,7 +165,8 @@ export const MarkdownPreview = memo(function MarkdownPreview({
       <NoteLinkOpener.Provider value={onOpenNote ?? null}>
         <Tasks.Provider value={tasks}>
           <article
-            aria-label="Markdown preview"
+            role={bare ? 'none' : undefined}
+            aria-label={bare ? undefined : 'Markdown preview'}
             className={className ? `md-preview ${className}` : 'md-preview'}
           >
             <ReactMarkdown
@@ -183,3 +192,54 @@ export const MarkdownPreview = memo(function MarkdownPreview({
     </ReadyDiagrams.Provider>
   )
 })
+
+/** One chunk, with checklist ticks mapped back to their place in the whole note. */
+const ChunkView = memo(function ChunkView({
+  chunk,
+  onToggleTask,
+  onOpenNote,
+}: {
+  chunk: Chunk
+  onToggleTask?(offset: number): void
+  onOpenNote?(title: string): void
+}) {
+  // Read at click time: an edit earlier in the note moves the chunk without redrawing it.
+  const offset = useRef(chunk.offset)
+  useLayoutEffect(() => {
+    offset.current = chunk.offset
+  })
+  const toggle = useCallback((o: number) => onToggleTask?.(o + offset.current), [onToggleTask])
+  return (
+    <MarkdownPreview
+      source={chunk.text}
+      onToggleTask={onToggleTask ? toggle : undefined}
+      onOpenNote={onOpenNote}
+      bare
+    />
+  )
+})
+
+/**
+ * A big note's preview, drawn in chunks of paragraphs: an edit redraws only its chunk, and the
+ * first draw happens in the background, a chunk at a time, so the page never freezes.
+ */
+export function ChunkedPreview({
+  source,
+  onToggleTask,
+  onOpenNote,
+}: {
+  source: string
+  onToggleTask?(offset: number): void
+  onOpenNote?(title: string): void
+}) {
+  const chunks = useMemo(() => previewChunks(source), [source])
+  const shown = useDeferredValue(chunks, EMPTY)
+  return (
+    <article aria-label="Markdown preview" className="md-preview-chunked">
+      {shown.map((c, i) => (
+        <ChunkView key={i} chunk={c} onToggleTask={onToggleTask} onOpenNote={onOpenNote} />
+      ))}
+    </article>
+  )
+}
+const EMPTY: Chunk[] = []

@@ -798,3 +798,15 @@ input[type='search']::-webkit-search-decoration {
   background: color-mix(in srgb, var(--warn) 18%, transparent);
   border-radius: 2px;
 }
+
+/* A big preview in chunks reads as one page: only the first and last keep the outer padding. */
+.md-preview-chunked > .md-preview {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.md-preview-chunked > .md-preview:first-child {
+  padding-top: 24px;
+}
+.md-preview-chunked > .md-preview:last-child {
+  padding-bottom: 40vh;
+}
