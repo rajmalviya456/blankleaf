@@ -3,6 +3,7 @@ import { displayTitle } from '../../domain/title'
 import { useIsWide } from '../../lib/media'
 import { lazy, Suspense, useCallback, useDeferredValue } from 'react'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
+import { DetectChip } from '../../features/editor/DetectChip'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
 import { SampleHint } from '../../features/sample/SampleHint'
@@ -139,6 +140,7 @@ export function EditorArea({
             <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
             <VoiceStatus />
             <SampleHint noteId={activeId} />
+            <DetectChip noteId={activeId} />
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>
