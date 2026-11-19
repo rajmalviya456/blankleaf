@@ -464,6 +464,17 @@ export const COMMANDS: Command[] = [
     run: () => void exportAll(),
   },
   {
+    id: 'data.zip',
+    title: 'Download all notes as files (.zip)',
+    section: 'Data',
+    keywords: ['export', 'zip', 'markdown', 'files', 'download', 'take out'],
+    shortcuts: [],
+    run: (ctx) => {
+      st(ctx).setUi({ paletteOpen: false })
+      void import('../features/export/notesZip').then((m) => m.downloadAllAsFiles())
+    },
+  },
+  {
     id: 'data.import',
     title: 'Import backup or files…',
     section: 'Data',
