@@ -2,9 +2,27 @@
  * The spell checker the editor talks to: an English (US) Hunspell dictionary in a Web Worker.
  * The dictionary (~550 KB) downloads the first time spell check is turned on.
  */
-import affUrl from '../../../node_modules/dictionary-en/index.aff?url'
-import dicUrl from '../../../node_modules/dictionary-en/index.dic?url'
+import enAuAff from '../../../node_modules/dictionary-en-au/index.aff?url'
+import enAuDic from '../../../node_modules/dictionary-en-au/index.dic?url'
+import enCaAff from '../../../node_modules/dictionary-en-ca/index.aff?url'
+import enCaDic from '../../../node_modules/dictionary-en-ca/index.dic?url'
+import enGbAff from '../../../node_modules/dictionary-en-gb/index.aff?url'
+import enGbDic from '../../../node_modules/dictionary-en-gb/index.dic?url'
+import enAff from '../../../node_modules/dictionary-en/index.aff?url'
+import enDic from '../../../node_modules/dictionary-en/index.dic?url'
+import esAff from '../../../node_modules/dictionary-es/index.aff?url'
+import esDic from '../../../node_modules/dictionary-es/index.dic?url'
+import type { SpellLanguage } from './languages'
 import type { SpellRequest } from './spellWorker'
+
+/** Each dictionary's files; only the chosen language's are ever downloaded. */
+const FILES: Record<SpellLanguage, { aff: string; dic: string }> = {
+  'en-US': { aff: enAff, dic: enDic },
+  'en-GB': { aff: enGbAff, dic: enGbDic },
+  'en-AU': { aff: enAuAff, dic: enAuDic },
+  'en-CA': { aff: enCaAff, dic: enCaDic },
+  es: { aff: esAff, dic: esDic },
+}
 
 export interface SpellService {
   /** Which of these words are misspelled. */
@@ -37,7 +55,7 @@ function rememberWord(word: string) {
 
 type Strip<T> = T extends unknown ? Omit<T, 'id'> : never
 
-function workerService(): SpellService {
+function workerService(lang: SpellLanguage): SpellService {
   const worker = new Worker(new URL('./spellWorker.ts', import.meta.url), { type: 'module' })
   const pending = new Map<number, { resolve(v: unknown): void; reject(e: unknown): void }>()
   let next = 1
@@ -55,8 +73,8 @@ function workerService(): SpellService {
     })
   const ready = ask<boolean>({
     type: 'init',
-    aff: new URL(affUrl, location.href).href,
-    dic: new URL(dicUrl, location.href).href,
+    aff: new URL(FILES[lang].aff, location.href).href,
+    dic: new URL(FILES[lang].dic, location.href).href,
     personal: personalWords(),
   })
   return {
@@ -75,15 +93,22 @@ function workerService(): SpellService {
   }
 }
 
-let service: SpellService | null = null
-let override: SpellService | null = null
+const services = new Map<SpellLanguage, SpellService>()
+let override: ((lang: SpellLanguage) => SpellService) | null = null
 
-export function getSpellService(): SpellService {
-  if (override) return override
-  service ??= workerService()
+/** The checker for a language: one background worker per language used. */
+export function getSpellService(lang: SpellLanguage = 'en-US'): SpellService {
+  if (override) return override(lang)
+  let service = services.get(lang)
+  if (!service) {
+    service = workerService(lang)
+    services.set(lang, service)
+  }
   return service
 }
 
-export function setSpellServiceForTests(s: SpellService | null): void {
-  override = s
+export function setSpellServiceForTests(
+  s: SpellService | ((lang: SpellLanguage) => SpellService) | null,
+): void {
+  override = s === null ? null : typeof s === 'function' ? s : () => s
 }

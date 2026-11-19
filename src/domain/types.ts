@@ -119,6 +119,8 @@ export interface Settings {
   highlightActiveLine: boolean
   /** A faint line at this column in code notes; 0 for none. */
   codeRuler: number
+  /** Dictionary for spell check; 'auto' follows the browser's language. */
+  spellLanguage: 'auto' | 'en-US' | 'en-GB' | 'en-AU' | 'en-CA' | 'es'
   showToolbar: boolean
   /** 0 disables the reminder. */
   backupReminderDays: number
