@@ -3,6 +3,7 @@ import { displayTitle } from '../../domain/title'
 import { useIsWide } from '../../lib/media'
 import { lazy, Suspense, useCallback } from 'react'
 import { useCalmValue } from '../../lib/useCalmValue'
+import { canChunk } from '../../features/editor/previewChunks'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { DetectChip } from '../../features/editor/DetectChip'
 import { openLink } from '../../features/links/openLink'
@@ -20,6 +21,11 @@ const LockedNote = lazy(() =>
 const MarkdownPreview = lazy(() =>
   import('../../features/editor/MarkdownPreview').then((m) => ({ default: m.MarkdownPreview })),
 )
+const ChunkedPreview = lazy(() =>
+  import('../../features/editor/MarkdownPreview').then((m) => ({ default: m.ChunkedPreview })),
+)
+/** Above this size the preview is drawn in chunks (see previewChunks). */
+const CHUNKED_CHARS = 20_000
 
 function Preview({ source, noteId }: { source: string; noteId: string }) {
   // A tick applies to the note's latest text, so quick ticks in a row all count. If typing has
@@ -36,7 +42,11 @@ function Preview({ source, noteId }: { source: string; noteId: string }) {
   )
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
-      <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+      {source.length > CHUNKED_CHARS && canChunk(source) ? (
+        <ChunkedPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+      ) : (
+        <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+      )}
     </Suspense>
   )
 }
