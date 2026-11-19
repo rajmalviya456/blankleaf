@@ -6,7 +6,7 @@ export async function openApp(page: Page) {
 }
 
 export const editor = (page: Page) => page.locator('.cm-content')
-export const statusBar = (page: Page) => page.getByRole('status', { name: 'Status bar' })
+export const statusBar = (page: Page) => page.getByRole('contentinfo', { name: 'Status bar' })
 export const tabs = (page: Page) =>
   page.getByRole('tablist', { name: 'Open notes' }).getByRole('tab')
 

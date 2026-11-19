@@ -20,7 +20,16 @@ import { isLargeDoc } from '../../domain/languages'
 /** Above this size, skip word counting so typing stays smooth. */
 const WORD_COUNT_LIMIT = 2_000_000
 
+/** Only the save state is announced: the rest of the bar changes on every keystroke. */
 function SaveState() {
+  return (
+    <span role="status" aria-label="Save status" className="contents">
+      <SaveStateText />
+    </span>
+  )
+}
+
+function SaveStateText() {
   const status = useAppStore((s) => s.ui.saveStatus)
   const error = useAppStore((s) => s.ui.saveError)
   if (status === 'saving')
@@ -157,7 +166,6 @@ export function StatusBar() {
   const note = useAppStore(activeNote)
   return (
     <footer
-      role="status"
       aria-label="Status bar"
       className="flex h-6 shrink-0 items-center gap-3 overflow-hidden whitespace-nowrap border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
     >
