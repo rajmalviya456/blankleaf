@@ -14,11 +14,11 @@ import {
   type ViewUpdate,
 } from '@codemirror/view'
 import { getSpellService, type SpellService } from './spellService'
-import { wordsToCheck, type Word } from './words'
+import { startsInFence, wordsToCheck, type Word } from './words'
 
 const DELAY_MS = 300
-/** Past this size only the part on screen is checked. */
-const WHOLE_DOC_CHARS = 300_000
+/** Past this size only the part on screen is checked (it's re-checked as you scroll). */
+const WHOLE_DOC_CHARS = 30_000
 const mark = Decoration.mark({ class: 'np-misspelled' })
 
 /** Ask the plugin to look again (after a fix, or a word added to the dictionary). */
@@ -69,9 +69,13 @@ class SpellPlugin {
   private words(): Word[] {
     const { state } = this.view
     if (state.doc.length <= WHOLE_DOC_CHARS) return wordsToCheck(state.doc.toString(), 0)
-    return this.view.visibleRanges.flatMap((r) =>
-      wordsToCheck(state.sliceDoc(r.from, r.to), r.from),
-    )
+    return this.view.visibleRanges.flatMap((r) => {
+      // Start and end on whole lines, so no word is cut in half.
+      const from = state.doc.lineAt(r.from).from
+      const to = state.doc.lineAt(r.to).to
+      const inFence = startsInFence(state.sliceDoc(0, from), from)
+      return wordsToCheck(state.sliceDoc(from, to), from, inFence)
+    })
   }
 
   private async run() {

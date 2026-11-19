@@ -772,3 +772,8 @@ input[type='search']::-webkit-search-decoration {
   color: var(--fg-muted);
   font-weight: 400;
 }
+
+/* A big preview's layout never depends on the editor beside it: keep typing from re-laying it out. */
+.np-preview-pane {
+  contain: strict;
+}
