@@ -1,4 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createAppStore, initStore } from '../../store/store'
 import { StatusBar } from './StatusBar'
 
@@ -91,5 +92,24 @@ describe('StatusBar with two notes side by side', () => {
     expect(bar).toHaveTextContent('1 word')
     act(() => s().setUi({ sideFocused: true }))
     expect(bar).toHaveTextContent('5 words')
+  })
+})
+
+describe('StatusBar on narrower windows', () => {
+  it('a … menu reaches the settings that don’t fit', async () => {
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    const id = s().newNote({ content: 'one two' })
+    render(<StatusBar />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'More note settings' }))
+    await user.click(await screen.findByRole('menuitemcheckbox', { name: 'Spell check' }))
+    expect(s().notes[id].spellcheck).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'More note settings' }))
+    await user.click(await screen.findByRole('menuitemcheckbox', { name: 'Wrap long lines' }))
+    expect(s().notes[id].wrap).toBe(false)
+    await user.click(screen.getByRole('button', { name: 'More note settings' }))
+    expect(await screen.findByRole('menuitem', { name: 'Tags…' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Word goal…' })).toBeInTheDocument()
   })
 })

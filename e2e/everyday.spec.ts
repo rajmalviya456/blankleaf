@@ -69,3 +69,18 @@ test('the notes list sorts by name', async ({ page }) => {
   await expect(rows.first()).toContainText('apple')
   await expect(rows.last()).toContainText('zebra')
 })
+
+test('on a narrower window the … menu holds what the status bar can’t fit', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 800 })
+  await openApp(page)
+  await newNote(page, 'I saw teh cat ')
+  const more = statusBar(page).getByRole('button', { name: 'More note settings' })
+  await expect(statusBar(page).getByRole('button', { name: 'Spelling: off' })).toBeHidden()
+  await more.click()
+  await page.getByRole('menuitemcheckbox', { name: 'Spell check' }).click()
+  await expect(page.locator('.np-misspelled')).toHaveText(['teh'])
+
+  await page.setViewportSize({ width: 1400, height: 800 })
+  await expect(more).toBeHidden()
+  await expect(statusBar(page).getByRole('button', { name: 'Spelling: on' })).toBeVisible()
+})
