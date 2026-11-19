@@ -24,6 +24,7 @@ import {
   Target,
   Trash2,
   type LucideIcon,
+  Link2,
 } from 'lucide-react'
 import { useDeferredValue, type ReactNode } from 'react'
 import { PHONE_FONT_MAX, PHONE_FONT_MIN } from '../../domain/defaults'
@@ -34,6 +35,7 @@ import {
   selectionStats,
   textStats,
 } from '../../lib/textStats'
+import { displayTitle } from '../../domain/title'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
 import { toast } from '../../ui/toast'
@@ -46,6 +48,7 @@ import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
 import { goalStore } from '../goal/goalStore'
 import { lockStore } from '../lock/lockStore'
+import { useLinkedFrom } from '../links/LinkedFrom'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
@@ -133,6 +136,25 @@ function Stats({ noteId }: { noteId: string }) {
 }
 
 /** ⋯ on phones: the active note's format, size and actions, plus line/word counts. */
+/** The notes linking to this one, each a tap away. */
+function LinkedFromGroup({ noteId }: { noteId: string }) {
+  const from = useLinkedFrom(noteId)
+  if (!from.length) return null
+  return (
+    <Group>
+      <p className="px-3 pt-1 text-[12px] text-fg-faint">Linked from</p>
+      {from.map((n) => (
+        <Action
+          key={n.id}
+          icon={Link2}
+          label={displayTitle(n)}
+          onSelect={() => getStore().getState().openNote(n.id)}
+        />
+      ))}
+    </Group>
+  )
+}
+
 export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) {
   const noteId = useAppStore((s) => s.session.activeTabId)
   const note = useAppStore((s) => (noteId ? s.notes[noteId] : undefined))
@@ -287,6 +309,7 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   }}
                 />
               </Group>
+              <LinkedFromGroup noteId={noteId} />
               <Group>
                 <Action icon={Maximize2} label="Zen mode" onSelect={() => s().toggleZen()} />
                 <Action

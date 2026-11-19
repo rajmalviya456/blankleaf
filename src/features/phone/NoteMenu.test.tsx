@@ -118,3 +118,19 @@ describe('Note menu', () => {
     expect(s().session.zen).toBe(false)
   })
 })
+
+describe('Note menu: Linked from', () => {
+  it('lists the notes that link to this one, and opens one', async () => {
+    media = stubMedia({ phone: true })
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    const journal = s().newNote({ title: 'Journal', content: 'see [[Plan]]' })
+    s().newNote({ title: 'Plan', content: 'the plan' })
+    render(<App />)
+    const user = userEvent.setup()
+    const menu = await openMenu()
+    expect(within(menu).getByText('Linked from')).toBeInTheDocument()
+    await user.click(within(menu).getByRole('button', { name: 'Journal' }))
+    expect(s().session.activeTabId).toBe(journal)
+  })
+})
