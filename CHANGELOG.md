@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.10.0](https://github.com/rajmalviya456/blankleaf/compare/v1.9.0...v1.10.0) (2026-11-19)
+
+
+### Features
+
+* **code:** say which format auto-detect picked, with Undo ([#59](https://github.com/rajmalviya456/blankleaf/issues/59)) ([4961c55](https://github.com/rajmalviya456/blankleaf/commit/4961c5529d19152435aef59e024e965ce3ffc120))
+* **code:** underline JSON errors as you type ([#58](https://github.com/rajmalviya456/blankleaf/issues/58)) ([497fada](https://github.com/rajmalviya456/blankleaf/commit/497fada2b498575720c6bad40ad1f9147c22e604))
+* **export:** download all notes as files in a .zip ([#57](https://github.com/rajmalviya456/blankleaf/issues/57)) ([9f34391](https://github.com/rajmalviya456/blankleaf/commit/9f34391c4f46cf63870c6e9cfd2a51e1a64ea5ba))
+* **launch:** sample note for first-time visitors ([#55](https://github.com/rajmalviya456/blankleaf/issues/55)) ([12c6cba](https://github.com/rajmalviya456/blankleaf/commit/12c6cba42ea4cfd217ec0617959d2215ad20e53d))
+* **markdown:** Outline menu to jump between headings ([#60](https://github.com/rajmalviya456/blankleaf/issues/60)) ([fbc053f](https://github.com/rajmalviya456/blankleaf/commit/fbc053fb1cf18c3910bc0c98fc08be03948f19b0))
+* **notes:** compare a note with a version or another note ([#62](https://github.com/rajmalviya456/blankleaf/issues/62)) ([0785469](https://github.com/rajmalviya456/blankleaf/commit/078546900a7c9e746a4c9a5a039d005bfee629be))
+* **notes:** links between notes with [[Title]], and Linked from ([#61](https://github.com/rajmalviya456/blankleaf/issues/61)) ([5bd15a5](https://github.com/rajmalviya456/blankleaf/commit/5bd15a5705be71189d0f9eeae81101e3fb8966d6))
+
+
+### Bug Fixes
+
+* **launch:** faster first paint on phones, audit fixes ([#54](https://github.com/rajmalviya456/blankleaf/issues/54)) ([dbf3a8d](https://github.com/rajmalviya456/blankleaf/commit/dbf3a8d12df4cf078dd01b1e0dcf00584f0c6e1a))
+
 ## [1.9.0](https://github.com/rajmalviya456/blankleaf/compare/v1.8.2...v1.9.0) (2026-11-19)
 
 
