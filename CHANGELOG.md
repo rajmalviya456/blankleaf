@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/rajmalviya456/blankleaf/compare/v1.8.1...v1.8.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* **editor:** Enter keeps the indent you typed in code notes ([#48](https://github.com/rajmalviya456/blankleaf/issues/48)) ([01e36ce](https://github.com/rajmalviya456/blankleaf/commit/01e36cecd36d5cdb017a51f4258e377189541c11))
+
 ## [1.8.1](https://github.com/rajmalviya456/blankleaf/compare/v1.8.0...v1.8.1) (2026-11-18)
 
 
