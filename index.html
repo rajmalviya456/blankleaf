@@ -83,14 +83,17 @@
           saved === 'dark' ||
           (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+        // Never opened here before (nothing saved yet): the app will open the welcome note, so
+        // the instant first paint shows its opening lines rather than an empty page.
+        if (saved === null) document.documentElement.dataset.firstVisit = '1'
         document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
       })()
     </script>
-    <style>html,body{height:100%;margin:0}#np-shell{color:#5f6672;background:#fff;font:13px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;position:fixed;inset:0}[data-theme=dark] #np-shell{color:#9096a2;background:#111318}#np-shell header{background:#eef0f3;align-items:center;height:36px;padding:0 14px;display:flex}[data-theme=dark] #np-shell header{background:#0b0d10}@media (width<=639px){#np-shell header{letter-spacing:.04em;height:48px;padding-left:60px;font-size:16px;font-weight:600}}#np-shell p{margin:0;padding:16px 18px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+    <style>html,body{height:100%;margin:0}#np-shell{color:#5f6672;background:#fff;font:13px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;position:fixed;inset:0}[data-theme=dark] #np-shell{color:#9096a2;background:#111318}#np-shell header{background:#eef0f3;align-items:center;height:36px;padding:0 14px;display:flex}[data-theme=dark] #np-shell header{background:#0b0d10}@media (width<=639px){#np-shell header{letter-spacing:.04em;height:48px;padding-left:60px;font-size:16px;font-weight:600}}.np-shell-welcome,.np-shell-welcome-title,[data-first-visit] #np-shell p,[data-first-visit] .np-shell-untitled{display:none}[data-first-visit] .np-shell-welcome-title{display:inline}[data-first-visit] .np-shell-welcome{color:#23272f;white-space:pre-wrap;margin:0;padding:16px 18px 0 46px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:block}[data-theme=dark][data-first-visit] .np-shell-welcome{color:#e6e8ec}@media (width<=639px){[data-first-visit] .np-shell-welcome{padding-left:47px;font-size:16px}}#np-shell p{margin:0;padding:16px 18px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
     <noscript
       ><style>#np-shell{display:none}</style></noscript
     >
-    <script type="module" crossorigin src="/blankleaf/assets/index-DAWjlZbB.js"></script>
+    <script type="module" crossorigin src="/blankleaf/assets/index-BNlpXAMS.js"></script>
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/rolldown-runtime-COiEfhsA.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/react-B8SKf8RM.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/react-dom-CaO2D5ST.js">
@@ -112,8 +115,17 @@
     <div id="root">
       <!-- Painted straight away, and replaced by the app as soon as its code has loaded. -->
       <div id="np-shell" aria-hidden="true">
-        <header>Untitled</header>
+        <header>
+          <span class="np-shell-untitled">Untitled</span
+          ><span class="np-shell-welcome-title">Welcome</span>
+        </header>
         <p>1</p>
+        <pre class="np-shell-welcome">
+# Welcome to Blankleaf
+
+This is a **sample note**. Change anything, it's yours, and delete it when you're done.
+Everything saves in this browser as you type. Nothing leaves your device unless you share it.
+</pre>
       </div>
     </div>
     <noscript>
