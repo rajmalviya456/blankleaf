@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.9.0](https://github.com/rajmalviya456/blankleaf/compare/v1.8.2...v1.9.0) (2026-11-19)
+
+
+### Features
+
+* **code:** editing help for code notes and more formats ([#53](https://github.com/rajmalviya456/blankleaf/issues/53)) ([ac94db2](https://github.com/rajmalviya456/blankleaf/commit/ac94db2a6b77ea03697d42f5a68dfebe1d6fed2c))
+* **formats:** add Ruby ([#50](https://github.com/rajmalviya456/blankleaf/issues/50)) ([e4faa01](https://github.com/rajmalviya456/blankleaf/commit/e4faa01f41c775d3fc2959a5ad56a3ca6868b5b4))
+
+
+### Bug Fixes
+
+* **code:** auto-detect, comments, opening code files, JSON format ([#52](https://github.com/rajmalviya456/blankleaf/issues/52)) ([ba264e5](https://github.com/rajmalviya456/blankleaf/commit/ba264e5db248b0e49b73d109002686fd1802e0b3))
+
 ## [1.8.2](https://github.com/rajmalviya456/blankleaf/compare/v1.8.1...v1.8.2) (2026-11-19)
 
 
