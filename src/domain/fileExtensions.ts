@@ -24,6 +24,17 @@ const FORMAT_EXTENSIONS = [
   'rs',
   'php',
   'rb',
+  'ini',
+  'conf',
+  'scss',
+  'less',
+  'kt',
+  'cs',
+  'swift',
+  'lua',
+  'pl',
+  'ps1',
+  'r',
 ] as const
 
 /** Other extensions and the format they open as. */
@@ -52,6 +63,12 @@ export const ALIASES = {
   rake: 'ruby',
   gemspec: 'ruby',
   ru: 'ruby',
+  kts: 'kotlin',
+  pm: 'perl',
+  psm1: 'powershell',
+  env: 'ini',
+  properties: 'ini',
+  cfg: 'ini',
 } as const
 
 /** Every extension the app opens as a note: for file pickers and "Open with". */

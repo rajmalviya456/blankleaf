@@ -3,7 +3,8 @@ import type { EditorView } from '@codemirror/view'
 import type { Extension } from '@codemirror/state'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { detectLanguage } from '../../domain/detectLanguage'
-import { isLargeDoc } from '../../domain/languages'
+import { isLargeDoc, languageMeta } from '../../domain/languages'
+import { codeEditing } from './codeEditing'
 import { calmSyntax } from './highlight'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
@@ -61,8 +62,16 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   })
   const langExt = useLanguageExtension(lang, large)
   const extensions = useMemo(
-    () => (langExt ? [...base, langExt, calmSyntax] : base),
-    [base, langExt],
+    () =>
+      langExt
+        ? [
+            ...base,
+            langExt,
+            calmSyntax,
+            ...(languageMeta(lang).kind === 'code' ? [codeEditing] : []),
+          ]
+        : base,
+    [base, langExt, lang],
   )
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})

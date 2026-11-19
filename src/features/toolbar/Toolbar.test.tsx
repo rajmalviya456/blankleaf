@@ -154,3 +154,26 @@ describe('Transform menu', () => {
     expect(ids).toEqual(expect.arrayContaining(['Format JSON', 'URL decode', 'YAML → JSON']))
   })
 })
+
+describe('code tools', () => {
+  it('code notes get Indent, Outdent and Comment buttons that work without a keyboard', async () => {
+    const { id, s } = setup('let x = 1', false)
+    act(() => s().setLanguage(id, 'javascript'))
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Indent' }))
+    expect(s().notes[id].content).toBe('  let x = 1')
+    await user.click(screen.getByRole('button', { name: 'Outdent' }))
+    expect(s().notes[id].content).toBe('let x = 1')
+    // Comment syntax comes from the language, which loads lazily.
+    await vi.waitFor(async () => {
+      await user.click(screen.getByRole('button', { name: 'Comment line' }))
+      expect(s().notes[id].content).toBe('// let x = 1')
+    })
+  })
+
+  it('plain text notes don’t show them', () => {
+    setup('x', false)
+    expect(screen.queryByRole('button', { name: 'Indent' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Comment line' })).toBeNull()
+  })
+})

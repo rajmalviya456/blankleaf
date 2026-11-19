@@ -52,6 +52,8 @@ export function detectLanguage(text: string): LanguageId {
   if (/^<\?php/.test(first)) return 'php'
   if (/^<\?xml/.test(first)) return 'xml'
   if (/^<!doctype html|^<html[\s>]/i.test(first)) return 'html'
+  if (/^#!.*\bperl\b/.test(first) || has(/^use strict;/m) || has(/^\s*my [$@%]\w+\s*=/m))
+    return 'perl'
   if (/^#!.*\b(ba|z|fi)?sh\b/.test(first) || share(/^\$ \S/) >= 0.5) return 'shell'
   // Markdown that embeds code: fences, or a heading plus inline markdown. Checked before the
   // code rules so a ```js block doesn't make the whole note JavaScript.
@@ -69,7 +71,35 @@ export function detectLanguage(text: string): LanguageId {
   const firstCode = lines.find((l) => !/^\s*#/.test(l))?.trim() ?? ''
   if (/^FROM \S+/.test(firstCode) && has(/^(RUN|CMD|COPY|WORKDIR|ENTRYPOINT) /m))
     return 'dockerfile'
+  if (has(/\b(Get|Set|New|Write|Remove|Invoke|Import)-[A-Z]\w+/) && has(/\$\w+/))
+    return 'powershell'
+  if (
+    has(/^\s*(server|http|location|upstream)\b[^{\n]*\{/m) &&
+    has(/^\s*(listen|server_name|proxy_pass|root)\s+[^;\n]+;/m)
+  )
+    return 'nginx'
+  if (
+    lines.length >= 2 &&
+    share(/^\s*(#|[A-Z][A-Z0-9_]*=)/) === 1 &&
+    share(/^[A-Z][A-Z0-9_]*=/) >= 0.5
+  )
+    return 'ini'
   if (has(/^package \w+\s*$/m) && has(/^func /m)) return 'go'
+  if (
+    has(/^import (SwiftUI|Foundation|UIKit|Combine)\b/m) ||
+    (has(/^\s*func \w+\(/m) && has(/\b(let|var) \w+\s*[:=]/))
+  )
+    return 'swift'
+  if (has(/^\s*fun \w+\s*\(/m) && has(/\b(val|var) \w+|println\(/)) return 'kotlin'
+  if (
+    has(/^using System[.;]/m) ||
+    (has(/^\s*namespace [\w.]+/m) && has(/\b(public|private) (static )?(class|void)\b/))
+  )
+    return 'csharp'
+  if ((has(/^\s*local (function )?\w+/m) || has(/^\s*function [\w.:]+\(/m)) && has(/^\s*end\b/m))
+    return 'lua'
+  if (has(/[\w.]+\s*<-\s*\S/) && has(/\b(library|c|function|data\.frame|summary|read\.csv)\(/))
+    return 'r'
   if (has(/^\s*fn \w+\s*\(/m) && has(/\blet (mut )?\w+|println!|->/)) return 'rust'
   // Before Python and JavaScript: Ruby's `def f(x)` and `=>` would match those.
   if (
@@ -96,7 +126,12 @@ export function detectLanguage(text: string): LanguageId {
     (has(/(\)|\b\w+)\s*=>\s*[{(\w'"`[]/) && has(/[;{}()]/) && !has(/,\s*\w+\s*=>/))
   )
     return 'javascript'
-  if (has(/^[.#@]?[\w-]+[^{\n]*\{\s*$/m) && has(/^\s+[\w-]+\s*:\s*[^;]+;\s*$/m)) return 'css'
+  if (has(/^[.#@]?[\w-]+[^{\n]*\{\s*$/m) && has(/^\s+[\w-]+\s*:\s*[^;]+;\s*$/m)) {
+    if (has(/^\s*\$[\w-]+\s*:/m) || has(/^\s*&[:.\w-]/m) || has(/^\s*@(mixin|include|use)\b/m))
+      return 'scss'
+    if (has(/^\s*@[\w-]+\s*:/m) || has(/^\s*\.[\w-]+\(\);/m)) return 'less'
+    return 'css'
+  }
   if (has(/^\[[\w.-]+\]\s*$/m) && has(/^[\w-]+\s*=\s*\S/m)) return 'toml'
   if (looksLikeYaml(lines)) return 'yaml'
   if (has(/^#{1,6} \S/m) || (has(/^\s*[-*] \S/m) && has(/\*\*\S|`\S|\[.+\]\(.+\)|^#/m)))

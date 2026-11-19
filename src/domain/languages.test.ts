@@ -11,7 +11,7 @@ describe('LANGUAGES', () => {
   it('has unique ids and extensions for every selectable format', () => {
     const ids = LANGUAGES.map((l) => l.id)
     expect(new Set(ids).size).toBe(ids.length)
-    for (const l of LANGUAGES) expect(l.ext).toMatch(/^[a-z]+$/)
+    for (const l of LANGUAGES) expect(l.ext).toMatch(/^[a-z0-9]+$/)
     expect(ids).toEqual(
       expect.arrayContaining([
         'plaintext',
