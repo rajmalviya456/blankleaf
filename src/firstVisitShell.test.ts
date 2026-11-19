@@ -9,7 +9,12 @@ describe('the instant first paint on a first visit', () => {
   it('shows the start of the real welcome note, word for word', () => {
     const m = /<pre class="np-shell-welcome"[^>]*>([\s\S]*?)<\/pre>/.exec(html)
     expect(m).not.toBeNull()
-    const shown = m![1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    // Browsers drop one line break right after <pre>, as the formatter knows.
+    const shown = m![1]
+      .replace(/^\n/, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
     expect(shown.length).toBeGreaterThan(150)
     expect(WELCOME_CONTENT.startsWith(shown)).toBe(true)
   })
