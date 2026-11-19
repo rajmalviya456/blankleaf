@@ -10,7 +10,7 @@ import {
   textStats,
 } from '../../lib/textStats'
 import { goalStore } from '../../features/goal/goalStore'
-import { activeNote } from '../../store/selectors'
+import { editingNote } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
 import { LinkedFromMenu } from '../../features/links/LinkedFrom'
@@ -164,7 +164,7 @@ function NoteInfo({ note }: { note: Note }) {
 }
 
 export function StatusBar() {
-  const note = useAppStore(activeNote)
+  const note = useAppStore(editingNote)
   return (
     <footer
       aria-label="Status bar"

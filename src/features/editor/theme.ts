@@ -17,9 +17,14 @@ export const calmEditorTheme = EditorView.theme({
   '.cm-content': { padding: '14px 0 40vh', caretColor: 'var(--accent)' },
   '.cm-line': { padding: '0 18px 0 14px' },
   '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
-  '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, ::selection':
-    { backgroundColor: 'var(--selection)' },
-  '.cm-activeLine': { backgroundColor: 'var(--accent-soft)' },
+  '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, ::selection': {
+    backgroundColor: 'var(--selection)',
+  },
+  // Only the editor with the cursor looks active: with two notes side by side, the other
+  // one's highlighted line and selection would make it look like the one being edited.
+  '.cm-selectionBackground': { backgroundColor: 'var(--bg-hover)' },
+  '.cm-activeLine': { backgroundColor: 'transparent' },
+  '&.cm-focused .cm-activeLine': { backgroundColor: 'var(--accent-soft)' },
   '.cm-gutters': {
     backgroundColor: 'var(--bg)',
     color: 'var(--fg-faint)',

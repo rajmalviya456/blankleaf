@@ -85,6 +85,8 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
 function SideNote({ activeId }: { activeId: string }) {
   const wide = useIsWide()
   const zen = useAppStore((s) => s.session.zen)
+  // The toolbar acts on this note while it has the cursor: say so in its header.
+  const editing = useAppStore((s) => s.ui.sideFocused)
   const note = useAppStore((s) => {
     const id = s.session.splitNoteId
     return id && id !== activeId ? s.notes[id] : undefined
@@ -94,9 +96,14 @@ function SideNote({ activeId }: { activeId: string }) {
   return (
     <section
       aria-label={`Side note: ${title}`}
+      data-editing={editing || undefined}
       className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-border"
     >
-      <div className="flex h-8 shrink-0 items-center gap-2 border-b border-border bg-bg-sunken pl-3 pr-1 text-[12.5px] text-fg-muted">
+      <div
+        className={`flex h-8 shrink-0 items-center gap-2 border-b bg-bg-sunken pl-3 pr-1 text-[12.5px] ${
+          editing ? 'border-b-accent text-fg' : 'border-border text-fg-muted'
+        }`}
+      >
         <span className="min-w-0 flex-1 truncate">{title}</span>
         <button
           type="button"
