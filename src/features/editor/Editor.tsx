@@ -3,11 +3,12 @@ import type { EditorView } from '@codemirror/view'
 import type { Extension } from '@codemirror/state'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { detectLanguage } from '../../domain/detectLanguage'
-import { isLargeDoc } from '../../domain/languages'
+import { isLargeDoc, languageMeta } from '../../domain/languages'
 import { detectStore } from './DetectChip'
 import { noteLinks } from '../links/linkEditor'
 import { useSpellCheck } from '../spell/useSpellCheck'
 import { calmSyntax } from './highlight'
+import { columnRuler } from './ruler'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
@@ -72,12 +73,15 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   })
   const langExt = useLanguageExtension(lang, large)
   const links = useMemo(() => noteLinks(noteId), [noteId])
+  const rulerAt = languageMeta(lang).kind === 'code' ? settings.codeRuler : 0
+  const ruler = useMemo(() => (rulerAt ? columnRuler(rulerAt) : null), [rulerAt])
   const spell = useSpellCheck(spellcheck && !large)
   const extensions = useMemo(() => {
     const ext = [...base, links]
     if (spell) ext.push(spell)
+    if (ruler) ext.push(ruler)
     return langExt ? [...ext, langExt, calmSyntax] : ext
-  }, [base, links, spell, langExt])
+  }, [base, links, spell, ruler, langExt])
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)

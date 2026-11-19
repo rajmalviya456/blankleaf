@@ -777,3 +777,18 @@ input[type='search']::-webkit-search-decoration {
 .np-preview-pane {
   contain: strict;
 }
+
+/* Code ruler: a faint line at the chosen column (14px is the line's left padding). */
+.np-ruler .cm-content {
+  position: relative;
+}
+.np-ruler .cm-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(14px + var(--np-ruler));
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}

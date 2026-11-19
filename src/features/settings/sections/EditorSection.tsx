@@ -56,6 +56,17 @@ export function EditorSection({ settings: s, update }: Props) {
           options={[2, 4, 8].map((n) => ({ value: n, label: `${n} spaces` }))}
         />
       </Row>
+      <Row label="Code ruler" hint="A faint line in code notes, to keep lines short.">
+        <SelectBox
+          label="Code ruler"
+          value={s.codeRuler}
+          onChange={(codeRuler) => update({ codeRuler })}
+          options={[
+            { value: 0, label: 'Off' },
+            ...[80, 100, 120].map((n) => ({ value: n, label: `${n} characters` })),
+          ]}
+        />
+      </Row>
     </Section>
   )
 }

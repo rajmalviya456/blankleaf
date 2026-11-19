@@ -117,6 +117,8 @@ export interface Settings {
   lineNumbers: boolean
   tabSize: number
   highlightActiveLine: boolean
+  /** A faint line at this column in code notes; 0 for none. */
+  codeRuler: number
   showToolbar: boolean
   /** 0 disables the reminder. */
   backupReminderDays: number
