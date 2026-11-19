@@ -15,6 +15,7 @@ import { isVoiceSupported, toggleVoice } from '../features/voice/voice'
 import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { compareStore } from '../features/compare/compareStore'
+import { symbolStore } from '../features/symbols/symbolStore'
 import { openSample } from '../features/sample/sample'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
@@ -215,6 +216,18 @@ export const COMMANDS: Command[] = [
       const id = s.session.activeTabId
       s.setUi({ paletteOpen: false })
       if (id) compareStore.getState().open(id)
+    },
+  },
+  {
+    id: 'edit.symbol',
+    title: 'Insert symbol or emoji…',
+    section: 'Note',
+    keywords: ['emoji', 'character', 'arrow', 'special', 'unicode', 'euro', 'check'],
+    shortcuts: [],
+    when: hasOpenText,
+    run: (ctx) => {
+      st(ctx).setUi({ paletteOpen: false })
+      symbolStore.getState().setOpen(true)
     },
   },
   {
