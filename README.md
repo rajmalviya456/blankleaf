@@ -25,7 +25,8 @@ up. Blankleaf gives you a real editor the moment the page opens, and it never ne
 
 - **Instant.** Open the page and start typing. Every visit begins on a blank note.
 - **Private.** There is no backend. Notes are saved in your browser and work offline.
-- **Complete.** Tabs, Markdown, code highlighting, version history and encrypted sharing.
+- **Complete.** Tabs, Markdown, links between notes, code highlighting, version history and
+  encrypted sharing.
 
 ![Blankleaf showing a Markdown note beside its live preview, with a checklist, table, diagram and formula](docs/images/hero.png)
 
@@ -35,22 +36,38 @@ up. Blankleaf gives you a real editor the moment the page opens, and it never ne
 
 - **Tabs** for many notes at once, with pinning and drag to reorder
 - **Markdown** with edit, split and preview views, clickable checklists, tables, Mermaid diagrams and math
-- **Syntax highlighting** for 20+ formats, detected as you type
+- **Syntax highlighting** for 33 formats, detected as you type, with one-click Undo if the guess is wrong
 - **Templates** for a daily journal, meeting notes, checklists and to-do lists
 - **Voice typing** on a computer in Chrome, Edge and Safari
 - **Reading time, word goals and spell check** for each note
-- **Two notes side by side** on wide screens, and a zen mode that hides everything but the page
+- **Outline** of a Markdown note's headings, to jump straight to one
+- **Two notes side by side** on wide screens
+
+### Focus
+
+Zen mode (⌃⌥Z on a Mac, Alt+Z elsewhere, or the button in the toolbar) goes full screen and shows only your words, in
+a column about 70 characters wide. Nothing else on the screen until you press Esc.
+
+![Blankleaf in zen mode: only the text, centred on an empty page](docs/images/zen.png)
+
+### Link your notes
+
+Type `[[` to link another note by its title. Links work in the editor and the Markdown preview,
+a link to a note that doesn't exist yet creates it, and each note shows which notes link to it.
+
+![A Markdown note with links to two other notes, an Open button under the cursor, and the rendered links in the preview](docs/images/links.png)
 
 ### Organize and find
 
 - **Tags**, sorting and search across every note
+- **Linked from**: see every note that links to the one you're reading
 - **Command palette** (⌘K / Ctrl+K) for every action
 - **Trash** that keeps deleted notes for 30 days
 
 ### Keep your work safe
 
 - **Autosave** in your browser as you type
-- **Version history** to read and restore earlier text
+- **Version history** to read, compare and restore earlier text
 - **Automatic backup to a folder** in browsers that support it, such as Chrome and Edge on a computer
 - **Password-locked notes**, encrypted in your browser with AES-256
 - **Backup and restore** with a single file
@@ -59,10 +76,14 @@ up. Blankleaf gives you a real editor the moment the page opens, and it never ne
 
 - **Encrypted share links** that expire, with an optional password ([how it works](#sharing-a-note))
 - **Export** to Markdown, HTML or Word, or print and save as PDF
-- **Send to Blankleaf** from the Android Share menu once installed, and open `.txt` and `.md` files on a computer
+- **Download every note as files** in one .zip (.md, .txt, .py, …), to open in any app
+- **Send to Blankleaf** from the Android Share menu once installed, and open text and code files on a computer
 
 ### For code and data
 
+- Brackets and quotes close as you type, matching brackets light up, and blocks fold
+- Enter keeps your indentation; ⌘/ (Ctrl+/) comments a line; Indent, Outdent and Comment buttons on phones
+- JSON errors are underlined as you type
 - Format or minify JSON, convert JSON ⇄ YAML, and encode or decode Base64 and URLs
 - Sort lines, remove duplicates, change case and find and replace
 
@@ -78,6 +99,10 @@ works offline.
 ### Never lose a good draft
 
 ![The version history dialog showing earlier versions of a note](docs/images/version-history.png)
+
+Compare any version, or any two notes, side by side with every change marked:
+
+![Two drafts of a launch post side by side, with removed words marked in red and added words in green](docs/images/compare.png)
 
 ## Privacy
 
@@ -102,8 +127,11 @@ On macOS **⌃⌥** is Control+Option; on Windows/Linux it is **Alt**.
 | Toggle sidebar                  | ⌘B        | Ctrl+B          |
 | Search all notes                | ⌘⇧F       | Ctrl+Shift+F    |
 | Find & replace in note          | ⌘F        | Ctrl+F          |
-| Zen mode                        | ⌘.        | Ctrl+.          |
+| Zen mode                        | ⌘. or ⌃⌥Z | Ctrl+. or Alt+Z |
+| Comment line (code notes)       | ⌘/        | Ctrl+/          |
 | Keyboard shortcuts              | ⌘/        | Ctrl+/          |
+
+Outside a code note, ⌘/ (Ctrl+/) opens the list of shortcuts.
 
 When installed as an app, ⌘T / ⌘W (Ctrl+T / Ctrl+W) also open and close tabs.
 

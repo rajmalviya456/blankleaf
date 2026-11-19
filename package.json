@@ -33,7 +33,8 @@
     "deploy": "gh-pages -d dist --dotfiles --nojekyll -m \"deploy: publish build\"",
     "icons": "pwa-assets-generator",
     "e2e": "playwright test",
-    "e2e:linux": "sh scripts/e2e-linux.sh"
+    "e2e:linux": "sh scripts/e2e-linux.sh",
+    "readme:shots": "node scripts/readme-shots.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
