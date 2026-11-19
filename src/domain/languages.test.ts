@@ -27,6 +27,7 @@ describe('LANGUAGES', () => {
     expect(languageMeta('python')).toMatchObject({ label: 'Python', ext: 'py', kind: 'code' })
     expect(languageMeta('auto').id).toBe('plaintext')
     expect(languageMeta('log').kind).toBe('log')
+    expect(languageMeta('ruby')).toMatchObject({ label: 'Ruby', ext: 'rb', kind: 'code' })
   })
 })
 

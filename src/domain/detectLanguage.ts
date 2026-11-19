@@ -58,6 +58,12 @@ export function detectLanguage(text: string): LanguageId {
   if (/^FROM \S+/.test(first) && has(/^(RUN|CMD|COPY|WORKDIR|ENTRYPOINT) /m)) return 'dockerfile'
   if (has(/^package \w+\s*$/m) && has(/^func /m)) return 'go'
   if (has(/^\s*fn \w+\s*\(/m) && has(/\blet (mut )?\w+|println!|->/)) return 'rust'
+  // Before Python and JavaScript: Ruby's `def f(x)` and `=>` would match those.
+  if (
+    has(/^\s*end\s*$/m) &&
+    (has(/^\s*(def|class|module)\s+[\w:.]+/m) || has(/\bdo(\s*\|[^|]*\|)?\s*$/m))
+  )
+    return 'ruby'
   if (has(/^\s*(public |private )?(final )?class \w+/m) && has(/\b(public|static|void)\b/))
     return 'java'
   if (has(/^#include\s*[<"]/m)) return 'cpp'

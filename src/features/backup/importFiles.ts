@@ -19,10 +19,14 @@ const EXT_ALIASES: Record<string, LanguageId> = {
   cc: 'cpp',
   patch: 'diff',
   text: 'plaintext',
+  rake: 'ruby',
+  gemspec: 'ruby',
+  ru: 'ruby',
 }
 
 function languageForFile(name: string): LanguageId {
   if (/^dockerfile$/i.test(name)) return 'dockerfile'
+  if (/^(gemfile|rakefile)$/i.test(name)) return 'ruby'
   const ext = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase()
   if (!ext) return 'auto'
   return LANGUAGES.find((l) => l.ext === ext)?.id ?? EXT_ALIASES[ext] ?? 'auto'

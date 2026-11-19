@@ -38,6 +38,7 @@ const LOADERS: Partial<Record<LanguageId, Loader>> = {
   go: async () => (await import('@codemirror/lang-go')).go(),
   rust: async () => (await import('@codemirror/lang-rust')).rust(),
   php: async () => (await import('@codemirror/lang-php')).php(),
+  ruby: () => legacy(async () => (await import('@codemirror/legacy-modes/mode/ruby')).ruby),
   shell: () => legacy(async () => (await import('@codemirror/legacy-modes/mode/shell')).shell),
   toml: () => legacy(async () => (await import('@codemirror/legacy-modes/mode/toml')).toml),
   diff: () => legacy(async () => (await import('@codemirror/legacy-modes/mode/diff')).diff),
