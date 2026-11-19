@@ -86,7 +86,7 @@ describe('zen mode', () => {
     press('Period', { ctrlKey: true })
     expect(s().session.zen).toBe(true)
     expect(screen.queryByRole('tablist')).toBeNull()
-    expect(screen.queryByRole('status', { name: /status bar/i })).toBeNull()
+    expect(screen.queryByRole('contentinfo', { name: /status bar/i })).toBeNull()
     expect(screen.getByText(/to exit zen/i)).toBeInTheDocument()
     act(() => void fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' }))
     expect(s().session.zen).toBe(false)

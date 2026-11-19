@@ -715,3 +715,13 @@ input[type='search']::-webkit-search-decoration {
 .np-link-tip button:hover {
   background: var(--bg-hover);
 }
+
+/* Zen on a laptop: the text alone, in a centred column with room around it. */
+.np-zen .cm-content {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 12vh 24px 40vh;
+}
+.np-zen .cm-scroller {
+  font-size: 1.06em;
+}

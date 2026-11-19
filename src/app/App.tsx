@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
 import { shareStore } from '../features/share/shareStore'
+import { useZenFullscreen } from './layout/useZenFullscreen'
 import { compareStore } from '../features/compare/compareStore'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
@@ -178,6 +179,7 @@ export function App() {
   useUpdateNotice()
   const zen = useAppStore((s) => s.session.zen)
   const phone = useIsPhone()
+  useZenFullscreen(!phone)
 
   if (phone)
     return (

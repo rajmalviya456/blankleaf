@@ -55,7 +55,10 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
     markdown ? (s.session.perTab[noteId]?.previewMode ?? 'edit') : 'edit',
   )
   // Phones pass their own Edit/Preview choice; it never changes the saved (laptop) view.
-  const view = markdown && viewOverride ? viewOverride : saved
+  const zen = useAppStore((s) => s.session.zen)
+  const chosen = markdown && viewOverride ? viewOverride : saved
+  // Zen shows the text alone, not beside its preview.
+  const view = zen && chosen === 'split' ? 'edit' : chosen
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const deferred = useDeferredValue(content)
 
@@ -127,21 +130,22 @@ export function EditorArea({
   viewOverride?: 'edit' | 'preview'
   showToolbar?: boolean
 } = {}) {
+  const zen = useAppStore((s) => s.session.zen)
   const activeId = useAppStore((s) => s.session.activeTabId)
   const locked = useAppStore((s) => !!(activeId && s.notes[activeId]?.locked))
   const sideNote = useAppStore((s) => (s.ui.sideFocused ? s.session.splitNoteId : null))
   const toolbarNote = sideNote ?? activeId
   const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen) && !locked
   return (
-    <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
+    <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg${zen ? ' np-zen' : ''}`}>
       {activeId && toolbar && showToolbar && <Toolbar key={toolbarNote} noteId={toolbarNote!} />}
       {activeId ? (
         <div className="flex min-h-0 flex-1">
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
             <VoiceStatus />
-            <SampleHint noteId={activeId} />
-            <DetectChip noteId={activeId} />
+            {!zen && <SampleHint noteId={activeId} />}
+            {!zen && <DetectChip noteId={activeId} />}
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>
