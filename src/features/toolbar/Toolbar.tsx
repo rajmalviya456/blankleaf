@@ -34,6 +34,7 @@ import {
   Printer,
   Quote,
   Redo2,
+  Maximize2,
   Search,
   Share2,
   SquareCode,
@@ -360,6 +361,9 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
         disabled={off}
         onClick={() => view && openSearchPanel(view)}
       />
+      {!compact && (
+        <Btn icon={Maximize2} label="Zen mode" onClick={() => getStore().getState().toggleZen()} />
+      )}
       {!compact && isVoiceSupported() && (
         <Btn
           icon={Mic}

@@ -423,7 +423,11 @@ export const COMMANDS: Command[] = [
     title: 'Toggle zen mode',
     section: 'View',
     keywords: ['focus', 'distraction', 'fullscreen'],
-    shortcuts: [{ code: 'Period', mod: true }],
+    // Alt+Z too: Safari and some Mac setups keep ⌘. for themselves.
+    shortcuts: [
+      { code: 'Period', mod: true },
+      { code: 'KeyZ', mod2: true },
+    ],
     run: (ctx) => st(ctx).toggleZen(),
   },
   {

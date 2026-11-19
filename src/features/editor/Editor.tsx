@@ -54,13 +54,20 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const settings = useAppStore((s) => s.settings)
+  const zen = useAppStore((s) => s.session.zen)
   const large = isLargeDoc(content.length)
   const phone = useIsPhone()
   const fontSize = effectiveEditorFontSize(settings, phone)
   const base = useEditorExtensions({
     wrap,
     spellcheck,
-    settings: { ...settings, editorFontSize: fontSize },
+    // Zen: just the words, no line numbers or highlighted line.
+    settings: {
+      ...settings,
+      editorFontSize: fontSize,
+      lineNumbers: settings.lineNumbers && !zen,
+      highlightActiveLine: settings.highlightActiveLine && !zen,
+    },
     large,
   })
   const langExt = useLanguageExtension(lang, large)
