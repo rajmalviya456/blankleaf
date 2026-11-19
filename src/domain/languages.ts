@@ -36,6 +36,7 @@ export const LANGUAGES: readonly LanguageMeta[] = [
   { id: 'go', label: 'Go', ext: 'go', kind: 'code', group: 'code' },
   { id: 'rust', label: 'Rust', ext: 'rs', kind: 'code', group: 'code' },
   { id: 'php', label: 'PHP', ext: 'php', kind: 'code', group: 'code' },
+  { id: 'ruby', label: 'Ruby', ext: 'rb', kind: 'code', group: 'code' },
 ]
 
 export const LANGUAGE_GROUPS: readonly { id: LanguageGroup; label: string }[] = [

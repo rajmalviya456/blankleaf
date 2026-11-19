@@ -1,3 +1,4 @@
+import { LANGUAGES } from '../../domain/languages'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createAppStore, initStore } from '../../store/store'
@@ -32,7 +33,7 @@ describe('FormatPicker', () => {
     await user.click(screen.getByRole('button', { name: /format/i }))
     const items = await screen.findAllByRole('menuitemradio')
     expect(items[0]).toHaveTextContent('Auto-detect')
-    expect(items.length).toBe(22)
+    expect(items.length).toBe(LANGUAGES.length + 1)
     expect(screen.getByRole('menuitemradio', { name: 'Go' })).toHaveAttribute(
       'aria-checked',
       'true',

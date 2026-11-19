@@ -25,6 +25,7 @@ export type LanguageId =
   | 'go'
   | 'rust'
   | 'php'
+  | 'ruby'
 
 /** How the notes list is ordered (pinned notes always come first). */
 export type NotesSort = 'edited' | 'created' | 'title'

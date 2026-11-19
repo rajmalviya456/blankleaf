@@ -20,6 +20,10 @@ describe('fileToNote', () => {
       title: 'README',
       language: 'auto',
     })
+    expect(fileToNote('user.rb', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
+    expect(fileToNote('tasks.rake', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
+    expect(fileToNote('Gemfile', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
+    expect(fileToNote('Rakefile', 'x', 5, DEFAULT_SETTINGS).language).toBe('ruby')
     expect(fileToNote('Dockerfile', 'FROM x', 5, DEFAULT_SETTINGS).language).toBe('dockerfile')
   })
 })
