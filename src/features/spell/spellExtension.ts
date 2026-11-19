@@ -168,6 +168,8 @@ function suggestionTooltip(service: SpellService, s: Suggesting): Tooltip {
   }
 }
 
+export { getSpellService }
+
 export function spellCheck(service: SpellService = getSpellService()): Extension {
   const suggestions = StateField.define<Suggesting | null>({
     create: () => null,

@@ -95,3 +95,24 @@ describe('spell check', () => {
     expect(check.mock.calls.length).toBeLessThanOrEqual(3)
   })
 })
+
+describe('spell check language', () => {
+  it('checks with the chosen language’s dictionary, switching when the setting changes', async () => {
+    const byLang = (known: string[]): SpellService => ({
+      check: async (words) => new Set(words.filter((w) => !known.includes(w.toLowerCase()))),
+      suggest: async () => [],
+      add: () => {},
+    })
+    setSpellServiceForTests((lang) =>
+      lang === 'es' ? byLang(['la', 'casa']) : byLang(['the', 'house']),
+    )
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    s().updateSettings({ spellLanguage: 'en-US' })
+    const id = s().newNote({ content: '- the house la casa', spellcheck: true })
+    const { container } = render(<Editor noteId={id} />)
+    await waitFor(() => expect(marked(container)).toEqual(['la', 'casa']))
+    act(() => s().updateSettings({ spellLanguage: 'es' }))
+    await waitFor(() => expect(marked(container)).toEqual(['the', 'house']))
+  })
+})

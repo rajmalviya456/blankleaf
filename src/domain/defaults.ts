@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   tabSize: 2,
   highlightActiveLine: true,
   codeRuler: 80,
+  spellLanguage: 'auto',
   showToolbar: true,
   backupReminderDays: 7,
   notesSort: 'edited',
@@ -38,6 +39,8 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
   }
   if (!['edited', 'created', 'title'].includes(out.notesSort)) out.notesSort = 'edited'
   if (![0, 80, 100, 120].includes(out.codeRuler)) out.codeRuler = DEFAULT_SETTINGS.codeRuler
+  if (!['auto', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'es'].includes(out.spellLanguage))
+    out.spellLanguage = 'auto'
   return out
 }
 

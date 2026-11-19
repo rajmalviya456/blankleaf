@@ -1,4 +1,5 @@
 import type { Settings } from '../../../domain/types'
+import { SPELL_LANGUAGES } from '../../spell/languages'
 import { Row, Section, SelectBox, Toggle } from '../controls'
 
 interface Props {
@@ -64,6 +65,20 @@ export function EditorSection({ settings: s, update }: Props) {
           options={[
             { value: 0, label: 'Off' },
             ...[80, 100, 120].map((n) => ({ value: n, label: `${n} characters` })),
+          ]}
+        />
+      </Row>
+      <Row
+        label="Spell check language"
+        hint="For notes with spell check on. The dictionary downloads the first time it's used."
+      >
+        <SelectBox
+          label="Spell check language"
+          value={s.spellLanguage}
+          onChange={(spellLanguage) => update({ spellLanguage })}
+          options={[
+            { value: 'auto', label: 'Automatic' },
+            ...SPELL_LANGUAGES.map((l) => ({ value: l.id, label: l.label })),
           ]}
         />
       </Row>
