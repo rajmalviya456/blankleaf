@@ -25,13 +25,20 @@ const LIKE: Record<string, SpellLanguage> = {
   'en-ca': 'en-CA',
 }
 
+/** Some browsers (and embedded views) have no list, only a single language, or neither. */
+function browserLanguages(): readonly string[] {
+  if (typeof navigator === 'undefined') return []
+  if (Array.isArray(navigator.languages) && navigator.languages.length) return navigator.languages
+  return navigator.language ? [navigator.language] : []
+}
+
 /** The dictionary to use: the chosen one, or the first of the browser's languages we have. */
 export function resolveSpellLanguage(
   setting: SpellLanguageSetting,
-  browser: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages,
+  browser: readonly string[] | undefined = browserLanguages(),
 ): SpellLanguage {
   if (setting !== 'auto') return setting
-  for (const tag of browser) {
+  for (const tag of browser ?? []) {
     const t = tag.toLowerCase()
     if (LIKE[t]) return LIKE[t]
     if (t.startsWith('es')) return 'es'

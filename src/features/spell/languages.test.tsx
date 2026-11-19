@@ -14,6 +14,10 @@ describe('spell check languages', () => {
     expect(resolveSpellLanguage('auto', ['fr-FR'])).toBe('en-US')
   })
 
+  it('copes with a browser that reports no languages', () => {
+    expect(resolveSpellLanguage('auto', undefined)).toBe('en-US')
+  })
+
   it('uses a chosen language as it is', () => {
     expect(resolveSpellLanguage('es', ['en-US'])).toBe('es')
   })
