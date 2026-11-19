@@ -118,6 +118,17 @@
       [data-theme='dark'] #np-shell header {
         background: #0b0d10;
       }
+      /* Phones: the note bar's title, at the app's size, so this paint already counts as loaded. */
+      @media (max-width: 639px) {
+        #np-shell header {
+          height: 48px;
+          padding-left: 60px;
+          /* The system font is narrower than the app's Inter: drawn a touch larger to match. */
+          font-size: 16px;
+          letter-spacing: 0.04em;
+          font-weight: 600;
+        }
+      }
       #np-shell p {
         margin: 0;
         padding: 16px 18px;

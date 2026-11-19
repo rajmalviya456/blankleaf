@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { createAppStore, initStore } from '../../store/store'
 import { StatusBar } from './StatusBar'
 
@@ -14,7 +14,7 @@ describe('StatusBar', () => {
   it('shows position, counts, mode and wrap for the active note', () => {
     const { id, s } = setup()
     act(() => s().setViewState(id, { head: 10 }))
-    const bar = screen.getByRole('status', { name: /status bar/i })
+    const bar = screen.getByRole('contentinfo', { name: /status bar/i })
     expect(bar).toHaveTextContent('Ln 2, Col 3')
     expect(bar).toHaveTextContent('3 words')
     expect(bar).toHaveTextContent('13 chars')
@@ -24,7 +24,7 @@ describe('StatusBar', () => {
 
   it('counts the selection while text is selected', () => {
     const { id, s } = setup()
-    const bar = screen.getByRole('status', { name: /status bar/i })
+    const bar = screen.getByRole('contentinfo', { name: /status bar/i })
     expect(bar).not.toHaveTextContent('selected')
     act(() => s().setViewState(id, { anchor: 0, head: 7 }))
     expect(bar).toHaveTextContent('2 words, 7 chars selected')
@@ -67,5 +67,14 @@ describe('StatusBar', () => {
     await userEvent.click(screen.getByRole('button', { name: /share note/i }))
     expect(shareStore.getState().dialogNoteId).toBe(id)
     act(() => shareStore.getState().close())
+  })
+})
+
+describe('StatusBar for assistive tech', () => {
+  it('is a footer with buttons, and announces only the save state', () => {
+    setup()
+    const bar = screen.getByRole('contentinfo', { name: 'Status bar' })
+    expect(bar).not.toHaveAttribute('role', 'status')
+    expect(within(bar).getByRole('status', { name: 'Save status' })).toHaveTextContent('Saved')
   })
 })

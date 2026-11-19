@@ -87,7 +87,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       >
         <Plus size={15} strokeWidth={1.75} />
       </button>
-      <TemplateMenu className="mb-1 -ml-1 grid h-7 w-4 shrink-0 place-items-center rounded-md text-fg-faint outline-none hover:bg-bg-hover hover:text-fg focus-visible:bg-bg-hover">
+      <TemplateMenu className="mb-1 -ml-1 grid h-7 w-6 shrink-0 place-items-center rounded-md text-fg-faint outline-none hover:bg-bg-hover hover:text-fg focus-visible:bg-bg-hover">
         <ChevronDown size={12} />
       </TemplateMenu>
       <div className="flex-1" />

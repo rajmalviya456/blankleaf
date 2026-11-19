@@ -28,7 +28,7 @@ describe('PhoneShell', () => {
     expect(await screen.findByRole('banner', { name: 'Note bar' })).toBeInTheDocument()
     expect(screen.queryByRole('tablist', { name: 'Open notes' })).toBeNull()
     expect(screen.queryByRole('navigation', { name: 'Sidebar' })).toBeNull()
-    expect(screen.queryByRole('status', { name: 'Status bar' })).toBeNull()
+    expect(screen.queryByRole('contentinfo', { name: 'Status bar' })).toBeNull()
   })
 
   it('laptop: existing layout untouched', () => {

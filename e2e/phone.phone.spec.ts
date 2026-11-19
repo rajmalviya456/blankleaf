@@ -128,3 +128,27 @@ test('top bar and toolbar take at most 110px', async ({ page }) => {
   const tools = await page.getByRole('toolbar', { name: 'Editor toolbar' }).boundingBox()
   expect(bar!.height + tools!.height).toBeLessThanOrEqual(110)
 })
+
+test('the instant first paint draws the note title as large as the app will', async ({ page }) => {
+  // The app's own title is the largest thing on a phone. If the first paint drew it smaller,
+  // the browser would count the page as loaded only once all the app's code had arrived.
+  const box = async (sel: string) =>
+    page.locator(sel).evaluate((el) => {
+      const r = document.createRange()
+      r.selectNodeContents(el)
+      const b = r.getBoundingClientRect()
+      return {
+        w: Math.round(b.width),
+        h: Math.round(b.height),
+        font: getComputedStyle(el).fontSize,
+      }
+    })
+  await page.route('**/assets/*.js', (route) => route.abort())
+  await page.goto('./')
+  const shell = await box('#np-shell header')
+  await page.unroute('**/assets/*.js')
+  await openPhoneApp(page)
+  const app = await box('header[aria-label="Note bar"] span.truncate')
+  expect(shell.w).toBeGreaterThanOrEqual(app.w - 2)
+  expect(shell.h).toBeGreaterThanOrEqual(app.h - 2)
+})

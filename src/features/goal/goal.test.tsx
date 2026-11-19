@@ -37,7 +37,7 @@ describe('reading time', () => {
   it('shows in the status bar once there’s text', () => {
     setup('word '.repeat(450))
     render(<StatusBar />)
-    expect(screen.getByRole('status', { name: 'Status bar' })).toHaveTextContent('3 min read')
+    expect(screen.getByRole('contentinfo', { name: 'Status bar' })).toHaveTextContent('3 min read')
   })
 })
 
