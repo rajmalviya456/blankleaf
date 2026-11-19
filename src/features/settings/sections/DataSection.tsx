@@ -54,6 +54,18 @@ export function DataSection({ settings: s, update }: Props) {
           Import…
         </button>
       </Row>
+      <Row
+        label="Download as files"
+        hint="Every note as its own file (.md, .txt, .py, …) in one .zip, to open in any app."
+      >
+        <button
+          type="button"
+          onClick={() => void import('../../export/notesZip').then((m) => m.downloadAllAsFiles())}
+          className={buttonClass}
+        >
+          Download .zip
+        </button>
+      </Row>
       <FolderBackupRow />
       <Row label="Remind me to back up">
         <SelectBox
