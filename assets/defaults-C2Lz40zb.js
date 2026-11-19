@@ -1,0 +1,48 @@
+var e=Object.freeze({theme:`system`,accent:``,uiFontSize:13,editorFont:`mono`,editorFontSize:14,phoneEditorFontSize:16,lineHeight:1.6,defaultMode:`plain`,defaultWrap:!0,lineNumbers:!0,tabSize:2,highlightActiveLine:!0,showToolbar:!0,backupReminderDays:7,notesSort:`edited`});function t(t){let n={...e};if(!t||typeof t!=`object`)return n;let r=n;for(let n of Object.keys(e)){let i=t[n];i!==void 0&&typeof i==typeof e[n]&&(r[n]=i)}return[`edited`,`created`,`title`].includes(n.notesSort)||(n.notesSort=`edited`),n}function n(){return{openTabIds:[],activeTabId:null,closedStack:[],perTab:{},sidebar:{open:!1,panel:`notes`},zen:!1}}function r(e,t,n=crypto.randomUUID()){return{id:n,title:null,content:``,mode:t.defaultMode,language:`auto`,wrap:t.defaultWrap,pinned:!1,createdAt:e,updatedAt:e,deletedAt:null,rev:0}}var i=`# Welcome to Blankleaf
+
+This is a **sample note**. Change anything, it's yours, and delete it when you're done.
+Everything saves in this browser as you type. Nothing leaves your device unless you share it.
+
+## A checklist
+
+Tick the boxes in the preview.
+
+- [x] Open Blankleaf
+- [ ] Write something
+- [ ] Share a note with an encrypted link
+
+## A diagram
+
+\`\`\`mermaid
+flowchart LR
+  Idea --> Draft --> Share
+\`\`\`
+
+## Code
+
+\`\`\`js
+const greet = (name) => \`Hello, \${name}!\`
+\`\`\`
+
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+\`\`\`
+
+## Math
+
+$$
+e^{i\\pi} + 1 = 0
+$$
+
+## Keys
+
+| Keys | What it does |
+| --- | --- |
+| Ctrl/⌘ K | Command palette |
+| Alt N (⌃⌥N on a Mac) | New note |
+| Ctrl/⌘ Shift F | Search all notes |
+| Ctrl/⌘ / | All keyboard shortcuts |
+
+Back up now and then: Settings → Data → Export, or pick a backup folder there.
+`;function a(e,t){return t?Math.max(16,e.phoneEditorFontSize):e.editorFontSize}export{t as a,n as i,i as n,r as o,a as r,e as t};
