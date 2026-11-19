@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/rajmalviya456/blankleaf/compare/v1.11.1...v1.12.0) (2026-11-19)
+
+
+### Features
+
+* **spell:** Blankleaf's own spell check, fast and accurate ([#70](https://github.com/rajmalviya456/blankleaf/issues/70)) ([c0ff0ff](https://github.com/rajmalviya456/blankleaf/commit/c0ff0ffaf3666d83b708ec1c9a9371ff37b96cd3))
+
 ## [1.11.1](https://github.com/rajmalviya456/blankleaf/compare/v1.11.0...v1.11.1) (2026-11-19)
 
 
