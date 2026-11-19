@@ -1,3 +1,4 @@
+import { OPENABLE_EXTENSIONS } from '../../domain/languages'
 /** User-facing backup actions: export all, export one note, import files. */
 import { importVersions } from '../../db/versionsRepo'
 import { getActiveDb } from '../../store/dataReset'
@@ -158,7 +159,7 @@ export function pickFilesToImport(): void {
   const input = document.createElement('input')
   input.type = 'file'
   input.multiple = true
-  input.accept = '.json,.txt,.md,.markdown,.log,text/*,application/json'
+  input.accept = [...OPENABLE_EXTENSIONS, 'text/*', 'application/json'].join(',')
   input.onchange = () => void importFileList([...(input.files ?? [])])
   input.click()
 }

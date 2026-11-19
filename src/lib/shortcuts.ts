@@ -15,6 +15,8 @@ export interface Shortcut {
   shift?: boolean
   /** Only active in the installed app window, where the browser doesn't own the key. */
   standaloneOnly?: boolean
+  /** Left to the editor while typing in a code note (Cmd/Ctrl+/ comments a line there). */
+  yieldsToCode?: boolean
 }
 
 type KeyLike = Pick<KeyboardEvent, 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'> &

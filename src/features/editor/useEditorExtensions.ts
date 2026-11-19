@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
-import { indentUnit } from '@codemirror/language'
+import { indentOnInput, indentUnit } from '@codemirror/language'
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
 import { EditorState, type Extension } from '@codemirror/state'
 import {
@@ -54,6 +54,8 @@ export function useEditorExtensions({
       EditorState.allowMultipleSelections.of(true),
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
+      // A typed `}` (or the language's other closers) moves back to its opening line's indent.
+      indentOnInput(),
       keymap.of([
         { key: 'Enter', run: newlineKeepingIndent },
         ...defaultKeymap,

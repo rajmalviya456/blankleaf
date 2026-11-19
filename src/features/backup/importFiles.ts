@@ -1,35 +1,14 @@
 import { newNoteDraft } from '../../domain/defaults'
-import { LANGUAGES, languageMeta } from '../../domain/languages'
+import { EXTENSION_ALIASES, LANGUAGES, languageMeta } from '../../domain/languages'
 import { documentTitle } from '../../domain/title'
 import type { LanguageId, Note, Settings } from '../../domain/types'
-
-const EXT_ALIASES: Record<string, LanguageId> = {
-  markdown: 'markdown',
-  mjs: 'javascript',
-  cjs: 'javascript',
-  jsx: 'javascript',
-  tsx: 'typescript',
-  yml: 'yaml',
-  bash: 'shell',
-  zsh: 'shell',
-  htm: 'html',
-  c: 'cpp',
-  h: 'cpp',
-  hpp: 'cpp',
-  cc: 'cpp',
-  patch: 'diff',
-  text: 'plaintext',
-  rake: 'ruby',
-  gemspec: 'ruby',
-  ru: 'ruby',
-}
 
 function languageForFile(name: string): LanguageId {
   if (/^dockerfile$/i.test(name)) return 'dockerfile'
   if (/^(gemfile|rakefile)$/i.test(name)) return 'ruby'
   const ext = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase()
   if (!ext) return 'auto'
-  return LANGUAGES.find((l) => l.ext === ext)?.id ?? EXT_ALIASES[ext] ?? 'auto'
+  return LANGUAGES.find((l) => l.ext === ext)?.id ?? EXTENSION_ALIASES[ext] ?? 'auto'
 }
 
 /** A dropped or picked text file becomes a new note named after the file. */

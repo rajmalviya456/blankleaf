@@ -18,7 +18,12 @@ function looksLikeYaml(lines: string[]): boolean {
   const body = lines.filter((l) => !/^\s*#/.test(l))
   const keys = body.filter((l) => /^\s*(- )?[\w-]+:(\s|$)/.test(l)).length
   const items = body.filter((l) => /^\s*- \S/.test(l)).length
-  return body.length >= 3 && keys >= 2 && (keys + items) / body.length >= 0.8
+  // "Name: Bob" lines alone are a note, not YAML: needs nesting, a list, or code-like keys.
+  const structured =
+    body.some((l) => /^\s+\S/.test(l)) ||
+    items > 0 ||
+    body.some((l) => /^\s*[a-z_][\w-]*:(\s|$)/.test(l))
+  return body.length >= 3 && keys >= 2 && (keys + items) / body.length >= 0.8 && structured
 }
 
 function looksLikeJson(text: string): boolean {
@@ -46,16 +51,24 @@ export function detectLanguage(text: string): LanguageId {
   if (lines.filter((l) => LOG_LINE.test(l.trim())).length >= 3) return 'log'
   if (/^<\?php/.test(first)) return 'php'
   if (/^<\?xml/.test(first)) return 'xml'
-  if (/^<!doctype html|^<html[\s>]/i.test(first) || has(/<(div|span|body|head|p|a)[\s>]/i))
-    return 'html'
+  if (/^<!doctype html|^<html[\s>]/i.test(first)) return 'html'
   if (/^#!.*\b(ba|z|fi)?sh\b/.test(first) || share(/^\$ \S/) >= 0.5) return 'shell'
   // Markdown that embeds code: fences, or a heading plus inline markdown. Checked before the
   // code rules so a ```js block doesn't make the whole note JavaScript.
   if (has(/^```/m)) return 'markdown'
   if (/^#{1,6} \S/.test(first) && has(/\*\*\S|`[^`\n]+`|\[[^\]]+\]\([^)]+\)|^\s*[-*] \[[ x]\]/m))
     return 'markdown'
+  // JSX: tags inside JavaScript.
+  const jsLines = /^\s*(import|export|const|let|function|return)\b/m
+  if (has(jsLines) && has(/<[A-Za-z][\w.]*[\s>/]/))
+    return has(/\w+\s*:\s*(string|number|boolean)\b/) ? 'typescript' : 'javascript'
+  if (/^#{1,6} \S/.test(first) && (has(/\*\*\S/) || (has(/^\s*[-*] \S/m) && !looksLikeYaml(lines))))
+    return 'markdown'
+  if (has(/<(div|span|body|head|p|a|ul|li|table|section)[\s>]/i) && has(/<\/\w+>/)) return 'html'
   if (/^diff --git /.test(first) || (has(/^@@ -\d+(,\d+)? \+\d+/m) && has(/^[+-]/m))) return 'diff'
-  if (/^FROM \S+/.test(first) && has(/^(RUN|CMD|COPY|WORKDIR|ENTRYPOINT) /m)) return 'dockerfile'
+  const firstCode = lines.find((l) => !/^\s*#/.test(l))?.trim() ?? ''
+  if (/^FROM \S+/.test(firstCode) && has(/^(RUN|CMD|COPY|WORKDIR|ENTRYPOINT) /m))
+    return 'dockerfile'
   if (has(/^package \w+\s*$/m) && has(/^func /m)) return 'go'
   if (has(/^\s*fn \w+\s*\(/m) && has(/\blet (mut )?\w+|println!|->/)) return 'rust'
   // Before Python and JavaScript: Ruby's `def f(x)` and `=>` would match those.
@@ -64,19 +77,25 @@ export function detectLanguage(text: string): LanguageId {
     (has(/^\s*(def|class|module)\s+[\w:.]+/m) || has(/\bdo(\s*\|[^|]*\|)?\s*$/m))
   )
     return 'ruby'
+  if (has(/^#include\s*[<"]/m)) return 'cpp'
   if (has(/^\s*(public |private )?(final )?class \w+/m) && has(/\b(public|static|void)\b/))
     return 'java'
-  if (has(/^#include\s*[<"]/m)) return 'cpp'
   if (
     has(/^\s*(def \w+\(|class \w+(\(.*\))?:|from [\w.]+ import |import \w+\s*$)/m) &&
-    !has(/[;{}]\s*$/m)
+    !has(/;\s*$/m) &&
+    !has(/^\s*(const|let|var|function)\s/m)
   )
     return 'python'
-  if (has(/\b(SELECT\s.+\sFROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|CREATE\s+TABLE|DELETE\s+FROM)\b/i))
-    return 'sql'
+  const sql =
+    /\b(SELECT\s[\s\S]{1,400}?\sFROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|CREATE\s+TABLE|DELETE\s+FROM)\b/
+  if (has(sql) || (has(new RegExp(sql.source, 'i')) && has(/;\s*$/m))) return 'sql'
   if (has(/^\s*(export )?(interface|type) \w+/m) || has(/\w+\s*:\s*(string|number|boolean|void)\b/))
     return 'typescript'
-  if (has(/^\s*(const|let|var|function|import|export)\b/m) || has(/=>/)) return 'javascript'
+  if (
+    has(/^\s*(const|let|var|function|import|export)\b/m) ||
+    (has(/(\)|\b\w+)\s*=>\s*[{(\w'"`[]/) && has(/[;{}()]/) && !has(/,\s*\w+\s*=>/))
+  )
+    return 'javascript'
   if (has(/^[.#@]?[\w-]+[^{\n]*\{\s*$/m) && has(/^\s+[\w-]+\s*:\s*[^;]+;\s*$/m)) return 'css'
   if (has(/^\[[\w.-]+\]\s*$/m) && has(/^[\w-]+\s*=\s*\S/m)) return 'toml'
   if (looksLikeYaml(lines)) return 'yaml'

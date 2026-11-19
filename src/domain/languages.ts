@@ -1,4 +1,7 @@
+import { ALIASES, OPENABLE_EXTENSIONS } from './fileExtensions'
 import type { LanguageId } from './types'
+
+export { OPENABLE_EXTENSIONS }
 
 export type LanguageKind = 'text' | 'code' | 'log'
 export type LanguageGroup = 'text' | 'data' | 'code'
@@ -44,6 +47,12 @@ export const LANGUAGE_GROUPS: readonly { id: LanguageGroup; label: string }[] = 
   { id: 'data', label: 'Data & config' },
   { id: 'code', label: 'Code' },
 ]
+
+/** Other file extensions that open as a format (kept dependency-free for the build config). */
+export const EXTENSION_ALIASES: Readonly<Record<string, LanguageId>> = ALIASES satisfies Record<
+  string,
+  LanguageId
+>
 
 const byId = new Map(LANGUAGES.map((l) => [l.id as LanguageId, l]))
 
