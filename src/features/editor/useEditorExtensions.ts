@@ -13,6 +13,7 @@ import {
 import { useMemo } from 'react'
 import type { Settings } from '../../domain/types'
 import { createFindPanel } from './findPanel'
+import { newlineKeepingIndent } from './keepIndent'
 
 interface Options {
   wrap: boolean
@@ -53,7 +54,13 @@ export function useEditorExtensions({
       EditorState.allowMultipleSelections.of(true),
       EditorState.tabSize.of(tabSize),
       indentUnit.of(' '.repeat(tabSize)),
-      keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+      keymap.of([
+        { key: 'Enter', run: newlineKeepingIndent },
+        ...defaultKeymap,
+        ...historyKeymap,
+        ...searchKeymap,
+        indentWithTab,
+      ]),
       EditorView.contentAttributes.of({
         'aria-label': 'Note text',
         spellcheck: spellcheck ? 'true' : 'false',
