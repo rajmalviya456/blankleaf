@@ -3,7 +3,7 @@ import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { exportAll } from './actions'
 import { getLastBackupAt } from './meta'
-import { shouldRemindBackup } from './reminder'
+import { hasWrittenNotes, shouldRemindBackup } from './reminder'
 
 const CHECK_EVERY_MS = 60 * 60 * 1000
 
@@ -14,7 +14,7 @@ export function useBackupReminder(): void {
     const check = () => {
       if (shown) return
       const s = getStore().getState()
-      const hasNotes = Object.values(s.notes).some((n) => n.deletedAt === null && n.content.trim())
+      const hasNotes = hasWrittenNotes(s.notes)
       if (
         !shouldRemindBackup(getLastBackupAt(), s.settings.backupReminderDays, hasNotes, Date.now())
       )
