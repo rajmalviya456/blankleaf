@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/rajmalviya456/blankleaf/compare/v1.12.0...v1.12.1) (2026-11-19)
+
+
+### Performance
+
+* keep typing fast with many notes and big notes ([#72](https://github.com/rajmalviya456/blankleaf/issues/72)) ([846c102](https://github.com/rajmalviya456/blankleaf/commit/846c102ba7b4f4a4f0485d1bf9804edbea666fa5))
+
 ## [1.12.0](https://github.com/rajmalviya456/blankleaf/compare/v1.11.1...v1.12.0) (2026-11-19)
 
 
