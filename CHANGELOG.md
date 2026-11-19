@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/rajmalviya456/blankleaf/compare/v1.11.0...v1.11.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **editor:** only the note being edited looks active ([#68](https://github.com/rajmalviya456/blankleaf/issues/68)) ([f12a072](https://github.com/rajmalviya456/blankleaf/commit/f12a07284dddd3ae4307fc156ded44c11a27855c))
+
 ## [1.11.0](https://github.com/rajmalviya456/blankleaf/compare/v1.10.1...v1.11.0) (2026-11-19)
 
 
