@@ -23,6 +23,7 @@ import {
   Tag,
   Target,
   Trash2,
+  BookOpenCheck,
   GitCompare,
   type LucideIcon,
   Link2,
@@ -45,6 +46,7 @@ import { exportNoteAs } from '../export/exportNote'
 import { getActiveView } from '../editor/activeView'
 import { formatLabel } from '../editor/format'
 import { compareStore } from '../compare/compareStore'
+import { readabilityStore } from '../readability/readabilityStore'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
@@ -284,6 +286,11 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                       icon={History}
                       label="Version history…"
                       onSelect={() => historyStore.getState().open(noteId)}
+                    />
+                    <Action
+                      icon={BookOpenCheck}
+                      label="Readability…"
+                      onSelect={() => readabilityStore.getState().open(noteId)}
                     />
                     <Action
                       icon={GitCompare}

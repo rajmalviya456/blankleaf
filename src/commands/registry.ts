@@ -16,6 +16,7 @@ import { newFromTemplate, TEMPLATES } from '../features/templates/templates'
 import { nextThemePref } from '../lib/theme'
 import { compareStore } from '../features/compare/compareStore'
 import { symbolStore } from '../features/symbols/symbolStore'
+import { readabilityStore } from '../features/readability/readabilityStore'
 import { openSample } from '../features/sample/sample'
 import { PHONE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
@@ -228,6 +229,19 @@ export const COMMANDS: Command[] = [
     run: (ctx) => {
       st(ctx).setUi({ paletteOpen: false })
       symbolStore.getState().setOpen(true)
+    },
+  },
+  {
+    id: 'note.readability',
+    title: 'Readability…',
+    section: 'Note',
+    keywords: ['grade', 'reading', 'level', 'sentences', 'words', 'style', 'clarity'],
+    shortcuts: [],
+    when: hasOpenText,
+    run: (ctx) => {
+      const id = st(ctx).session.activeTabId
+      st(ctx).setUi({ paletteOpen: false })
+      if (id) readabilityStore.getState().open(id)
     },
   },
   {
