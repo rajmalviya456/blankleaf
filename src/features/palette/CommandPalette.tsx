@@ -1,5 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { Command } from 'cmdk'
+import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
@@ -78,6 +79,7 @@ export function CommandPalette() {
           <Command
             label="Command palette"
             loop
+            filter={paletteScore}
             onKeyDown={(e) => {
               if (mode === 'formats' && e.key === 'Backspace' && !query) {
                 e.preventDefault()
@@ -134,11 +136,17 @@ export function CommandPalette() {
                 </Command.Group>
               ) : (
                 <>
-                  {SECTIONS.map((section) => {
-                    const items = visible.filter((c) => c.section === section)
+                  {/* While searching, one list: cmdk ranks items within a group but never
+                      reorders groups, so a section's weak match would sit above a strong one. */}
+                  {(query.trim() ? [null] : SECTIONS).map((section) => {
+                    const items = section ? visible.filter((c) => c.section === section) : visible
                     if (!items.length) return null
                     return (
-                      <Command.Group key={section} heading={section} className={groupClass}>
+                      <Command.Group
+                        key={section ?? 'all'}
+                        heading={section ?? 'Commands'}
+                        className={groupClass}
+                      >
                         {items.map((c) => (
                           <Command.Item
                             key={c.id}

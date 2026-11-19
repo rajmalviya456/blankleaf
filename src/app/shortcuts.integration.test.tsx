@@ -105,6 +105,14 @@ describe('command palette', () => {
     expect(screen.queryByRole('dialog', { name: /command palette/i })).toBeNull()
   })
 
+  it('ranks a command whose words match ahead of loose matches', async () => {
+    const { user } = setup()
+    press('KeyK', { ctrlKey: true })
+    const dialog = await screen.findByRole('dialog', { name: /command palette/i })
+    await user.type(within(dialog).getByRole('combobox'), 'spell')
+    expect(within(dialog).getAllByRole('option')[0]).toHaveTextContent('Toggle spell check')
+  })
+
   it('typing a note title lists it and Enter opens it', async () => {
     const { s, user } = setup()
     const other = s().newNote()
