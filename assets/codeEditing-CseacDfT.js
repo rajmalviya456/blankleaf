@@ -1,0 +1,1 @@
+import{i as e,r as t}from"./dist-B_FdTBUh.js";import{d as n,g as r,l as i,v as a}from"./dist-Cad2Z_4B.js";import{g as o}from"./dist-DerapORC.js";var s=[t(),i(),n({placeholderText:`…`}),r({openText:`⌄`,closedText:`›`}),o.of([...e,...a])];export{s as codeEditing};

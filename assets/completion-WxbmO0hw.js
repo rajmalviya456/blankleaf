@@ -1,1 +1,0 @@
-import{n as e}from"./dist-CiQxsNoJ.js";import{N as t}from"./dist-DerapORC.js";var n=t.define();async function r(e){for(let t of e.state.facet(n)){let n=await t(e);if(n)return n}return null}var i=e({override:[r],icons:!1});export{n,i as t};
