@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { gzipSync } from 'node:zlib'
 import { expect, test } from '@playwright/test'
 import { openApp } from './helpers'
 
@@ -51,6 +53,20 @@ test('startup code leaves out editor features the app doesn’t use', async ({ p
   const code = startup.join('\n')
   expect(code).not.toContain('cm-completionIcon')
   expect(code).not.toContain('cm-lintRange')
+})
+
+test('the code needed to start stays small', () => {
+  // Everything index.html loads before the app can run, compressed as servers send it.
+  const html = readFileSync('dist/index.html', 'utf8')
+  const files = new Set(
+    [...html.matchAll(/(?:src|href)="\/blankleaf\/(assets\/[^"]+\.js)"/g)].map((m) => m[1]),
+  )
+  const kb = [...files].reduce((n, f) => n + gzipSync(readFileSync(`dist/${f}`)).length, 0) / 1024
+  // About 330 KB now. Raise this only on purpose.
+  expect(kb).toBeLessThan(360)
+  // Libraries come in their own files, so an update doesn't download them again.
+  for (const lib of ['react', 'dexie'])
+    expect([...files].some((f) => f.includes(`/${lib}-`))).toBe(true)
 })
 
 test('a first visit paints the welcome note’s opening at once; a returning one paints a blank page', async ({

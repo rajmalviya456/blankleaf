@@ -127,13 +127,29 @@ export default defineConfig(({ command }) => ({
     }),
   ],
   build: {
-    rollupOptions: {
+    // Only the diagram library (loaded just for notes with diagrams) is bigger than the usual
+    // 500 KB; what loads at startup has its own budget in e2e/first-paint.spec.ts.
+    chunkSizeWarningLimit: 700,
+    rolldownOptions: {
       output: {
         // Keep the diagram library apart, so it isn't downloaded for offline use by everyone.
         chunkFileNames: (chunk) =>
           chunk.moduleIds.some((id) => DIAGRAM_MODULES.test(id))
             ? 'assets/diagrams/[name]-[hash].js'
             : 'assets/[name]-[hash].js',
+        // Libraries that change rarely get files of their own: an update to Blankleaf then
+        // downloads only Blankleaf's code, and the browser fetches the parts side by side.
+        codeSplitting: {
+          groups: [
+            // Not react-dom/server: only the web page export uses it, and it loads then.
+            {
+              name: 'react',
+              test: /node_modules[\\/](react|scheduler)[\\/]|node_modules[\\/]react-dom[\\/](?!server|cjs[\\/]react-dom-server)/,
+            },
+            { name: 'dexie', test: /node_modules[\\/]dexie[\\/]/ },
+            { name: 'dnd', test: /node_modules[\\/]@dnd-kit[\\/]/ },
+          ],
+        },
       },
     },
   },
