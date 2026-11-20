@@ -8,7 +8,7 @@ import { createStore } from 'zustand/vanilla'
 import { editingNote } from '../../store/selectors'
 import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
-import { getActiveView } from '../editor/activeView'
+import { getActiveView, noteForView, viewForNote } from '../editor/activeView'
 
 interface RecognitionEvent {
   resultIndex: number
@@ -74,10 +74,12 @@ export function isVoiceSupported(): boolean {
 
 export const voiceStore = createStore<{
   listening: boolean
+  /** The note being dictated into (its pane shows the voice typing bubble). */
+  noteId: string | null
   /** Words still being recognised, shown but not yet typed. */
   interim: string
   consentOpen: boolean
-}>()(() => ({ listening: false, interim: '', consentOpen: false }))
+}>()(() => ({ listening: false, noteId: null, interim: '', consentOpen: false }))
 
 const CONSENT_KEY = 'blankleaf:voice-consent'
 const MAX_QUICK_RESTARTS = 3
@@ -104,10 +106,26 @@ let stopCurrent: (() => void) | null = null
 
 export const stopVoice = () => stopCurrent?.()
 
-function insert(view: EditorView, words: string) {
-  const { from } = view.state.selection.main
-  const before = view.state.sliceDoc(Math.max(0, from - 1), from)
-  const text = (before && !/\s/.test(before) ? ' ' : '') + words
+/** Android's continuous mode repeats earlier words in later results: listen phrase by phrase. */
+const isAndroid = () => /Android/i.test(navigator.userAgent)
+
+/** Punctuation that sits against the word before it. */
+const CLINGS = /^[,.;:!?%)\]}’”…]/
+
+/**
+ * Type dictated words at the cursor: spaced from the text around them (but not before
+ * punctuation), and starting with a capital at the start of a line or after a full stop.
+ */
+export function insertDictated(view: EditorView, words: string) {
+  const { from, to } = view.state.selection.main
+  const lineStart = view.state.doc.lineAt(from).from
+  const before = view.state.sliceDoc(lineStart, from)
+  const after = view.state.sliceDoc(to, Math.min(view.state.doc.length, to + 1))
+  let text = words
+  if (/^\s*$/.test(before) || /[.!?]["”’)]?\s*$/.test(before))
+    text = text.replace(/^\p{Ll}/u, (c) => c.toUpperCase())
+  if (before && !/\s$/.test(before) && !CLINGS.test(text)) text = ' ' + text
+  if (after && /[\p{L}\p{N}]/u.test(after)) text += ' '
   view.dispatch(view.state.replaceSelection(text), {
     userEvent: 'input.dictate',
     scrollIntoView: true,
@@ -119,22 +137,30 @@ function start(view: EditorView) {
   if (!Recognition || stopCurrent) return
   const recognition = new Recognition()
   recognition.lang = navigator.language
-  recognition.continuous = true
+  recognition.continuous = !isAndroid()
   recognition.interimResults = true
 
-  // The note being edited: the side note when its editor has the cursor.
-  const noteId = editingNote(getStore().getState())?.id ?? null
+  // The note whose editor this is (the side note when its editor has the cursor).
+  const noteId = noteForView(view) ?? editingNote(getStore().getState())?.id ?? null
   let active = true
   let startedAt = 0
   let quickRestarts = 0
+  /** What each result of this listening session typed: browsers may send one again. */
+  let typed: string[] = []
+  let interim = ''
+  /** The note's editor now: a redraw (Edit → Split) replaces it, and typing carries on there. */
+  const target = () => (noteId && viewForNote(noteId)) || (view.dom.isConnected ? view : null)
 
-  const stop = () => {
+  /** `keep`: type the words still being heard, as shown (stopping by hand, leaving the page). */
+  const stop = (keep = false) => {
     if (!active) return
+    const v = target()
+    if (keep && interim.trim() && v) insertDictated(v, interim.trim())
     active = false
     stopCurrent = null
     unsubscribe()
     document.removeEventListener('visibilitychange', onVisibility)
-    voiceStore.setState({ listening: false, interim: '' })
+    voiceStore.setState({ listening: false, noteId: null, interim: '' })
     recognition.onresult = null
     recognition.abort()
   }
@@ -144,22 +170,27 @@ function start(view: EditorView) {
     if (!shown || !note || note.locked || note.deletedAt !== null) stop()
   })
   const onVisibility = () => {
-    if (document.visibilityState === 'hidden') stop()
+    if (document.visibilityState === 'hidden') stop(true)
   }
   const listen = () => {
     startedAt = Date.now()
+    typed = []
+    interim = ''
     recognition.start()
   }
 
   recognition.onresult = (e) => {
-    if (!active || !view.dom.isConnected) return stop()
+    const v = target()
+    if (!active || !v) return stop()
     quickRestarts = 0
-    let interim = ''
+    interim = ''
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const result = e.results[i]
-      const words = result[0].transcript.trim()
       if (result.isFinal) {
-        if (words) insert(view, words)
+        const words = result[0].transcript.trim()
+        if (typed[i] === words) continue
+        typed[i] = words
+        if (words) insertDictated(v, words)
       } else interim += result[0].transcript
     }
     voiceStore.setState({ interim: interim.trim() })
@@ -186,9 +217,9 @@ function start(view: EditorView) {
     }
   }
 
-  stopCurrent = stop
+  stopCurrent = () => stop(true)
   document.addEventListener('visibilitychange', onVisibility)
-  voiceStore.setState({ listening: true, interim: '' })
+  voiceStore.setState({ listening: true, noteId, interim: '' })
   try {
     listen()
   } catch {

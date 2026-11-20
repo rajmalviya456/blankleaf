@@ -148,6 +148,7 @@ function SideNote({ activeId }: { activeId: string }) {
         // The side note gets its own Edit/Split/Preview view, format chip and readability panel.
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <OpenNote key={note.id} noteId={note.id} side />
+          <VoiceStatus noteId={note.id} />
           <DetectChip noteId={note.id} />
           <ReadabilityPanel key={`readability-${note.id}`} noteId={note.id} />
         </div>
@@ -181,7 +182,7 @@ export function EditorArea({
         <div className="flex min-h-0 flex-1">
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             <NoteView key={activeId} noteId={activeId} viewOverride={viewOverride} />
-            <VoiceStatus />
+            <VoiceStatus noteId={activeId} />
             {!zen && <SampleHint noteId={activeId} />}
             {!zen && <DetectChip noteId={activeId} />}
             {!zen && <ReadabilityPanel key={`readability-${activeId}`} noteId={activeId} />}

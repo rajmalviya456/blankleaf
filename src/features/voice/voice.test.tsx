@@ -266,7 +266,7 @@ describe('voice typing', () => {
     act(() => view.focus())
     await startListening(user)
     rec().say('hello')
-    expect(s().notes[side].content).toContain('hello')
+    expect(s().notes[side].content).toMatch(/hello/i)
     act(() => s().setActive(third))
     expect(voiceStore.getState().listening).toBe(true)
     act(() => s().setSplitNote(null))
@@ -291,5 +291,99 @@ describe('voice typing', () => {
         s(),
       ),
     ).toBe(true)
+  })
+})
+
+describe('what gets typed', () => {
+  const send = (resultIndex: number, results: [string, boolean][]) =>
+    act(() =>
+      rec().onresult?.({
+        resultIndex,
+        results: results.map(([t, isFinal]) => Object.assign([{ transcript: t }], { isFinal })),
+      }),
+    )
+  async function dictate(content: string, at = content.length) {
+    const ctx = setup(content)
+    render(<App />)
+    act(() => getActiveView()!.dispatch({ selection: { anchor: at } }))
+    await startListening(ctx.user)
+    return ctx
+  }
+
+  it('Stop keeps the words still being heard', async () => {
+    const { s, id, user } = await dictate('Hello')
+    rec().say('my friend', false)
+    const bubble = screen.getByRole('status', { name: 'Voice typing' })
+    await user.click(within(bubble).getByRole('button', { name: 'Stop voice typing' }))
+    expect(s().notes[id].content).toBe('Hello my friend')
+  })
+
+  it('never types the same result twice when the browser sends it again', async () => {
+    const { s, id } = await dictate('Hello')
+    send(0, [['one', true]])
+    send(0, [
+      ['one', true],
+      ['two', false],
+    ])
+    send(1, [
+      ['one', true],
+      ['two', true],
+    ])
+    expect(s().notes[id].content).toBe('Hello one two')
+  })
+
+  it('puts no space before punctuation, and keeps the next word apart', async () => {
+    const { s, id } = await dictate('Hello', 5)
+    rec().say(', and')
+    expect(s().notes[id].content).toBe('Hello, and')
+    act(() => getActiveView()!.dispatch({ selection: { anchor: 0 } }))
+    rec().say('Well')
+    expect(s().notes[id].content).toBe('Well Hello, and')
+  })
+
+  it('starts a sentence with a capital after a full stop or on a new line', async () => {
+    const { s, id } = await dictate('Done.')
+    rec().say('next thing')
+    expect(s().notes[id].content).toBe('Done. Next thing')
+    act(() => getActiveView()!.dispatch(getActiveView()!.state.replaceSelection('\n')))
+    rec().say('more')
+    expect(s().notes[id].content).toBe('Done. Next thing\nMore')
+    rec().say('and iPhone')
+    expect(s().notes[id].content).toBe('Done. Next thing\nMore and iPhone')
+  })
+
+  it('on Android, listens one phrase at a time (its continuous mode repeats words)', async () => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (Linux; Android 14; Pixel Tablet) AppleWebKit/537.36 Chrome/140 Safari/537.36',
+    )
+    await dictate('Hello')
+    expect(rec().continuous).toBe(false)
+    vi.restoreAllMocks()
+  })
+
+  it('keeps going into the same note when its editor is redrawn (Edit → Split)', async () => {
+    const { s, id } = await dictate('# Hello')
+    act(() => s().setNoteMode(id, 'markdown'))
+    act(() => s().setViewState(id, { previewMode: 'split' }))
+    rec().say('world')
+    expect(voiceStore.getState().listening).toBe(true)
+    expect(s().notes[id].content).toBe('# Hello world')
+  })
+})
+
+describe('the voice typing bubble', () => {
+  it('shows in the pane of the note being dictated into', async () => {
+    media = stubMedia({ wide: true })
+    const { s, id, user } = setup()
+    const side = s().newNote({ content: 'Side' })
+    act(() => s().setActive(id))
+    act(() => s().setSplitNote(side))
+    render(<App />)
+    const pane = screen.getByRole('region', { name: /^Side note/ })
+    const view = EditorView.findFromDOM(pane.querySelector('.cm-editor') as HTMLElement)!
+    act(() => view.focus())
+    await startListening(user)
+    expect(within(pane).getByRole('status', { name: 'Voice typing' })).toBeInTheDocument()
+    expect(screen.getAllByRole('status', { name: 'Voice typing' })).toHaveLength(1)
   })
 })

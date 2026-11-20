@@ -18,7 +18,14 @@ import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
 import { useNoteFontSize } from './useNoteFontSize'
-import { activeViewUpdated, releaseActiveView, setActiveView, setMainView } from './activeView'
+import {
+  activeViewUpdated,
+  registerNoteView,
+  releaseActiveView,
+  setActiveView,
+  setMainView,
+  unregisterNoteView,
+} from './activeView'
 import { rememberState, restoreHistory } from './historyCache'
 
 /** Loads the CodeMirror language for a format (lazy). Null while loading or when large. */
@@ -109,6 +116,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const onCreateEditor = useCallback(
     (view: EditorView) => {
       viewRef.current = view
+      registerNoteView(noteId, view)
       if (side) {
         // The toolbar follows whichever note you're working in.
         view.contentDOM.addEventListener('focusin', () => {
@@ -154,10 +162,13 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   useEffect(
     () => () => {
       scrollCleanup.current()
-      if (viewRef.current) releaseActiveView(viewRef.current)
+      if (viewRef.current) {
+        releaseActiveView(viewRef.current)
+        unregisterNoteView(noteId, viewRef.current)
+      }
       if (side) getStore().getState().setUi({ sideFocused: false })
     },
-    [side],
+    [side, noteId],
   )
 
   const onChange = useCallback((value: string) => s().updateContent(noteId, value), [noteId])
