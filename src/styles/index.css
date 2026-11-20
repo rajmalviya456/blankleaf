@@ -854,3 +854,12 @@ input[type='search']::-webkit-search-decoration {
 .md-preview-chunked > .md-preview:last-child {
   padding-bottom: 40vh;
 }
+
+/* Phones: collapse arrows always show (no hover) and are big enough to tap. */
+@media (pointer: coarse) {
+  .cm-editor .cm-md-fold {
+    opacity: 1;
+    width: 1.5em;
+    font-size: 1em;
+  }
+}

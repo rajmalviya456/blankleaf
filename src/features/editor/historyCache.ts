@@ -1,5 +1,5 @@
 /**
- * Keeps each note's undo history when its editor unmounts (switching tabs, or the layout
+ * Keeps each note's undo history and collapsed sections when its editor unmounts (switching tabs, or the layout
  * switching between phone and laptop when a phone rotates or a window is resized), so Undo
  * still works when the editor comes back. Only reused while the note's text is unchanged.
  *
@@ -7,11 +7,13 @@
  * renders before the old one unmounts, so saving on unmount would be too late.
  */
 import { historyField } from '@codemirror/commands'
+import { foldState } from '@codemirror/language'
 import type { EditorState } from '@codemirror/state'
 
 const LIMIT = 30 // notes
 const cache = new Map<string, EditorState>()
-const fields = { history: historyField }
+// A field the note's editor doesn't have (folds outside Markdown) is simply left out.
+const fields = { history: historyField, fold: foldState }
 
 export function rememberState(noteId: string, state: EditorState): void {
   if (cache.get(noteId) === state) return
