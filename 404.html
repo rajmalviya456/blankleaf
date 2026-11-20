@@ -87,23 +87,27 @@
         // the instant first paint shows its opening lines rather than an empty page.
         if (saved === null) document.documentElement.dataset.firstVisit = '1'
         document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        // The browser bar's colour too (it matches --bg).
+        var bar = document.querySelector('meta[name="theme-color"]')
+        if (bar) bar.setAttribute('content', dark ? '#111318' : '#ffffff')
       })()
     </script>
     <style>html,body{height:100%;margin:0}#np-shell{color:#5f6672;background:#fff;font:13px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;position:fixed;inset:0}[data-theme=dark] #np-shell{color:#9096a2;background:#111318}#np-shell header{background:#eef0f3;align-items:center;height:36px;padding:0 14px;display:flex}[data-theme=dark] #np-shell header{background:#0b0d10}@media (width<=639px){#np-shell header{letter-spacing:.04em;height:48px;padding-left:60px;font-size:16px;font-weight:600}}.np-shell-welcome,.np-shell-welcome-title,[data-first-visit] #np-shell p,[data-first-visit] .np-shell-untitled{display:none}[data-first-visit] .np-shell-welcome-title{display:inline}[data-first-visit] .np-shell-welcome{color:#23272f;white-space:pre-wrap;margin:0;padding:16px 18px 0 46px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:block}[data-theme=dark][data-first-visit] .np-shell-welcome{color:#e6e8ec}@media (width<=639px){[data-first-visit] .np-shell-welcome{padding-left:47px;font-size:16px}}#np-shell p{margin:0;padding:16px 18px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
     <noscript
       ><style>#np-shell{display:none}</style></noscript
     >
-    <script type="module" crossorigin src="/blankleaf/assets/index-BNlpXAMS.js"></script>
+    <script type="module" crossorigin src="/blankleaf/assets/index-DKwZidGO.js"></script>
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/rolldown-runtime-COiEfhsA.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/react-B8SKf8RM.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/react-dom-CaO2D5ST.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/vanilla-DZJGj1NY.js">
-    <link rel="modulepreload" crossorigin href="/blankleaf/assets/defaults-DbnwrW6V.js">
+    <link rel="modulepreload" crossorigin href="/blankleaf/assets/defaults-DYukmdtn.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/languages-y01bbwau.js">
-    <link rel="modulepreload" crossorigin href="/blankleaf/assets/title-C0HvRKor.js">
-    <link rel="modulepreload" crossorigin href="/blankleaf/assets/store-MCiAegYn.js">
+    <link rel="modulepreload" crossorigin href="/blankleaf/assets/title-DRWexj0f.js">
+    <link rel="modulepreload" crossorigin href="/blankleaf/assets/store-CfaQDv0M.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/toast-DZoPC9LW.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/createLucideIcon-rTAH2bxB.js">
+    <link rel="modulepreload" crossorigin href="/blankleaf/assets/selectors-EzI7vdky.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/activeView-1oaAU0ro.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/media-BKVitogh.js">
     <link rel="modulepreload" crossorigin href="/blankleaf/assets/dist-DerapORC.js">
