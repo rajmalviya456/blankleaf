@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.3](https://github.com/rajmalviya456/blankleaf/compare/v1.18.2...v1.18.3) (2026-11-20)
+
+
+### Bug Fixes
+
+* **deps:** use the patched KaTeX everywhere ([#110](https://github.com/rajmalviya456/blankleaf/issues/110)) ([86134fa](https://github.com/rajmalviya456/blankleaf/commit/86134fa0907856f201b83444c9ffbba5e72d9ec6))
+
 ## [1.18.2](https://github.com/rajmalviya456/blankleaf/compare/v1.18.1...v1.18.2) (2026-11-20)
 
 
