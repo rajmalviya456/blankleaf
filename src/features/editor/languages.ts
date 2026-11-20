@@ -3,7 +3,8 @@
  * so the initial bundle stays small and a format loads the first time it's used.
  */
 import { StreamLanguage } from '@codemirror/language'
-import type { Extension } from '@codemirror/state'
+import { Prec, type Extension } from '@codemirror/state'
+import { keymap } from '@codemirror/view'
 import { languageMeta } from '../../domain/languages'
 import type { LanguageId } from '../../domain/types'
 import { logLanguage } from './logLanguage'
@@ -17,14 +18,27 @@ const legacy = async (pick: () => Promise<Parameters<typeof StreamLanguage.defin
 
 const LOADERS: Partial<Record<LanguageId, Loader>> = {
   markdown: async () => {
-    const [{ markdown, markdownLanguage }, { languages }, { tableKeys }] = await Promise.all([
+    const [md, { languages }, { tableKeys }] = await Promise.all([
       import('@codemirror/lang-markdown'),
       import('@codemirror/language-data'),
       import('./markdownTable'),
     ])
+    // Enter carries a list or quote on to the next line; on an empty item it ends the list
+    // (as in Docs or Notion) instead of loosening it with a blank line.
+    const listKeys = Prec.high(
+      keymap.of([
+        { key: 'Enter', run: md.insertNewlineContinueMarkupCommand({ nonTightLists: false }) },
+        { key: 'Backspace', run: md.deleteMarkupBackward },
+      ]),
+    )
     // GFM (tables, task lists, strikethrough) + highlighting inside ```lang fences,
     // each fence language loading on demand. Tab tidies tables; ⌘B and friends format.
-    return [markdown({ base: markdownLanguage, codeLanguages: languages }), tableKeys, markdownKeys]
+    return [
+      listKeys,
+      md.markdown({ base: md.markdownLanguage, codeLanguages: languages, addKeymap: false }),
+      tableKeys,
+      markdownKeys,
+    ]
   },
   log: async () => logLanguage,
   json: async () => {
