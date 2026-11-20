@@ -15,7 +15,12 @@ const EDITOR_KEYS: [string, string[], string[]][] = [
   ['Go to line', ['⌘⌥G'], ['Ctrl+Alt+G']],
   ['Select next match', ['⌘D'], ['Ctrl+D']],
   ['Comment line (code notes)', ['⌘/'], ['Ctrl+/']],
-  ['Fold or unfold block (code notes)', ['⌘⌥[', '⌘⌥]'], ['Ctrl+Shift+[', 'Ctrl+Shift+]']],
+  [
+    'Collapse or expand a section or block (Markdown, code)',
+    ['⌘⌥[', '⌘⌥]'],
+    ['Ctrl+Shift+[', 'Ctrl+Shift+]'],
+  ],
+  ['Collapse or expand everything (Markdown, code)', ['⌃⌥[', '⌃⌥]'], ['Ctrl+Alt+[', 'Ctrl+Alt+]']],
   ['Indent / outdent', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
   ['Tidy a Markdown table, next / previous cell', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
   ['Insert a heading, list, table… (Markdown, start of a line)', ['/'], ['/']],

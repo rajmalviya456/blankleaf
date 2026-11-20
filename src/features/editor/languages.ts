@@ -18,11 +18,12 @@ const legacy = async (pick: () => Promise<Parameters<typeof StreamLanguage.defin
 
 const LOADERS: Partial<Record<LanguageId, Loader>> = {
   markdown: async () => {
-    const [md, { languages }, { tableKeys }, { slashMenu }] = await Promise.all([
+    const [md, { languages }, { tableKeys }, { slashMenu }, { markdownFold }] = await Promise.all([
       import('@codemirror/lang-markdown'),
       import('@codemirror/language-data'),
       import('./markdownTable'),
       import('./slashMenu'),
+      import('./markdownFold'),
     ])
     // Enter carries a list or quote on to the next line; on an empty item it ends the list
     // (as in Docs or Notion) instead of loosening it with a blank line.
@@ -33,13 +34,15 @@ const LOADERS: Partial<Record<LanguageId, Loader>> = {
       ]),
     )
     // GFM (tables, task lists, strikethrough) + highlighting inside ```lang fences,
-    // each fence language loading on demand. Tab tidies tables; ⌘B and friends format.
+    // each fence language loading on demand. Tab tidies tables; ⌘B and friends format;
+    // headings, fences and lists collapse.
     return [
       listKeys,
       md.markdown({ base: md.markdownLanguage, codeLanguages: languages, addKeymap: false }),
       tableKeys,
       markdownKeys,
       slashMenu,
+      markdownFold,
     ]
   },
   log: async () => logLanguage,
