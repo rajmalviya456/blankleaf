@@ -64,6 +64,18 @@ describe('global shortcuts', () => {
     expect(view.state.doc.toString()).toBe('**first** note')
   })
 
+  it('Ctrl+B in a Markdown note’s find box still toggles the sidebar', async () => {
+    const { s, id } = setup()
+    act(() => s().setLanguage(id, 'markdown'))
+    const content = document.querySelector('.cm-content') as HTMLElement
+    const view = EditorView.findFromDOM(content)!
+    await waitFor(() => expect(view.state.facet(language)?.name).toBe('markdown'))
+    const box = document.createElement('input')
+    view.dom.appendChild(box)
+    act(() => void fireEvent.keyDown(box, { code: 'KeyB', key: 'b', keyCode: 66, ctrlKey: true }))
+    expect(s().session.sidebar.open).toBe(true)
+  })
+
   it('Ctrl+B typed in a plain note still toggles the sidebar', () => {
     const { s } = setup()
     const content = document.querySelector('.cm-content') as HTMLElement

@@ -88,6 +88,14 @@ describe('formatted while you type', () => {
     expect(v.state.doc.line(1).text).toBe('- [ ] milk')
   })
 
+  it('a click never flips the box by itself: the text decides', () => {
+    const v = editor('- [ ] milk\n\nend')
+    const box = v.contentDOM.querySelector('input.cm-md-check') as HTMLInputElement
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    box.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
+  })
+
   it('Ctrl/⌘-click opens http links only', () => {
     const open = vi.spyOn(window, 'open').mockReturnValue(null)
     const v = editor('[a](https://x.test) [b](javascript:alert(1))\n\nend')
@@ -105,6 +113,12 @@ describe('formatted while you type', () => {
     expect(safeLinkUrl('javascript:alert(1)')).toBeNull()
     expect(safeLinkUrl('data:text/html,hi')).toBeNull()
     expect(safeLinkUrl('not a url')).toBeNull()
+  })
+
+  it('a link whose title is on the next line never breaks the editor', () => {
+    const v = editor('[a](http://x.test\n"title")\n\nend')
+    expect(text(v, 0)).toContain('a')
+    expect(v.state.doc.lines).toBe(4)
   })
 
   it('leaves fenced code untouched', () => {

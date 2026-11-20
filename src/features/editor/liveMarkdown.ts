@@ -105,6 +105,8 @@ function build(view: EditorView): DecorationSet {
   const hideMark = (from: number, to: number, withSpace = false) => {
     if (isActive(from)) return
     if (withSpace && doc.sliceString(to, to + 1) === ' ') to++
+    // A plugin may not hide a line break (a link's title can sit on the next line).
+    to = Math.min(to, doc.lineAt(from).to)
     if (to > from) marks.push(hide.range(from, to))
   }
 
@@ -222,6 +224,11 @@ const plugin = ViewPlugin.fromClass(
   {
     decorations: (p) => p.decorations,
     eventHandlers: {
+      // The text decides the box's state (it redraws after the change): never let a click flip it.
+      click(e) {
+        if ((e.target as HTMLElement).classList?.contains('cm-md-check')) e.preventDefault()
+        return false
+      },
       mousedown(e, view) {
         const target = e.target as HTMLElement
         if (target instanceof HTMLInputElement && target.classList.contains('cm-md-check')) {

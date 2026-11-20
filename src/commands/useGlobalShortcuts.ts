@@ -25,7 +25,11 @@ function typingInCode(e: KeyboardEvent, state: AppState): boolean {
 
 /** The key went to an editor showing Markdown (main or side note). */
 function typingInMarkdown(e: KeyboardEvent): boolean {
-  const el = e.target instanceof Element ? e.target.closest('.cm-editor') : null
+  // The text itself, not the find box (which sits inside the editor too).
+  const el =
+    e.target instanceof Element && e.target.closest('.cm-content')
+      ? e.target.closest('.cm-editor')
+      : null
   if (!(el instanceof HTMLElement)) return false
   return EditorView.findFromDOM(el)?.state.facet(language)?.name === 'markdown'
 }
