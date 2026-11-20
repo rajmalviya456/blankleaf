@@ -91,7 +91,15 @@ export const TRANSFORM_IDS = Object.keys(TRANSFORMS) as TransformId[]
  * Apply a transform to each selected range (or the whole note). Throws a TransformError with a
  * readable message when the text can't be transformed; the note is then left untouched.
  */
-export async function applyTransform(view: EditorView, id: TransformId): Promise<void> {
+export function applyTransform(view: EditorView, id: TransformId): Promise<void> {
+  return applyToText(view, TRANSFORMS[id].run)
+}
+
+/** Replace each selected range (or the whole note) with `run` of its text, as one edit. */
+export async function applyToText(
+  view: EditorView,
+  run: (text: string, indent: string) => string | Promise<string>,
+): Promise<void> {
   const { state } = view
   const ranges = state.selection.ranges.filter((r) => !r.empty)
   const indent = state.facet(indentUnit)
@@ -101,7 +109,7 @@ export async function applyTransform(view: EditorView, id: TransformId): Promise
   const results = await Promise.all(
     targets.map(async (r) => ({
       ...r,
-      insert: await TRANSFORMS[id].run(state.doc.sliceString(r.from, r.to), indent),
+      insert: await run(state.doc.sliceString(r.from, r.to), indent),
     })),
   )
   // The note changed while a lazy load was in flight: don't apply stale offsets.

@@ -73,6 +73,7 @@ import {
   trimLines,
 } from './editCommands'
 import { runTransform, TRANSFORM_IDS, TRANSFORMS, type TransformId } from './transforms'
+import { canFormat, runFormatCode } from './formatCode'
 
 /** Where a new group starts in the Transform menu (a separator goes before it). */
 const TRANSFORM_GROUP_START = new Set<TransformId>(['json.toYaml', 'base64.encode', 'url.encode'])
@@ -238,6 +239,7 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
   const off = !view
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
   const code = useAppStore((s) => languageMeta(s.notes[noteId]?.language ?? 'auto').kind === 'code')
+  const language = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const run = (fn: (v: EditorView) => unknown) => () => view && fn(view)
   // Phones have no Tab key and no Cmd/Ctrl+/, so code notes get buttons for both.
   const edit = (fn: StateCommand) => () => {
@@ -270,6 +272,14 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
         <Item onSelect={run(trimLines)}>Trim trailing spaces</Item>
       </Menu>
       <Menu icon={Braces} label="Transform" disabled={off}>
+        {canFormat(language) && (
+          <>
+            <Item onSelect={run((v) => runFormatCode(v, language))}>
+              Format {languageMeta(language).label}
+            </Item>
+            <DropdownMenu.Separator className="my-1 h-px bg-border" />
+          </>
+        )}
         {TRANSFORM_IDS.map((id, i) => (
           <Fragment key={id}>
             {i > 0 && TRANSFORM_GROUP_START.has(id) && (

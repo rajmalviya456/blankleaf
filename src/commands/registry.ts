@@ -23,6 +23,7 @@ import { phoneStore } from '../features/phone/phoneStore'
 import { phoneViewFor } from '../features/phone/phoneView'
 import { getActiveView } from '../features/editor/activeView'
 import { runTransform, TRANSFORM_IDS, TRANSFORMS } from '../features/toolbar/transforms'
+import { canFormat, runFormatCode } from '../features/toolbar/formatCode'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
 import { editingNote } from '../store/selectors'
@@ -592,6 +593,34 @@ export const COMMANDS: Command[] = [
     run: (ctx) => void newFromTemplate(ctx.store, t.id),
   })),
   // Text and dev tools (also in the toolbar's Transform menu).
+  {
+    id: 'text.formatCode',
+    title: 'Format code',
+    section: 'Note',
+    keywords: [
+      'prettier',
+      'beautify',
+      'tidy',
+      'indent',
+      'pretty',
+      'sql',
+      'javascript',
+      'css',
+      'html',
+    ],
+    // As in VS Code (Shift+Option+F on a Mac is Shift+Ctrl+Option+F here).
+    shortcuts: [{ code: 'KeyF', mod2: true, shift: true }],
+    when: (s) => {
+      const n = editingNote(s)
+      return !!n && !n.locked && canFormat(n.language)
+    },
+    run: (ctx) => {
+      const n = editingNote(st(ctx))
+      const view = getActiveView()
+      st(ctx).setUi({ paletteOpen: false })
+      if (n && view) void runFormatCode(view, n.language)
+    },
+  },
   ...TRANSFORM_IDS.map((id): Command => ({
     id: `text.${id}`,
     title: TRANSFORMS[id].label,
