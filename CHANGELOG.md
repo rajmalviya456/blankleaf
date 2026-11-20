@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.2](https://github.com/rajmalviya456/blankleaf/compare/v1.18.1...v1.18.2) (2026-11-20)
+
+
+### Bug Fixes
+
+* stop showing the old Notepadz name ([#108](https://github.com/rajmalviya456/blankleaf/issues/108)) ([97177c8](https://github.com/rajmalviya456/blankleaf/commit/97177c8d69730be2eb1f16152ca7eb6a585c151b))
+
 ## [1.18.1](https://github.com/rajmalviya456/blankleaf/compare/v1.18.0...v1.18.1) (2026-11-20)
 
 
