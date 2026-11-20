@@ -149,7 +149,7 @@ function SideNote({ activeId }: { activeId: string }) {
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <OpenNote key={note.id} noteId={note.id} side />
           <DetectChip noteId={note.id} />
-          <ReadabilityPanel key={note.id} noteId={note.id} />
+          <ReadabilityPanel key={`readability-${note.id}`} noteId={note.id} />
         </div>
       )}
     </section>
@@ -184,7 +184,7 @@ export function EditorArea({
             <VoiceStatus />
             {!zen && <SampleHint noteId={activeId} />}
             {!zen && <DetectChip noteId={activeId} />}
-            {!zen && <ReadabilityPanel key={activeId} noteId={activeId} />}
+            {!zen && <ReadabilityPanel key={`readability-${activeId}`} noteId={activeId} />}
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>

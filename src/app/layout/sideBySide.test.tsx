@@ -147,3 +147,15 @@ describe('working in the side note', () => {
     expect(view.state.selection.main.head).toBe(11)
   })
 })
+
+describe('switching notes', () => {
+  it('shows exactly one editor per note on screen', () => {
+    const { s, a, b } = setup({ wide: false })
+    render(<App />)
+    act(() => s().setActive(a))
+    act(() => s().setActive(b))
+    expect(document.querySelectorAll('.cm-editor')).toHaveLength(1)
+    act(() => s().setSplitNote(a))
+    expect(document.querySelectorAll('.cm-editor')).toHaveLength(1)
+  })
+})
