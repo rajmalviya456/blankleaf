@@ -5,6 +5,16 @@ export type Theme = 'light' | 'dark'
 
 const THEME_KEY = 'blankleaf:theme'
 
+/** The theme last chosen in this browser, as saved for the first paint. */
+export function savedTheme(): ThemePref | null {
+  try {
+    const v = localStorage.getItem(THEME_KEY)
+    return v === 'light' || v === 'dark' || v === 'system' ? v : null
+  } catch {
+    return null
+  }
+}
+
 export function resolveTheme(pref: ThemePref, systemDark: boolean): Theme {
   if (pref === 'system') return systemDark ? 'dark' : 'light'
   return pref
@@ -41,13 +51,14 @@ const HEX = /^#[0-9a-f]{6}$/i
 /** Browser bar colour per theme (matches --bg). */
 export const THEME_COLOR = { light: '#ffffff', dark: '#111318' } as const
 
-export function applySettingsToDocument(s: Settings, systemDark: boolean): void {
+/** `persist: false` shows the settings without saving the theme (the share-link view). */
+export function applySettingsToDocument(s: Settings, systemDark: boolean, persist = true): void {
   const root = document.documentElement
   const theme = resolveTheme(s.theme, systemDark)
   applyTheme(theme)
   // index.html reads this before anything loads, so the first paint has the right colours.
   try {
-    localStorage.setItem(THEME_KEY, s.theme)
+    if (persist) localStorage.setItem(THEME_KEY, s.theme)
   } catch {
     // Private browsing: the system theme is used for the first paint instead.
   }

@@ -59,4 +59,9 @@ describe('readability', () => {
   it('handles empty text', () => {
     expect(readability('')).toMatchObject({ words: 0, sentences: 0, grade: 0, label: '' })
   })
+
+  it('leaves every line of a code block out, not just the first', () => {
+    const code = '```\nconst alpha = beta gamma\nreturn delta epsilon zeta\nlet eta theta\n```'
+    expect(readability(`Short one.\n\n${code}`).words).toBe(2)
+  })
 })

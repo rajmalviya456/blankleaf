@@ -46,12 +46,24 @@ export const linkKey = (title: string) =>
     .trim()
     .toLowerCase()
 
+/**
+ * The keys a note answers to: its title and, for an untitled note whose first line was cut short
+ * for display, that whole line too.
+ */
+function ownKeys(n: Pick<Note, 'title' | 'content'>): string[] {
+  const shown = linkKey(documentTitle(n))
+  if (n.title?.trim()) return [shown]
+  const first = n.content.split('\n', 50).find((l) => l.trim())
+  const whole = first ? linkKey(first) : shown
+  return whole === shown ? [shown] : [shown, whole]
+}
+
 /** The note a link points at: same title, not in the trash, the latest edited if several. */
 export function noteForLink(notes: Record<string, Note>, title: string): Note | undefined {
   const key = linkKey(title)
   let best: Note | undefined
   for (const n of Object.values(notes)) {
-    if (n.deletedAt !== null || linkKey(documentTitle(n)) !== key) continue
+    if (n.deletedAt !== null || !ownKeys(n).includes(key)) continue
     if (!best || n.updatedAt > best.updatedAt) best = n
   }
   return best
@@ -76,8 +88,14 @@ export function linkKeys(note: Note): Set<string> {
 export function backlinks(notes: Record<string, Note>, noteId: string): Note[] {
   const target = notes[noteId]
   if (!target) return []
-  const key = linkKey(documentTitle(target))
+  const keys = ownKeys(target)
   return Object.values(notes)
-    .filter((n) => n.id !== noteId && n.deletedAt === null && !n.locked && linkKeys(n).has(key))
+    .filter(
+      (n) =>
+        n.id !== noteId &&
+        n.deletedAt === null &&
+        !n.locked &&
+        keys.some((k) => linkKeys(n).has(k)),
+    )
     .sort((a, b) => b.updatedAt - a.updatedAt)
 }

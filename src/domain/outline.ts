@@ -22,7 +22,8 @@ export function outline(text: string): Heading[] {
   const headings: Heading[] = []
   let fence: string | null = null
   let from = 0
-  for (const line of text.split('\n')) {
+  // Offsets as the editor counts them: one character per line break, even for \r\n.
+  for (const line of text.split(/\r\n?|\n/)) {
     const f = FENCE.exec(line)
     if (fence) {
       if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null

@@ -17,8 +17,7 @@ import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
-import { effectiveEditorFontSize } from '../../domain/defaults'
-import { useIsPhone } from '../../lib/media'
+import { useNoteFontSize } from './useNoteFontSize'
 import { activeViewUpdated, releaseActiveView, setActiveView, setMainView } from './activeView'
 import { rememberState, restoreHistory } from './historyCache'
 
@@ -61,8 +60,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const settings = useAppStore((s) => s.settings)
   const zen = useAppStore((s) => s.session.zen)
   const large = isLargeDoc(content.length)
-  const phone = useIsPhone()
-  const fontSize = effectiveEditorFontSize(settings, phone)
+  const fontSize = useNoteFontSize(noteId)
   const base = useEditorExtensions({
     wrap,
     // Zen: just the words, no line numbers or highlighted line.
@@ -96,7 +94,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
 
   useEffect(() => {
     const view = viewRef.current
-    if (!view || !reveal || side) return
+    if (!view || !reveal) return
     const len = view.state.doc.length
     const clamp = (n: number) => Math.max(0, Math.min(n, len))
     view.dispatch({
@@ -104,7 +102,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
       scrollIntoView: true,
     })
     view.focus()
-  }, [reveal, side])
+  }, [reveal])
 
   const s = () => getStore().getState()
 

@@ -142,6 +142,19 @@ describe('automatic backup to a folder', () => {
     expect(offer.action?.label).toBe('Restore')
   })
 
+  it('typing after the restore offer still keeps the old backup, and Restore still has it', async () => {
+    const folder = fakeFolder()
+    folder.files.set(LATEST_FILE, 'the good backup')
+    setPicker(vi.fn(async () => folder))
+    const store = initStore(createAppStore())
+    stop = await startFolderBackup(store, db, mem)
+    await chooseBackupFolder()
+    const id = store.getState().newNote()
+    store.getState().updateContent(id, 'a new thought')
+    await backupToFolderNow()
+    expect(folder.files.get(PREVIOUS_FILE)).toBe('the good backup')
+  })
+
   it('keeps the folder’s old backup when real notes take over', async () => {
     const { folder } = await setup()
     folder.files.set(LATEST_FILE, 'the older backup')

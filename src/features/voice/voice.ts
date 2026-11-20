@@ -5,6 +5,7 @@
  */
 import type { EditorView } from '@codemirror/view'
 import { createStore } from 'zustand/vanilla'
+import { editingNote } from '../../store/selectors'
 import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { getActiveView } from '../editor/activeView'
@@ -121,7 +122,8 @@ function start(view: EditorView) {
   recognition.continuous = true
   recognition.interimResults = true
 
-  const noteId = getStore().getState().session.activeTabId
+  // The note being edited: the side note when its editor has the cursor.
+  const noteId = editingNote(getStore().getState())?.id ?? null
   let active = true
   let startedAt = 0
   let quickRestarts = 0
@@ -137,7 +139,9 @@ function start(view: EditorView) {
     recognition.abort()
   }
   const unsubscribe = getStore().subscribe((s) => {
-    if (s.session.activeTabId !== noteId || (noteId && s.notes[noteId]?.locked)) stop()
+    const note = noteId ? s.notes[noteId] : undefined
+    const shown = s.session.activeTabId === noteId || s.session.splitNoteId === noteId
+    if (!shown || !note || note.locked || note.deletedAt !== null) stop()
   })
   const onVisibility = () => {
     if (document.visibilityState === 'hidden') stop()

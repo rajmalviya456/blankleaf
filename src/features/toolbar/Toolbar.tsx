@@ -59,6 +59,7 @@ import { SymbolPicker } from '../symbols/SymbolPicker'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { SizeInput } from '../../ui/SizeInput'
+import { useNoteFontSize } from '../editor/useNoteFontSize'
 import {
   changeCase,
   dedupeLines,
@@ -304,10 +305,10 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
     const n = s.notes[noteId]
     return n?.mode === 'plain' && (n.language === 'auto' || n.language === 'plaintext')
   })
-  const size = useAppStore((s) => s.settings.editorFontSize)
+  // Text size belongs to this note; Settings holds the size every other note uses.
+  const size = useNoteFontSize(noteId)
   const s = () => getStore().getState()
-  const setSize = (n: number) =>
-    s().updateSettings({ editorFontSize: Math.min(EDITOR_FONT_MAX, Math.max(EDITOR_FONT_MIN, n)) })
+  const setSize = (n: number) => s().setNoteFontSize(noteId, n, false)
   const off = !view
   const listening = useStore(voiceStore, (v) => v.listening)
   const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0)

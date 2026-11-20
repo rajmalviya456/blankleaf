@@ -8,7 +8,16 @@
  */
 import { createStore, useStore, type StoreApi } from 'zustand'
 import { LOCKED_TITLE } from '../domain/locked'
-import { CLOSED_STACK_MAX, DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
+import {
+  CLOSED_STACK_MAX,
+  DEFAULT_SETTINGS,
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+  emptySession,
+  newNoteDraft,
+  PHONE_FONT_MAX,
+  PHONE_FONT_MIN,
+} from '../domain/defaults'
 import { languageMeta } from '../domain/languages'
 import { displayTitle } from '../domain/title'
 import type {
@@ -73,6 +82,8 @@ export interface AppActions {
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
   setWordGoal(id: string, goal: number | undefined): void
+  /** This note's text size on laptops or phones (clamped); the Settings size clears it. */
+  setNoteFontSize(id: string, size: number, phone: boolean): void
   setSplitNote(id: string | null): void
   applyLock(id: string, locked: LockedContent, title: string): void
   updateLocked(id: string, locked: LockedContent): void
@@ -168,8 +179,18 @@ export function createAppStore(
       let activeTabId = session.activeTabId
       if (activeTabId === id) activeTabId = openTabIds[idx] ?? openTabIds[idx - 1] ?? null
       const { [id]: _drop, ...perTab } = session.perTab
-      const splitNoteId = session.splitNoteId === id ? null : session.splitNoteId
+      // The side note never doubles as the active one.
+      const splitNoteId =
+        session.splitNoteId === id || session.splitNoteId === activeTabId
+          ? null
+          : session.splitNoteId
       return { ...session, openTabIds, activeTabId, perTab, splitNoteId }
+    }
+
+    /** A note that's gone (or trashed) leaves its tab, the side and the closed list. */
+    const withoutNote = (session: Session, id: string): Session => {
+      const next = withoutSide(withoutTab(session, id), id)
+      return { ...next, closedStack: next.closedStack.filter((x) => x !== id) }
     }
 
     const closeOne = (id: string) => {
@@ -314,12 +335,16 @@ export function createAppStore(
           spellcheck: src.spellcheck,
           tags: src.tags,
           wordGoal: src.wordGoal,
+          fontSize: src.fontSize,
+          phoneFontSize: src.phoneFontSize,
           title: `${displayTitle(src)} (copy)`,
         })
       },
 
       updateContent(id, content) {
-        if (get().notes[id]?.content === content) return
+        const note = get().notes[id]
+        // A locked note's text lives only in its encrypted data.
+        if (!note || note.locked || note.content === content) return
         patchNote(id, { content })
       },
 
@@ -362,6 +387,20 @@ export function createAppStore(
       },
       setWordGoal(id, goal) {
         patchNote(id, { wordGoal: goal })
+      },
+      setNoteFontSize(id, size, phone) {
+        const note = get().notes[id]
+        if (!note) return
+        const { settings } = get()
+        const [min, max, base] = phone
+          ? [PHONE_FONT_MIN, PHONE_FONT_MAX, Math.max(PHONE_FONT_MIN, settings.phoneEditorFontSize)]
+          : [EDITOR_FONT_MIN, EDITOR_FONT_MAX, settings.editorFontSize]
+        const v = Math.round(Math.min(max, Math.max(min, size)))
+        // The same as Settings means "follow Settings", so a later change there applies here too.
+        const value = v === base ? undefined : v
+        const key = phone ? 'phoneFontSize' : 'fontSize'
+        if (note[key] === value) return
+        patchNote(id, { [key]: value })
       },
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })
@@ -433,11 +472,17 @@ export function createAppStore(
       importNotes(incoming) {
         if (!incoming.length) return
         const notes = { ...get().notes }
+        let session = get().session
         for (const n of incoming) {
           const current = notes[n.id]
-          notes[n.id] = { ...n, pinned: false, rev: current ? current.rev : 0 }
+          // A note already here keeps its pin; imported ones arrive unpinned.
+          notes[n.id] = { ...n, pinned: current?.pinned ?? false, rev: current ? current.rev : 0 }
+          if (n.deletedAt !== null) session = withoutNote(session, n.id)
         }
-        set({ notes })
+        set({
+          notes,
+          session: { ...session, openTabIds: normalizeTabs(session.openTabIds, notes) },
+        })
       },
 
       cyclePreview(id) {
@@ -450,11 +495,7 @@ export function createAppStore(
       removeRemoteNote(id) {
         if (!get().notes[id]) return
         const { [id]: _gone, ...rest } = get().notes
-        const session = withoutSide(withoutTab(get().session, id), id)
-        set({
-          notes: rest,
-          session: { ...session, closedStack: session.closedStack.filter((x) => x !== id) },
-        })
+        set({ notes: rest, session: withoutNote(get().session, id) })
       },
 
       reveal(noteId, from, to) {
@@ -466,7 +507,7 @@ export function createAppStore(
       applyRemoteNote(note) {
         const notes = { ...get().notes, [note.id]: note }
         let session = get().session
-        if (note.deletedAt !== null) session = withoutTab(session, note.id)
+        if (note.deletedAt !== null) session = withoutNote(session, note.id)
         set({
           notes,
           session: { ...session, openTabIds: normalizeTabs(session.openTabIds, notes) },

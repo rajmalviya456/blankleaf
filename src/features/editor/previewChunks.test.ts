@@ -28,4 +28,21 @@ describe('previewChunks', () => {
     expect(canChunk('A [link][ref].\n\n[ref]: https://x.test')).toBe(false)
     expect(canChunk('Plain [link](https://x.test) and text.')).toBe(true)
   })
+
+  it('never cuts a list, an indented block, a <details> or a $$ block apart', () => {
+    const filler = 'word '.repeat(60)
+    const parts = [
+      `- item ${filler}\n\n  - nested ${filler}`,
+      `- loose ${filler}\n\n- loose two ${filler}`,
+      `<details>\n<summary>More</summary>\n\n${filler}\n\n</details>`,
+      `$$\nx = 1\n\ny = 2\n$$`,
+      `1. first ${filler}\n\n   continued ${filler}`,
+    ]
+    for (const part of parts) {
+      const text = `Intro ${filler}\n\n${part}\n\nOutro ${filler}`
+      const chunks = previewChunks(text, 100)
+      expect(chunks.some((c) => c.text.includes(part))).toBe(true)
+      expect(chunks.map((c) => c.text).join('')).toBe(text)
+    }
+  })
 })

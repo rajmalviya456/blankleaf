@@ -125,10 +125,23 @@ $$
 Back up now and then: Settings → Data → Export, or pick a backup folder there.
 `
 
-/** Editor text size for this device: phones use their own size, never below 16px. */
+/**
+ * Editor text size for this device: the note's own size if it has one, else Settings. Phones use
+ * their own size, never below 16px.
+ */
 export function effectiveEditorFontSize(
   s: Pick<Settings, 'editorFontSize' | 'phoneEditorFontSize'>,
   phone: boolean,
+  note?: Pick<Note, 'fontSize' | 'phoneFontSize'>,
 ): number {
-  return phone ? Math.max(PHONE_FONT_MIN, s.phoneEditorFontSize) : s.editorFontSize
+  if (phone) return Math.max(PHONE_FONT_MIN, note?.phoneFontSize ?? s.phoneEditorFontSize)
+  return note?.fontSize ?? s.editorFontSize
+}
+
+/** A valid per-note text size for laptops or phones, or undefined. Also cleans backup files. */
+export function cleanNoteFontSize(raw: unknown, phone: boolean): number | undefined {
+  const [min, max] = phone ? [PHONE_FONT_MIN, PHONE_FONT_MAX] : [EDITOR_FONT_MIN, EDITOR_FONT_MAX]
+  return typeof raw === 'number' && Number.isInteger(raw) && raw >= min && raw <= max
+    ? raw
+    : undefined
 }

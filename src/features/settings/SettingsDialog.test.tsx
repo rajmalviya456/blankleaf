@@ -89,7 +89,7 @@ describe('SettingsDialog', () => {
       await user.click(screen.getByRole('button', { name: /increase editor font size/i }))
       expect(s().settings.phoneEditorFontSize).toBe(17)
       expect(s().settings.editorFontSize).toBe(14)
-      expect(screen.getByText('On this phone')).toBeInTheDocument()
+      expect(screen.getByText(/^On this phone\./)).toBeInTheDocument()
     } finally {
       media.restore()
     }

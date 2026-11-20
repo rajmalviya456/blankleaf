@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { useDeferredValue, type ReactNode } from 'react'
 import { PHONE_FONT_MAX, PHONE_FONT_MIN } from '../../domain/defaults'
+import { useNoteFontSize } from '../editor/useNoteFontSize'
 import {
   lineColAt,
   readingMinutes,
@@ -162,12 +163,9 @@ function LinkedFromGroup({ noteId }: { noteId: string }) {
 export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) {
   const noteId = useAppStore((s) => s.session.activeTabId)
   const note = useAppStore((s) => (noteId ? s.notes[noteId] : undefined))
-  const size = useAppStore((s) => Math.max(PHONE_FONT_MIN, s.settings.phoneEditorFontSize))
+  const size = useNoteFontSize(noteId)
   const s = () => getStore().getState()
-  const setSize = (n: number) =>
-    s().updateSettings({
-      phoneEditorFontSize: Math.min(PHONE_FONT_MAX, Math.max(PHONE_FONT_MIN, n)),
-    })
+  const setSize = (n: number) => noteId && s().setNoteFontSize(noteId, n, true)
 
   return (
     <Dialog.Root open={open && !!note} onOpenChange={(o) => !o && onClose()}>

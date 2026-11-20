@@ -135,7 +135,10 @@ export async function importFileList(
 
 /** Apply a confirmed import plan to the store; persistence writes it to IndexedDB. */
 export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Promise<number> {
-  const incoming = [...plan.add, ...plan.update, ...(restoreDeleted ? plan.deletedRestorable : [])]
+  const planned = [...plan.add, ...plan.update, ...(restoreDeleted ? plan.deletedRestorable : [])]
+  // The dialog may have stayed open while notes were edited: never replace newer text.
+  const now = getStore().getState().notes
+  const incoming = planned.filter((n) => !now[n.id] || n.updatedAt > now[n.id].updatedAt)
   getStore().getState().importNotes(incoming)
   if (restoreDeleted && plan.deletedRestorable.length) {
     await getActiveDb()?.tombstones.bulkDelete(plan.deletedRestorable.map((n) => n.id))

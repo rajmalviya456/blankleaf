@@ -65,3 +65,14 @@ describe('linkKeys', () => {
     expect(linkKeys(edited).has('more')).toBe(true)
   })
 })
+
+describe('long first lines', () => {
+  const line = 'Meeting notes for the quarterly planning session with the design team'
+  it('a link with the whole first line finds the note, and so do its backlinks', () => {
+    const target = note({ id: 't', content: `${line}\nbody` })
+    const from = note({ id: 'f', content: `see [[${line}]]` })
+    const notes = { t: target, f: from }
+    expect(noteForLink(notes, line)?.id).toBe('t')
+    expect(backlinks(notes, 't').map((n) => n.id)).toEqual(['f'])
+  })
+})

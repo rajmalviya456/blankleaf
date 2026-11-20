@@ -97,3 +97,12 @@ describe('phone text size', () => {
     expect(effectiveEditorFontSize({ ...DEFAULT_SETTINGS, phoneEditorFontSize: 12 }, true)).toBe(16)
   })
 })
+
+describe('note text size', () => {
+  it('a note’s own size wins over Settings, per device', () => {
+    const note = { fontSize: 20, phoneFontSize: 22 }
+    expect(effectiveEditorFontSize(DEFAULT_SETTINGS, false, note)).toBe(20)
+    expect(effectiveEditorFontSize(DEFAULT_SETTINGS, true, note)).toBe(22)
+    expect(effectiveEditorFontSize(DEFAULT_SETTINGS, false, {})).toBe(14)
+  })
+})

@@ -299,3 +299,84 @@ describe('app store: reveal', () => {
     expect(s().ui.reveal?.nonce).toBe(2)
   })
 })
+
+describe('app store: text size per note', () => {
+  it('sets one note’s size, clamped, leaving Settings and other notes alone', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    const b = s().newNote({ content: 'b' })
+    s().setNoteFontSize(a, 99, false)
+    expect(s().notes[a].fontSize).toBe(72)
+    expect(s().notes[b].fontSize).toBeUndefined()
+    expect(s().settings.editorFontSize).toBe(14)
+    s().setNoteFontSize(a, 18, true)
+    expect(s().notes[a].phoneFontSize).toBe(18)
+    expect(s().notes[a].fontSize).toBe(72)
+  })
+
+  it('going back to the Settings size follows Settings again', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFontSize(a, 15, false)
+    s().setNoteFontSize(a, 14, false)
+    expect(s().notes[a].fontSize).toBeUndefined()
+  })
+
+  it('a duplicate keeps the size', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFontSize(a, 20, false)
+    const copy = s().duplicateNote(a)
+    expect(s().notes[copy].fontSize).toBe(20)
+  })
+})
+
+describe('app store: the side note stays consistent', () => {
+  it('closing the active tab never leaves the side note as the active one', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const b = filled(store)
+    const c = filled(store)
+    s().setActive(b)
+    s().setSplitNote(c)
+    s().closeTab(b)
+    expect(s().session.activeTabId).toBe(c)
+    expect(s().session.splitNoteId).toBeNull()
+    void a
+  })
+
+  it('a note trashed in another window leaves the side and the closed list', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const x = filled(store)
+    s().closeTab(x)
+    s().setActive(a)
+    s().setSplitNote(x)
+    s().applyRemoteNote({ ...s().notes[x], deletedAt: 5000, rev: 2 })
+    expect(s().session.splitNoteId).toBeNull()
+    expect(s().session.closedStack).not.toContain(x)
+  })
+
+  it('importing a newer trashed copy of an open note closes its tab; pins are kept', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const p = filled(store)
+    s().togglePin(p)
+    s().importNotes([
+      { ...s().notes[a], content: 'gone', deletedAt: 9000, updatedAt: 9000 },
+      { ...s().notes[p], content: 'newer', updatedAt: 9000 },
+    ])
+    expect(s().session.openTabIds).not.toContain(a)
+    expect(s().notes[p].pinned).toBe(true)
+  })
+})
+
+describe('app store: locked notes', () => {
+  it('never takes plain text (a stale history restore or Undo from another window)', () => {
+    const { store, s } = setup()
+    const id = filled(store, 'secret')
+    s().applyLock(id, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id }, 'Locked')
+    s().updateContent(id, 'secret again')
+    expect(s().notes[id].content).toBe('')
+  })
+})

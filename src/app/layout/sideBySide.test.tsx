@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { stubMedia } from '../../../tests/media'
 import { COMMANDS, commandEnabled } from '../../commands/registry'
 import { getActiveView } from '../../features/editor/activeView'
-import { createAppStore, initStore } from '../../store/store'
+import { createAppStore, getStore, initStore } from '../../store/store'
+import { EditorView } from '@codemirror/view'
 import { App } from '../App'
 
 let media: ReturnType<typeof stubMedia> | undefined
@@ -76,5 +77,85 @@ describe('two notes side by side', () => {
     expect(commandEnabled(close, s())).toBe(true)
     act(() => close.run({ store }))
     expect(s().session.splitNoteId).toBeNull()
+  })
+})
+
+describe('text size is per note', () => {
+  it('changing the size in one note’s toolbar leaves the side note alone', async () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    const before = s().settings.editorFontSize
+    await userEvent.click(screen.getByRole('button', { name: 'Larger text' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Larger text' }))
+    expect(s().notes[b].fontSize).toBe(before + 2)
+    expect(s().notes[a].fontSize).toBeUndefined()
+    expect(s().settings.editorFontSize).toBe(before)
+    expect(screen.getByRole('spinbutton', { name: 'Text size' })).toHaveValue(before + 2)
+  })
+})
+
+describe('working in the side note', () => {
+  const run = (id: string) =>
+    act(() => COMMANDS.find((c) => c.id === id)!.run({ store: getStore() }))
+
+  it('commands act on the side note while it has the cursor', () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => s().setUi({ sideFocused: true }))
+    const wrapA = s().notes[a].wrap
+    run('view.wrap')
+    expect(s().notes[a].wrap).toBe(!wrapA)
+    run('view.spellcheck')
+    expect(s().notes[a].spellcheck).toBe(true)
+    expect(s().notes[b].spellcheck).toBeFalsy()
+    run('note.pin')
+    expect(s().notes[a].pinned).toBe(true)
+    expect(s().notes[b].pinned).toBe(false)
+  })
+
+  it('the Edit/Split/Preview choice shows in the side pane', async () => {
+    const { s, a } = setup()
+    act(() => s().setNoteMode(a, 'markdown'))
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => s().setViewState(a, { previewMode: 'preview' }))
+    expect(
+      await within(pane()!).findByText('alpha text', { selector: '.md-preview *' }),
+    ).toBeInTheDocument()
+  })
+
+  it('the toolbar stays for an open side note when the main note is locked', () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    act(() =>
+      s().applyLock(b, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: b }, 'Locked'),
+    )
+    render(<App />)
+    act(() => s().setUi({ sideFocused: true }))
+    expect(screen.getByRole('toolbar', { name: 'Editor toolbar' })).toBeInTheDocument()
+  })
+
+  it('jumping to a heading (Outline) works in the side note', () => {
+    const { s, a } = setup()
+    act(() => s().updateContent(a, '# One\ntext\n# Two\nmore'))
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => s().reveal(a, 11, 11))
+    const view = EditorView.findFromDOM(pane()!.querySelector('.cm-editor') as HTMLElement)!
+    expect(view.state.selection.main.head).toBe(11)
+  })
+})
+
+describe('switching notes', () => {
+  it('shows exactly one editor per note on screen', () => {
+    const { s, a, b } = setup({ wide: false })
+    render(<App />)
+    act(() => s().setActive(a))
+    act(() => s().setActive(b))
+    expect(document.querySelectorAll('.cm-editor')).toHaveLength(1)
+    act(() => s().setSplitNote(a))
+    expect(document.querySelectorAll('.cm-editor')).toHaveLength(1)
   })
 })

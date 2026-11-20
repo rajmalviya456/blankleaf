@@ -25,6 +25,7 @@ import { getActiveView } from '../features/editor/activeView'
 import { runTransform, TRANSFORM_IDS, TRANSFORMS } from '../features/toolbar/transforms'
 import type { Shortcut } from '../lib/shortcuts'
 import type { AppState, AppStore } from '../store/store'
+import { editingNote } from '../store/selectors'
 
 export type CommandSection = 'Note' | 'Tabs' | 'View' | 'Data' | 'App'
 
@@ -52,11 +53,14 @@ export interface Command {
 const hasActive = (s: AppState) => s.session.activeTabId !== null
 /** An open note whose text is available (a locked note's isn't). */
 const hasOpenText = (s: AppState) => {
-  const id = s.session.activeTabId
-  return id !== null && !s.notes[id]?.locked
+  const n = editingNote(s)
+  return !!n && !n.locked
 }
 const st = (ctx: CommandContext) => ctx.store.getState()
+/** The active tab: for commands about tabs themselves. */
 const activeId = (ctx: CommandContext) => st(ctx).session.activeTabId
+/** The note being worked in (the side note while it has the cursor): for note commands. */
+const noteId = (ctx: CommandContext) => editingNote(st(ctx))?.id ?? null
 
 const gotoTabs: Command[] = Array.from({ length: 9 }, (_, i) => ({
   id: `tab.goto${i + 1}`,
@@ -151,7 +155,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasActive,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) st(ctx).togglePin(id)
     },
   },
@@ -163,7 +167,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) st(ctx).duplicateNote(id)
     },
   },
@@ -175,7 +179,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasActive,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) st(ctx).trashNote(id)
     },
   },
@@ -187,7 +191,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) shareStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -214,7 +218,7 @@ export const COMMANDS: Command[] = [
     when: hasOpenText,
     run: (ctx) => {
       const s = st(ctx)
-      const id = s.session.activeTabId
+      const id = editingNote(s)?.id ?? null
       s.setUi({ paletteOpen: false })
       if (id) compareStore.getState().open(id)
     },
@@ -239,7 +243,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = st(ctx).session.activeTabId
+      const id = noteId(ctx)
       st(ctx).setUi({ paletteOpen: false })
       if (id) readabilityStore.getState().open(id)
     },
@@ -252,7 +256,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) goalStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -265,7 +269,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) lockStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -278,7 +282,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasActive,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) tagsStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -291,7 +295,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [{ code: 'KeyP', mod: true }],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) printStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -304,7 +308,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) historyStore.getState().open(id)
       st(ctx).setUi({ paletteOpen: false })
     },
@@ -327,11 +331,11 @@ export const COMMANDS: Command[] = [
     keywords: ['markdown', 'render', 'preview'],
     shortcuts: [{ code: 'KeyP', mod2: true }],
     when: (s) => {
-      const id = s.session.activeTabId
+      const id = editingNote(s)?.id ?? null
       return id !== null && s.notes[id]?.mode === 'markdown'
     },
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (!id) return
       // Phones toggle edit ⇄ preview in phone-only state; the laptop's view is left alone.
       if (isPhoneNow()) {
@@ -348,7 +352,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasActive,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) st(ctx).toggleWrap(id)
     },
   },
@@ -385,7 +389,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasActive,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) st(ctx).toggleSpellcheck(id)
     },
   },
@@ -426,6 +430,8 @@ export const COMMANDS: Command[] = [
     shortcuts: [{ code: 'KeyF', mod: true, shift: true }],
     run: (ctx) => {
       st(ctx).setUi({ paletteOpen: false, focusSearch: st(ctx).ui.focusSearch + 1 })
+      // Zen hides the sidebar: leave it, or nothing would show.
+      if (st(ctx).session.zen) st(ctx).toggleZen()
       // Phones have no sidebar: open the Library's search instead.
       if (isPhoneNow()) return openLibrary('search')
       st(ctx).setSidebar({ open: true, panel: 'search' })
@@ -442,6 +448,7 @@ export const COMMANDS: Command[] = [
         st(ctx).setUi({ paletteOpen: false })
         return openLibrary('trash')
       }
+      if (st(ctx).session.zen) st(ctx).toggleZen()
       st(ctx).setSidebar({ open: true, panel: 'trash' })
     },
   },
@@ -473,7 +480,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) exportNote(id)
     },
   },
@@ -485,7 +492,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) void exportNoteAs(id, 'html')
     },
   },
@@ -497,7 +504,7 @@ export const COMMANDS: Command[] = [
     shortcuts: [],
     when: hasOpenText,
     run: (ctx) => {
-      const id = activeId(ctx)
+      const id = noteId(ctx)
       if (id) void exportNoteAs(id, 'docx')
     },
   },

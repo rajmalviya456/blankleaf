@@ -77,6 +77,26 @@ test('two notes side by side, both editable', async ({ page }) => {
   await expect(side).toBeHidden()
 })
 
+test('text size changes only the note you’re in, and stays after a reload', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await openApp(page)
+  await newNote(page, 'left note')
+  await newNote(page, 'right note')
+  await tabs(page).filter({ hasText: 'left note' }).click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Open beside' }).click()
+  const side = page.getByRole('region', { name: 'Side note: left note' })
+  const size = (el: ReturnType<Page['locator']>) => el.evaluate((e) => getComputedStyle(e).fontSize)
+  const main = page.locator('main .cm-content').first()
+  const before = await size(side.locator('.cm-content'))
+  await page.getByRole('button', { name: 'Larger text' }).click()
+  await page.getByRole('button', { name: 'Larger text' }).click()
+  await expect.poll(() => size(main)).not.toBe(before)
+  expect(await size(side.locator('.cm-content'))).toBe(before)
+  const grown = await size(main)
+  await page.reload()
+  await expect.poll(() => size(page.locator('main .cm-content').first())).toBe(grown)
+})
+
 test('only the note with the cursor shows its highlighted line and is marked as edited', async ({
   page,
 }) => {
