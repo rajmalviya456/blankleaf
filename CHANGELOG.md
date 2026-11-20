@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.14.0](https://github.com/rajmalviya456/blankleaf/compare/v1.13.4...v1.14.0) (2026-11-20)
+
+
+### Features
+
+* **code:** Format code for JavaScript, TypeScript, CSS, SCSS, Less, HTML, YAML, Markdown and SQL ([14df2aa](https://github.com/rajmalviya456/blankleaf/commit/14df2aa65b60a36cd83e24bd80454b6f38d07516))
+* **markdown:** Tab tidies a table and moves to the next cell ([14df2aa](https://github.com/rajmalviya456/blankleaf/commit/14df2aa65b60a36cd83e24bd80454b6f38d07516))
+
+
+### Performance
+
+* **build:** libraries in their own files, so updates download less; a size budget for startup ([14df2aa](https://github.com/rajmalviya456/blankleaf/commit/14df2aa65b60a36cd83e24bd80454b6f38d07516))
+
 ## [1.13.4](https://github.com/rajmalviya456/blankleaf/compare/v1.13.3...v1.13.4) (2026-11-20)
 
 
