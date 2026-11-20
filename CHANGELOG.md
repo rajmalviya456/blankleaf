@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.13.2](https://github.com/rajmalviya456/blankleaf/compare/v1.13.1...v1.13.2) (2026-11-20)
+
+
+### Bug Fixes
+
+* **backup:** keep a folder's old backup aside before offering to restore it ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **editor:** toolbar text size changes only the note you're in ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **import:** an import confirmed later never replaces newer edits; keeps pins and closes trashed tabs ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **links:** long first-line titles link, emoji titles stay whole, bracket titles aren't offered ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **lock:** a locked note never takes plain text ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **preview:** big previews never cut a list, details or math block apart ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **shortcuts:** no note shortcuts behind a dialog; search and Trash leave zen ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **side-by-side:** commands, preview, outline, readability and voice act on the note you're working in ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **store:** keep tabs, side note and closed list in step ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **theme:** a share link no longer resets the saved theme; the browser bar colour is right from the start ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **welcome:** never recreate the Welcome note for someone who already has notes ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+* **writing:** readability skips whole code blocks; outline reads Windows line endings ([da4fa3e](https://github.com/rajmalviya456/blankleaf/commit/da4fa3e0a27fc9f30fc425bcecd2795bf01338a3))
+
 ## [1.13.1](https://github.com/rajmalviya456/blankleaf/compare/v1.13.0...v1.13.1) (2026-11-19)
 
 
