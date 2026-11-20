@@ -18,6 +18,7 @@ const EDITOR_KEYS: [string, string[], string[]][] = [
   ['Fold or unfold block (code notes)', ['⌘⌥[', '⌘⌥]'], ['Ctrl+Shift+[', 'Ctrl+Shift+]']],
   ['Indent / outdent', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
   ['Tidy a Markdown table, next / previous cell', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
+  ['Insert a heading, list, table… (Markdown, start of a line)', ['/'], ['/']],
 ]
 
 const kbdClass = 'rounded border border-border bg-bg-sunken px-1.5 py-px text-[11px] text-fg-muted'
