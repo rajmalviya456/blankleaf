@@ -342,7 +342,9 @@ export function createAppStore(
       },
 
       updateContent(id, content) {
-        if (get().notes[id]?.content === content) return
+        const note = get().notes[id]
+        // A locked note's text lives only in its encrypted data.
+        if (!note || note.locked || note.content === content) return
         patchNote(id, { content })
       },
 

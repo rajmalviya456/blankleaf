@@ -370,3 +370,13 @@ describe('app store: the side note stays consistent', () => {
     expect(s().notes[p].pinned).toBe(true)
   })
 })
+
+describe('app store: locked notes', () => {
+  it('never takes plain text (a stale history restore or Undo from another window)', () => {
+    const { store, s } = setup()
+    const id = filled(store, 'secret')
+    s().applyLock(id, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id }, 'Locked')
+    s().updateContent(id, 'secret again')
+    expect(s().notes[id].content).toBe('')
+  })
+})
