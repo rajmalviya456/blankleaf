@@ -29,6 +29,17 @@ describe('Toolbar', () => {
     expect(screen.queryByRole('button', { name: 'Change case' })).toBeNull()
   })
 
+  it('shows the formatting key in the tooltip only once the note is Markdown', () => {
+    const { s, id } = setup('x', false)
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('title', 'Bold')
+    act(() => s().setNoteMode(id, 'markdown'))
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('title', 'Bold (Ctrl+B)')
+    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute(
+      'title',
+      'Link (Ctrl+Shift+K)',
+    )
+  })
+
   it('plain-text notes get formatting and the text tools', () => {
     setup('x', false)
     expect(screen.getByRole('button', { name: 'Bold' })).toBeInTheDocument()

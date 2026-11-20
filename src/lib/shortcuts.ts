@@ -17,6 +17,8 @@ export interface Shortcut {
   standaloneOnly?: boolean
   /** Left to the editor while typing in a code note (Cmd/Ctrl+/ comments a line there). */
   yieldsToCode?: boolean
+  /** Left to the editor while typing in a Markdown note (Cmd/Ctrl+B bolds there). */
+  yieldsToMarkdown?: boolean
 }
 
 type KeyLike = Pick<KeyboardEvent, 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'> &

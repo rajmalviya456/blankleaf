@@ -5,6 +5,7 @@ import { platform } from '../../lib/platform'
 import { formatShortcut } from '../../lib/shortcuts'
 import { getStore, useAppStore } from '../../store/store'
 import { DialogSurface } from '../../ui/DialogSurface'
+import { MARKDOWN_SHORTCUTS, shortcutText } from '../editor/markdownKeys'
 
 const SECTIONS: CommandSection[] = ['Note', 'Tabs', 'View', 'App']
 
@@ -58,7 +59,11 @@ export function ShortcutsSheet() {
                   {items.map((c) => (
                     <div key={c.id} className="flex items-center gap-3 px-3 py-1.5 text-[12.5px]">
                       <dt className="flex-1 text-fg">
-                        {c.id === 'tab.goto1' ? 'Go to tab 1–9' : c.title}
+                        {c.id === 'tab.goto1'
+                          ? 'Go to tab 1–9'
+                          : c.id === 'view.sidebar'
+                            ? `${c.title} (outside Markdown notes)`
+                            : c.title}
                       </dt>
                       <dd className="flex gap-1.5">
                         {c.shortcuts
@@ -97,6 +102,24 @@ export function ShortcutsSheet() {
                         {k}
                       </kbd>
                     ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+          <section aria-labelledby="np-markdown-keys" className="mb-3">
+            <h3
+              id="np-markdown-keys"
+              className="pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint"
+            >
+              Formatting in Markdown notes
+            </h3>
+            <dl className="divide-y divide-border rounded-lg border border-border bg-bg">
+              {MARKDOWN_SHORTCUTS.map((m) => (
+                <div key={m.key} className={rowClass}>
+                  <dt className="flex-1 text-fg">{m.label}</dt>
+                  <dd className="flex gap-1.5">
+                    <kbd className={kbdClass}>{shortcutText(m.key, p === 'mac')}</kbd>
                   </dd>
                 </div>
               ))}

@@ -61,6 +61,8 @@ import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { languageMeta } from '../../domain/languages'
 import { OutlineMenu } from './OutlineMenu'
+import { shortcutFor } from '../editor/markdownKeys'
+import { platform } from '../../lib/platform'
 import { SymbolPicker } from '../symbols/SymbolPicker'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -98,18 +100,21 @@ function Btn({
   onClick,
   disabled,
   pressed,
+  keys,
 }: {
   icon: LucideIcon
   label: string
   onClick(): void
   disabled?: boolean
   pressed?: boolean
+  /** Keyboard shortcut shown in the tooltip. */
+  keys?: string
 }) {
   return (
     <button
       type="button"
       aria-label={label}
-      title={label}
+      title={keys ? `${label} (${keys})` : label}
       aria-pressed={pressed}
       disabled={disabled}
       // Keep the editor's selection: don't steal focus on mouse down.
@@ -224,6 +229,8 @@ function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorVi
 function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
+  // The keys only work once the note is Markdown, so plain notes don't advertise them.
+  const keys = (label: string) => (markdown ? shortcutFor(label, platform() === 'mac') : undefined)
   const run = (fn: (v: EditorView) => unknown) => () => {
     if (view) formatAsMarkdown(noteId, view, fn)
   }
@@ -240,21 +247,35 @@ function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: stri
           <span className="w-6 text-fg-muted">¶</span> Normal text
         </Item>
       </Menu>
-      <Btn icon={Bold} label="Bold" disabled={off} onClick={run((v) => toggleInline(v, '**'))} />
-      <Btn icon={Italic} label="Italic" disabled={off} onClick={run((v) => toggleInline(v, '_'))} />
+      <Btn
+        icon={Bold}
+        label="Bold"
+        keys={keys('Bold')}
+        disabled={off}
+        onClick={run((v) => toggleInline(v, '**'))}
+      />
+      <Btn
+        icon={Italic}
+        label="Italic"
+        keys={keys('Italic')}
+        disabled={off}
+        onClick={run((v) => toggleInline(v, '_'))}
+      />
       <Btn
         icon={Strikethrough}
         label="Strikethrough"
+        keys={keys('Strikethrough')}
         disabled={off}
         onClick={run((v) => toggleInline(v, '~~'))}
       />
       <Btn
         icon={Code}
         label="Inline code"
+        keys={keys('Inline code')}
         disabled={off}
         onClick={run((v) => toggleInline(v, '`'))}
       />
-      <Btn icon={Link} label="Link" disabled={off} onClick={run(insertLink)} />
+      <Btn icon={Link} label="Link" keys={keys('Link')} disabled={off} onClick={run(insertLink)} />
       <Menu icon={List} label="List" disabled={off}>
         <Item onSelect={run((v) => toggleLinePrefix(v, '- '))}>• Bulleted list</Item>
         <Item onSelect={run((v) => toggleLinePrefix(v, '1. '))}>1. Numbered list</Item>

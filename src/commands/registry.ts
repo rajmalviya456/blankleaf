@@ -407,7 +407,7 @@ export const COMMANDS: Command[] = [
     title: 'Toggle sidebar',
     section: 'View',
     keywords: ['notes', 'panel'],
-    shortcuts: [{ code: 'KeyB', mod: true }],
+    shortcuts: [{ code: 'KeyB', mod: true, yieldsToMarkdown: true }],
     only: 'laptop',
     run: (ctx) => st(ctx).toggleSidebar(),
   },

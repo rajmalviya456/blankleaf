@@ -22,3 +22,15 @@ it('lists the editor’s own keys, including the code ones', async () => {
   // jsdom isn't a Mac: Ctrl, not ⌘.
   expect(editor.getByText('Ctrl+/')).toBeInTheDocument()
 })
+
+it('lists the Markdown formatting keys, and says ⌘B bolds inside Markdown notes', async () => {
+  const store = initStore(createAppStore())
+  render(<ShortcutsSheet />)
+  act(() => store.getState().setUi({ shortcutsOpen: true }))
+  const md = within(await screen.findByRole('region', { name: 'Formatting in Markdown notes' }))
+  expect(md.getByText('Bold')).toBeInTheDocument()
+  expect(md.getByText('Ctrl+B')).toBeInTheDocument()
+  expect(md.getByText('Link')).toBeInTheDocument()
+  expect(md.getByText('Ctrl+Shift+K')).toBeInTheDocument()
+  expect(screen.getByText('Toggle sidebar (outside Markdown notes)')).toBeInTheDocument()
+})

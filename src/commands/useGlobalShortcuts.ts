@@ -1,3 +1,5 @@
+import { language } from '@codemirror/language'
+import { EditorView } from '@codemirror/view'
 import { useEffect } from 'react'
 import { platform } from '../lib/platform'
 import { matchShortcut } from '../lib/shortcuts'
@@ -19,6 +21,13 @@ function typingInCode(e: KeyboardEvent, state: AppState): boolean {
   const id = state.session.activeTabId
   const lang = id ? state.notes[id]?.language : undefined
   return !!lang && languageMeta(lang).kind === 'code'
+}
+
+/** The key went to an editor showing Markdown (main or side note). */
+function typingInMarkdown(e: KeyboardEvent): boolean {
+  const el = e.target instanceof Element ? e.target.closest('.cm-editor') : null
+  if (!(el instanceof HTMLElement)) return false
+  return EditorView.findFromDOM(el)?.state.facet(language)?.name === 'markdown'
 }
 
 /** A dialog (Settings, Share, the palette…) is open over the notes. */
@@ -44,7 +53,8 @@ export function useGlobalShortcuts(): void {
           (s) =>
             matchShortcut(e, s, p) &&
             (!s.standaloneOnly || isStandalone()) &&
-            !(s.yieldsToCode && typingInCode(e, state)),
+            !(s.yieldsToCode && typingInCode(e, state)) &&
+            !(s.yieldsToMarkdown && typingInMarkdown(e)),
         )
         if (!hit) continue
         // Behind a dialog only the palette key works (it toggles the palette itself).
