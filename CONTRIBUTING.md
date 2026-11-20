@@ -1,6 +1,8 @@
 # Contributing to Blankleaf
 
-Thanks for wanting to help! Bug reports, ideas and pull requests are all welcome.
+Thanks for wanting to help! Bug reports, ideas and pull requests are all welcome. Everyone taking
+part agrees to the [code of conduct](CODE_OF_CONDUCT.md). Security problems go through the
+[security policy](SECURITY.md), not public issues.
 
 ## Ground rules
 
