@@ -32,6 +32,25 @@ export function activeViewUpdated(view: EditorView): void {
 
 export const getActiveView = (): EditorView | null => current
 
+/** Each note's mounted editor, so work aimed at a note (voice typing) survives a redraw. */
+const byNote = new Map<string, EditorView>()
+
+export function registerNoteView(noteId: string, view: EditorView): void {
+  byNote.set(noteId, view)
+}
+
+export function unregisterNoteView(noteId: string, view: EditorView): void {
+  if (byNote.get(noteId) === view) byNote.delete(noteId)
+}
+
+export const viewForNote = (noteId: string): EditorView | null => byNote.get(noteId) ?? null
+
+/** The note an editor belongs to. */
+export function noteForView(view: EditorView): string | null {
+  for (const [id, v] of byNote) if (v === view) return id
+  return null
+}
+
 const subscribe = (cb: () => void) => {
   listeners.add(cb)
   return () => listeners.delete(cb)

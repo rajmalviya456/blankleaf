@@ -4,9 +4,12 @@ import { useStore } from 'zustand'
 import { useIsPhone } from '../../lib/media'
 import { stopVoice, voiceStore } from './voice'
 
-/** While dictating: shows that the microphone is on, the words so far, and a way to stop. */
-export function VoiceStatus() {
-  const listening = useStore(voiceStore, (s) => s.listening)
+/**
+ * While dictating: shows that the microphone is on, the words so far, and a way to stop. It
+ * sits in the pane of the note being dictated into.
+ */
+export function VoiceStatus({ noteId }: { noteId: string }) {
+  const listening = useStore(voiceStore, (s) => s.listening && s.noteId === noteId)
   const interim = useStore(voiceStore, (s) => s.interim)
   const phone = useIsPhone()
   useEffect(() => {
