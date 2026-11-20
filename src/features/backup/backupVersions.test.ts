@@ -95,3 +95,23 @@ describe('version history in backups', () => {
     expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/without version history/)
   })
 })
+
+describe('applying an import later', () => {
+  it('never replaces text typed after the import was planned', async () => {
+    let t = 1000
+    const store = initStore(createAppStore(undefined, () => ++t))
+    const id = store.getState().newNote({ content: 'old' })
+    const backupCopy = { ...store.getState().notes[id], content: 'from backup', updatedAt: 5000 }
+    const plan = planImport(store.getState().notes, new Set(), {
+      schemaVersion: 1,
+      exportedAt: 5000,
+      notes: [backupCopy],
+      settings: DEFAULT_SETTINGS,
+    } as never)
+    expect(plan.update).toHaveLength(1)
+    t = 9000
+    store.getState().updateContent(id, 'typed while the dialog was open')
+    await applyImport(plan, false)
+    expect(store.getState().notes[id].content).toBe('typed while the dialog was open')
+  })
+})
