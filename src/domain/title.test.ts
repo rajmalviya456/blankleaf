@@ -23,3 +23,11 @@ describe('displayTitle', () => {
     expect(displayTitle({ title: '  ', content: 'abc' })).toBe('abc')
   })
 })
+
+describe('displayTitle cut', () => {
+  it('never cuts an emoji in half', () => {
+    const t = displayTitle({ title: null, content: 'a'.repeat(TITLE_MAX - 1) + '😀 more' })
+    expect(t).toBe('a'.repeat(TITLE_MAX - 1))
+    expect(t.isWellFormed()).toBe(true)
+  })
+})

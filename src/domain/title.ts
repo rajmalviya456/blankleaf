@@ -9,7 +9,10 @@ export function displayTitle(note: Pick<Note, 'title' | 'content'>): string {
   if (explicit) return explicit
   for (const line of note.content.split('\n', 50)) {
     const trimmed = line.trim()
-    if (trimmed) return trimmed.slice(0, TITLE_MAX)
+    if (!trimmed) continue
+    const cut = trimmed.slice(0, TITLE_MAX)
+    // Don't leave half an emoji (a lone surrogate) at the end.
+    return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut
   }
   return UNTITLED
 }

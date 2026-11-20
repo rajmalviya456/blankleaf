@@ -34,6 +34,8 @@ function titles(noteId: string) {
     )) {
       if (n.id === noteId || n.deletedAt !== null) continue
       const label = documentTitle(n)
+      // A title with [ or ] can't be written as a link.
+      if (/[[\]]/.test(label)) continue
       if (seen.has(label.toLowerCase())) continue
       seen.add(label.toLowerCase())
       options.push({ label, type: 'text', apply: insertLink })
