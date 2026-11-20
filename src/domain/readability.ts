@@ -11,6 +11,8 @@ export interface Readability {
   /** Flesch reading ease, 0–100 (higher is easier). */
   ease: number
   label: string
+  /** The grade and ease formulas are for English; for other text only the counts mean much. */
+  english: boolean
   /** Where sentences longer than LONG_SENTENCE words are, in the original text. */
   longSentences: { from: number; to: number; words: number }[]
   /** Words used at least three times, most first (little common words left out). */
@@ -58,7 +60,7 @@ function sentenceRanges(prose: string, text: string): [number, number][] {
   blocks.push([start, text.length])
   for (const [from, to] of blocks) {
     const part = prose.slice(from, to)
-    const end = /[.!?]+(?=\s|$)/g
+    const end = /[.!?]+(?=\s|$)|[。！？]+/g
     let s = 0
     for (const m of part.matchAll(end)) {
       ranges.push([from + s, from + m.index + m[0].length])
@@ -76,8 +78,12 @@ function sentenceRanges(prose: string, text: string): [number, number][] {
     .filter(([a, b]) => b > a)
 }
 
+/** Letters without accents: café → cafe (a final é is said, so it stays a vowel). */
+const unaccented = (word: string) =>
+  word.toLowerCase().replace(/é$/, 'ee').normalize('NFD').replace(/\p{M}/gu, '')
+
 export function syllables(word: string): number {
-  let w = word.toLowerCase().replace(/[^a-z]/g, '')
+  let w = unaccented(word).replace(/[^a-z]/g, '')
   if (w.length <= 3) return 1
   w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '')
   return Math.max(1, w.match(/[aeiouy]{1,3}/g)?.length ?? 0)
@@ -96,6 +102,8 @@ export function readability(text: string): Readability {
   let words = 0
   let sentences = 0
   let syl = 0
+  let nonLatin = 0
+  let common = 0
   const longSentences: Readability['longSentences'] = []
   const counts = new Map<string, { count: number; first: number }>()
   for (const [from, to] of sentenceRanges(prose, text)) {
@@ -106,6 +114,8 @@ export function readability(text: string): Readability {
     for (const w of found) {
       syl += syllables(w)
       const key = w.toLowerCase().replace(/’/g, "'")
+      if (!/^[a-z']+$/.test(unaccented(key))) nonLatin++
+      if (STOPWORDS.has(key)) common++
       if (key.length < 3 || STOPWORDS.has(key)) continue
       const entry = counts.get(key)
       if (entry) entry.count++
@@ -114,7 +124,16 @@ export function readability(text: string): Readability {
     if (found.length > LONG_SENTENCE) longSentences.push({ from, to, words: found.length })
   }
   if (!words)
-    return { words: 0, sentences: 0, grade: 0, ease: 0, label: '', longSentences, overused: [] }
+    return {
+      words: 0,
+      sentences: 0,
+      grade: 0,
+      ease: 0,
+      label: '',
+      english: true,
+      longSentences,
+      overused: [],
+    }
   const perSentence = words / sentences
   const perWord = syl / words
   const grade = Math.max(0, Math.round((0.39 * perSentence + 11.8 * perWord - 15.59) * 10) / 10)
@@ -127,5 +146,7 @@ export function readability(text: string): Readability {
     .sort((a, b) => b[1].count - a[1].count || a[1].first - b[1].first)
     .slice(0, OVERUSED_MAX)
     .map(([word, v]) => ({ word, count: v.count }))
-  return { words, sentences, grade, ease, label: label(ease), longSentences, overused }
+  // English text is in Latin letters and full of little words like "the", "and", "of".
+  const english = nonLatin / words <= 0.2 && (words < 8 || common / words >= 0.15)
+  return { words, sentences, grade, ease, label: label(ease), english, longSentences, overused }
 }

@@ -55,6 +55,13 @@ describe('loadInitialState', () => {
     expect((await loadAll(db)).meta?.welcomeShown).toBe(true)
   })
 
+  it('reads notes saved with Windows line endings with plain line breaks', async () => {
+    const n = note({ content: 'one\r\ntwo' })
+    await insertNote(db, n)
+    const { state } = await loadInitialState(db, NOW)
+    expect(state.notes![n.id].content).toBe('one\ntwo')
+  })
+
   it('later runs with no tabs open an empty note instead of Welcome', async () => {
     await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null, welcomeShown: true })
     const { state } = await loadInitialState(db, NOW)

@@ -25,9 +25,13 @@ export function ReadabilityPanel({ noteId }: { noteId: string }) {
       <div className="mb-2 flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-medium text-fg">
-            {r.words ? `Grade ${Math.round(r.grade)} · ${r.label}` : 'Nothing to read yet'}
+            {!r.words
+              ? 'Nothing to read yet'
+              : r.english
+                ? `Grade ${Math.round(r.grade)} · ${r.label}`
+                : 'Grade: English text only'}
           </p>
-          {r.words > 0 && <p>Reading ease {r.ease} / 100</p>}
+          {r.words > 0 && r.english && <p>Reading ease {r.ease} / 100</p>}
         </div>
         <button
           type="button"

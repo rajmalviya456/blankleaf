@@ -28,6 +28,15 @@ describe('Readability panel', () => {
     expect(panel).toHaveTextContent('1 long sentence')
   })
 
+  it('shows no English grade for text in another language, but still counts it', async () => {
+    const { store } = setup('La casa es muy bonita. Vamos a la playa mañana por la tarde.')
+    act(() => COMMANDS.find((c) => c.id === 'note.readability')!.run({ store }))
+    const panel = await screen.findByRole('region', { name: 'Readability' })
+    expect(panel).toHaveTextContent('Grade: English text only')
+    expect(panel).not.toHaveTextContent('Reading ease')
+    expect(panel).toHaveTextContent('2 sentences')
+  })
+
   it('highlights long sentences in the note when asked', async () => {
     const { store, user } = setup()
     act(() => COMMANDS.find((c) => c.id === 'note.readability')!.run({ store }))

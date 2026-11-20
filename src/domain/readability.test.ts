@@ -65,3 +65,22 @@ describe('readability', () => {
     expect(readability(`Short one.\n\n${code}`).words).toBe(2)
   })
 })
+
+describe('other languages', () => {
+  it('counts accented letters properly', () => {
+    expect(syllables('café')).toBe(2)
+  })
+
+  it('gives a grade only for English, but still counts words and sentences', () => {
+    const es = readability('La casa es muy bonita. Vamos a la playa mañana por la tarde.')
+    expect(es.english).toBe(false)
+    expect(es.words).toBe(13)
+    expect(es.sentences).toBe(2)
+    expect(readability('The cat sat on the mat. It was a sunny day.').english).toBe(true)
+    expect(readability('Привет, как дела? Всё хорошо.').english).toBe(false)
+  })
+
+  it('ends sentences at Chinese and Japanese full stops', () => {
+    expect(readability('今日は晴れです。明日は雨です。').sentences).toBe(2)
+  })
+})

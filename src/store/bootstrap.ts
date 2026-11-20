@@ -1,3 +1,4 @@
+import { plainLineBreaks } from '../domain/lineEndings'
 import { openDb, SCHEMA_VERSION, type Meta, type BlankleafDB } from '../db/db'
 import { loadAll, purgeExpiredTrash, putKv, saveNote } from '../db/notesRepo'
 import { emptySession, mergeSettings, newNoteDraft, WELCOME_CONTENT } from '../domain/defaults'
@@ -77,7 +78,9 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
   const data = await loadAll(db)
   const settings: Settings = mergeSettings(data.settings)
   const meta: Meta = { ...DEFAULT_META, ...data.meta }
-  const notes: Record<string, Note> = Object.fromEntries(data.notes.map((n) => [n.id, n]))
+  const notes: Record<string, Note> = Object.fromEntries(
+    data.notes.map((n) => [n.id, { ...n, content: plainLineBreaks(n.content) }]),
+  )
   let session = sanitizeSession(data.session, notes)
   // Notes saved before the welcome flag existed: this person has been here before.
   if (!meta.welcomeShown && data.notes.length > 0) {

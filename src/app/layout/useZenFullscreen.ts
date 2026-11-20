@@ -13,9 +13,18 @@ export function useZenFullscreen(enabled: boolean): void {
     if (!enabled || !document.fullscreenEnabled) return
     if (zen && !document.fullscreenElement) {
       ours.current = true
-      document.documentElement.requestFullscreen?.().catch(() => {
-        ours.current = false
-      })
+      document.documentElement
+        .requestFullscreen?.()
+        .then(() => {
+          // Zen was turned off while the browser was still going full screen.
+          if (!getStore().getState().session.zen && document.fullscreenElement) {
+            ours.current = false
+            void document.exitFullscreen().catch(() => {})
+          }
+        })
+        .catch(() => {
+          ours.current = false
+        })
     } else if (!zen && ours.current) {
       ours.current = false
       if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})

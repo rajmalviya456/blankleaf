@@ -87,4 +87,24 @@ describe('zen mode on a laptop', () => {
     act(() => s().toggleZen())
     await vi.waitFor(() => expect(exit).toHaveBeenCalled())
   })
+
+  it('turning zen off before full screen has started still ends up out of full screen', async () => {
+    const { request } = stubFullscreen()
+    let finish!: () => void
+    request.mockImplementation(function (this: Element) {
+      return new Promise<void>((done) => {
+        finish = () => {
+          fullscreen.element = this
+          document.dispatchEvent(new Event('fullscreenchange'))
+          done()
+        }
+      })
+    })
+    const { s } = setup()
+    act(() => s().toggleZen())
+    act(() => s().toggleZen())
+    await act(async () => finish())
+    await vi.waitFor(() => expect(fullscreen.element).toBeNull())
+    expect(s().session.zen).toBe(false)
+  })
 })

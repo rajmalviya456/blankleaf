@@ -75,6 +75,25 @@ describe('links between notes in the preview', () => {
   })
 })
 
+describe('links with Markdown inside them in the preview', () => {
+  it('still link when the title has *stars* or __underscores__, and open the right note', async () => {
+    const store = initStore(createAppStore())
+    const s = () => store.getState()
+    const target = s().newNote({ title: 'a *big* plan', content: 'x' })
+    const id = s().newNote({
+      content: 'See [[a *big* plan]] now.',
+      mode: 'markdown',
+      language: 'markdown',
+    })
+    s().setViewState(id, { previewMode: 'preview' })
+    render(<App />)
+    const link = await screen.findByRole('link', { name: 'a big plan' })
+    expect(link.querySelector('em')).not.toBeNull()
+    await userEvent.setup().click(link)
+    expect(s().session.activeTabId).toBe(target)
+  })
+})
+
 describe('Linked from', () => {
   it('lists the notes that link here and opens one', async () => {
     const store = initStore(createAppStore())

@@ -73,6 +73,19 @@ describe('locked notes open in two windows', () => {
     await act(async () => s().applyRemoteNote({ ...s().notes[id], locked: sealed, rev: 9 }))
   }
 
+  it('Remove lock right after another window’s edit keeps that edit', async () => {
+    const { s, id } = await lockedNote('original')
+    await unlockInApp()
+    const { lock } = await unseal(PASSWORD, s().notes[id].locked!)
+    const sealed = await seal(lock, 'FROM-A')
+    act(() => {
+      s().applyRemoteNote({ ...s().notes[id], locked: sealed, rev: 9 })
+      fireEvent.click(screen.getByRole('button', { name: 'Remove lock' }))
+    })
+    await waitFor(() => expect(s().notes[id].locked).toBeUndefined())
+    expect(s().notes[id].content).toBe('FROM-A')
+  })
+
   it('shows the other window’s edit instead of saving over it', async () => {
     const { s, id } = await lockedNote('original')
     const { user, container } = await unlockInApp()
