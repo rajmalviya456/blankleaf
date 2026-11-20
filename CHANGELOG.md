@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/rajmalviya456/blankleaf/compare/v1.14.0...v1.15.0) (2026-11-20)
+
+
+### Features
+
+* **backup:** encrypt backups with a backup password ([d6bff09](https://github.com/rajmalviya456/blankleaf/commit/d6bff09f1b627aaa8aa1ccafb5edcf2ffe0892ec))
+
 ## [1.14.0](https://github.com/rajmalviya456/blankleaf/compare/v1.13.4...v1.14.0) (2026-11-20)
 
 
