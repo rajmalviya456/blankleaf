@@ -1,3 +1,4 @@
+import { EditorView } from '@codemirror/view'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -250,6 +251,26 @@ describe('voice typing', () => {
     rec().say('stray')
     expect(s().notes[other].content).toBe('Other')
     expect(s().notes[id].content).toBe('Hello')
+  })
+
+  it('dictating into the side note keeps going until that note is closed', async () => {
+    media = stubMedia({ wide: true })
+    const { s, id, user } = setup()
+    const side = s().newNote({ content: 'Side' })
+    const third = s().newNote({ content: 'Third' })
+    act(() => s().setActive(id))
+    act(() => s().setSplitNote(side))
+    render(<App />)
+    const pane = screen.getByRole('region', { name: /^Side note/ })
+    const view = EditorView.findFromDOM(pane.querySelector('.cm-editor') as HTMLElement)!
+    act(() => view.focus())
+    await startListening(user)
+    rec().say('hello')
+    expect(s().notes[side].content).toContain('hello')
+    act(() => s().setActive(third))
+    expect(voiceStore.getState().listening).toBe(true)
+    act(() => s().setSplitNote(null))
+    expect(voiceStore.getState().listening).toBe(false)
   })
 
   it('stops when the page is hidden', async () => {
