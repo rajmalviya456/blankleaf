@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0](https://github.com/rajmalviya456/blankleaf/compare/v1.16.0...v1.17.0) (2026-11-20)
+
+
+### Features
+
+* / menu in Markdown notes for headings, lists, checklists, tables, dividers and today's date ([e3fbac0](https://github.com/rajmalviya456/blankleaf/commit/e3fbac02fb3bc4381c188070243b2fa55d847708))
+* Enter on an empty list item ends the list ([e3fbac0](https://github.com/rajmalviya456/blankleaf/commit/e3fbac02fb3bc4381c188070243b2fa55d847708))
+
 ## [1.16.0](https://github.com/rajmalviya456/blankleaf/compare/v1.15.0...v1.16.0) (2026-11-20)
 
 
