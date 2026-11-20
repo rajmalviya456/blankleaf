@@ -1,14 +1,10 @@
 /** Note title suggestions for `[[`. Loaded on demand by linkEditor. */
-import {
-  autocompletion,
-  startCompletion,
-  type Completion,
-  type CompletionContext,
-} from '@codemirror/autocomplete'
+import { startCompletion, type Completion, type CompletionContext } from '@codemirror/autocomplete'
 import type { Extension } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 import { documentTitle } from '../../domain/title'
 import { getStore } from '../../store/store'
+import { completionCore, completionSources } from '../editor/completion'
 
 export { startCompletion }
 
@@ -45,5 +41,5 @@ function titles(noteId: string) {
 }
 
 export function linkCompletion(noteId: string): Extension {
-  return autocompletion({ override: [titles(noteId)], icons: false })
+  return [completionCore, completionSources.of(titles(noteId))]
 }

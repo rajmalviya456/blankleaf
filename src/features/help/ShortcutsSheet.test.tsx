@@ -17,6 +17,7 @@ it('lists the editor’s own keys, including the code ones', async () => {
     'Fold or unfold block (code notes)',
     'Indent / outdent',
     'Tidy a Markdown table, next / previous cell',
+    'Insert a heading, list, table… (Markdown, start of a line)',
   ])
     expect(editor.getByText(name)).toBeInTheDocument()
   // jsdom isn't a Mac: Ctrl, not ⌘.
