@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.16.0](https://github.com/rajmalviya456/blankleaf/compare/v1.15.0...v1.16.0) (2026-11-20)
+
+
+### Features
+
+* formatting shortcuts in Markdown notes (Cmd/Ctrl+B, I, E, Shift+K and more) ([8ea07cc](https://github.com/rajmalviya456/blankleaf/commit/8ea07cc8460555a7ce52e2aa62e8e846bdb2aece))
+* Markdown notes look formatted while you type, with clickable checkboxes ([8ea07cc](https://github.com/rajmalviya456/blankleaf/commit/8ea07cc8460555a7ce52e2aa62e8e846bdb2aece))
+* Serif and Rounded editor fonts, and a font per note ([8ea07cc](https://github.com/rajmalviya456/blankleaf/commit/8ea07cc8460555a7ce52e2aa62e8e846bdb2aece))
+
 ## [1.15.0](https://github.com/rajmalviya456/blankleaf/compare/v1.14.0...v1.15.0) (2026-11-20)
 
 
