@@ -113,11 +113,30 @@ function UnlockedEditor({
     }
   }, [])
 
+  // After any save or incoming edit in progress, so a newer edit from another window is kept.
   const removeLock = () => {
-    unsaved.current = false
     clearTimeout(timer.current)
-    getStore().getState().removeLock(noteId, latest.current)
-    toast('Lock removed. This note is no longer encrypted.')
+    queue.current = queue.current.then(async () => {
+      const now = getStore().getState().notes[noteId]?.locked
+      if (!now) return
+      let text = latest.current
+      if (now !== base.current) {
+        const remote = await unsealWith(lock, now).catch(() => null)
+        if (remote !== null) {
+          // Typed here too: that text is kept as a copy (unlocked, as this note is about to be).
+          if (unsaved.current && remote !== latest.current) {
+            const s = getStore().getState()
+            const title = `${displayTitle(s.notes[noteId] ?? { title: null, content: '' })} (conflict copy)`
+            s.newNote({ title, content: latest.current })
+            s.setActive(noteId)
+          }
+          text = remote
+        }
+      }
+      unsaved.current = false
+      getStore().getState().removeLock(noteId, text)
+      toast('Lock removed. This note is no longer encrypted.')
+    })
   }
 
   return (
