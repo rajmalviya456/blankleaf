@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/rajmalviya456/blankleaf/compare/v1.18.0...v1.18.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* note names drop a Markdown heading's # marks ([#102](https://github.com/rajmalviya456/blankleaf/issues/102)) ([9d6e20d](https://github.com/rajmalviya456/blankleaf/commit/9d6e20db5239949e9cdb0b5b5a39fd581cb28373))
+
 ## [1.18.0](https://github.com/rajmalviya456/blankleaf/compare/v1.17.0...v1.18.0) (2026-11-20)
 
 
