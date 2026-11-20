@@ -19,6 +19,7 @@ import {
   Bold,
   Braces,
   CaseSensitive,
+  Check,
   ChevronDown,
   Clock,
   Code,
@@ -40,6 +41,7 @@ import {
   SquareCode,
   Strikethrough,
   Trash2,
+  Type,
   Undo2,
   WrapText,
   type LucideIcon,
@@ -47,7 +49,12 @@ import {
 import { Fragment, type ReactNode } from 'react'
 import { useStore } from 'zustand'
 import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
-import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
+import {
+  EDITOR_FONTS,
+  editorFontStack,
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+} from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
@@ -55,6 +62,8 @@ import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { languageMeta } from '../../domain/languages'
 import { OutlineMenu } from './OutlineMenu'
+import { shortcutFor } from '../editor/markdownKeys'
+import { platform } from '../../lib/platform'
 import { SymbolPicker } from '../symbols/SymbolPicker'
 import { getStore, useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -92,18 +101,21 @@ function Btn({
   onClick,
   disabled,
   pressed,
+  keys,
 }: {
   icon: LucideIcon
   label: string
   onClick(): void
   disabled?: boolean
   pressed?: boolean
+  /** Keyboard shortcut shown in the tooltip. */
+  keys?: string
 }) {
   return (
     <button
       type="button"
       aria-label={label}
-      title={label}
+      title={keys ? `${label} (${keys})` : label}
       aria-pressed={pressed}
       disabled={disabled}
       // Keep the editor's selection: don't steal focus on mouse down.
@@ -160,6 +172,47 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
   )
 }
 
+/** The tick beside the chosen menu item (a fixed-width space when not chosen). */
+const Tick = () => (
+  <span className="w-3.5 shrink-0">
+    <DropdownMenu.ItemIndicator>
+      <Check size={13} />
+    </DropdownMenu.ItemIndicator>
+  </span>
+)
+
+/** This note's editor font; "Same as Settings" follows the Settings font again. */
+function FontMenu({ noteId }: { noteId: string }) {
+  const own = useAppStore((s) => s.notes[noteId]?.font)
+  const base = useAppStore((s) => s.settings.editorFont)
+  const baseLabel = EDITOR_FONTS.find((f) => f.value === base)?.label
+  const set = (v: string) =>
+    getStore()
+      .getState()
+      .setNoteFont(noteId, v === '' ? undefined : (v as (typeof EDITOR_FONTS)[number]['value']))
+  return (
+    <Menu icon={Type} label="Font">
+      <DropdownMenu.RadioGroup value={own ?? ''} onValueChange={set}>
+        <DropdownMenu.RadioItem value="" className={item}>
+          <Tick />
+          Same as Settings ({baseLabel})
+        </DropdownMenu.RadioItem>
+        {EDITOR_FONTS.map((f) => (
+          <DropdownMenu.RadioItem
+            key={f.value}
+            value={f.value}
+            className={item}
+            style={{ fontFamily: editorFontStack(f.value) }}
+          >
+            <Tick />
+            {f.label}
+          </DropdownMenu.RadioItem>
+        ))}
+      </DropdownMenu.RadioGroup>
+    </Menu>
+  )
+}
+
 const Sep = () => <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border" />
 
 /**
@@ -188,6 +241,8 @@ function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorVi
 function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
   const off = !view
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
+  // The keys only work once the note is Markdown, so plain notes don't advertise them.
+  const keys = (label: string) => (markdown ? shortcutFor(label, platform() === 'mac') : undefined)
   const run = (fn: (v: EditorView) => unknown) => () => {
     if (view) formatAsMarkdown(noteId, view, fn)
   }
@@ -204,21 +259,35 @@ function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: stri
           <span className="w-6 text-fg-muted">¶</span> Normal text
         </Item>
       </Menu>
-      <Btn icon={Bold} label="Bold" disabled={off} onClick={run((v) => toggleInline(v, '**'))} />
-      <Btn icon={Italic} label="Italic" disabled={off} onClick={run((v) => toggleInline(v, '_'))} />
+      <Btn
+        icon={Bold}
+        label="Bold"
+        keys={keys('Bold')}
+        disabled={off}
+        onClick={run((v) => toggleInline(v, '**'))}
+      />
+      <Btn
+        icon={Italic}
+        label="Italic"
+        keys={keys('Italic')}
+        disabled={off}
+        onClick={run((v) => toggleInline(v, '_'))}
+      />
       <Btn
         icon={Strikethrough}
         label="Strikethrough"
+        keys={keys('Strikethrough')}
         disabled={off}
         onClick={run((v) => toggleInline(v, '~~'))}
       />
       <Btn
         icon={Code}
         label="Inline code"
+        keys={keys('Inline code')}
         disabled={off}
         onClick={run((v) => toggleInline(v, '`'))}
       />
-      <Btn icon={Link} label="Link" disabled={off} onClick={run(insertLink)} />
+      <Btn icon={Link} label="Link" keys={keys('Link')} disabled={off} onClick={run(insertLink)} />
       <Menu icon={List} label="List" disabled={off}>
         <Item onSelect={run((v) => toggleLinePrefix(v, '- '))}>• Bulleted list</Item>
         <Item onSelect={run((v) => toggleLinePrefix(v, '1. '))}>1. Numbered list</Item>
@@ -344,6 +413,7 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
       {!compact && (
         <>
           <Sep />
+          <FontMenu noteId={noteId} />
           <Btn
             icon={Minus}
             label="Smaller text"

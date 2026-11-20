@@ -35,6 +35,16 @@ export function EditorSection({ settings: s, update }: Props) {
           onChange={(showToolbar) => update({ showToolbar })}
         />
       </Row>
+      <Row
+        label="Format Markdown as you type"
+        hint="Bold looks bold and headings look big; the ** and # marks show on the line you’re editing."
+      >
+        <Toggle
+          label="Format Markdown as you type"
+          checked={s.liveMarkdown}
+          onChange={(liveMarkdown) => update({ liveMarkdown })}
+        />
+      </Row>
       <Row label="Line numbers">
         <Toggle
           label="Line numbers"

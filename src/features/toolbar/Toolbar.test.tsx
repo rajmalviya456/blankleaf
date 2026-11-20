@@ -29,6 +29,17 @@ describe('Toolbar', () => {
     expect(screen.queryByRole('button', { name: 'Change case' })).toBeNull()
   })
 
+  it('shows the formatting key in the tooltip only once the note is Markdown', () => {
+    const { s, id } = setup('x', false)
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('title', 'Bold')
+    act(() => s().setNoteMode(id, 'markdown'))
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('title', 'Bold (Ctrl+B)')
+    expect(screen.getByRole('button', { name: 'Link' })).toHaveAttribute(
+      'title',
+      'Link (Ctrl+Shift+K)',
+    )
+  })
+
   it('plain-text notes get formatting and the text tools', () => {
     setup('x', false)
     expect(screen.getByRole('button', { name: 'Bold' })).toBeInTheDocument()
@@ -98,6 +109,19 @@ describe('Toolbar', () => {
     expect(s().settings.editorFontSize).toBe(before)
     act(() => s().setNoteFontSize(id, 72, false))
     expect(screen.getByRole('button', { name: 'Larger text' })).toBeDisabled()
+  })
+
+  it('picks a font for this note only, and can go back to the Settings one', async () => {
+    const user = userEvent.setup()
+    const { s, id, view } = setup('x', false)
+    await user.click(screen.getByRole('button', { name: 'Font' }))
+    await user.click(await screen.findByRole('menuitemradio', { name: 'Serif' }))
+    expect(s().notes[id].font).toBe('serif')
+    expect(s().settings.editorFont).toBe('mono')
+    expect(view.dom.closest('[style]')?.getAttribute('style')).toContain('--font-serif')
+    await user.click(screen.getByRole('button', { name: 'Font' }))
+    await user.click(await screen.findByRole('menuitemradio', { name: /Same as Settings/ }))
+    expect(s().notes[id].font).toBeUndefined()
   })
 
   it('sorts lines from the Line tools menu', async () => {

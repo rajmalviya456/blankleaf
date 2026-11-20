@@ -1,4 +1,6 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { language } from '@codemirror/language'
+import { EditorView } from '@codemirror/view'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { COMMANDS } from '../commands/registry'
 import { createAppStore, getStore, initStore } from '../store/store'
@@ -46,6 +48,41 @@ describe('global shortcuts', () => {
     act(() => trash.run({ store: getStore() }))
     expect(s().session.zen).toBe(false)
     expect(s().session.sidebar).toEqual({ open: true, panel: 'trash' })
+  })
+
+  it('Ctrl+B in a Markdown note bolds instead of toggling the sidebar', async () => {
+    const { s, id } = setup()
+    act(() => s().setLanguage(id, 'markdown'))
+    const content = document.querySelector('.cm-content') as HTMLElement
+    const view = EditorView.findFromDOM(content)!
+    await waitFor(() => expect(view.state.facet(language)?.name).toBe('markdown'))
+    act(() => view.dispatch({ selection: { anchor: 0, head: 5 } }))
+    act(
+      () => void fireEvent.keyDown(content, { code: 'KeyB', key: 'b', keyCode: 66, ctrlKey: true }),
+    )
+    expect(s().session.sidebar.open).toBe(false)
+    expect(view.state.doc.toString()).toBe('**first** note')
+  })
+
+  it('Ctrl+B in a Markdown note’s find box still toggles the sidebar', async () => {
+    const { s, id } = setup()
+    act(() => s().setLanguage(id, 'markdown'))
+    const content = document.querySelector('.cm-content') as HTMLElement
+    const view = EditorView.findFromDOM(content)!
+    await waitFor(() => expect(view.state.facet(language)?.name).toBe('markdown'))
+    const box = document.createElement('input')
+    view.dom.appendChild(box)
+    act(() => void fireEvent.keyDown(box, { code: 'KeyB', key: 'b', keyCode: 66, ctrlKey: true }))
+    expect(s().session.sidebar.open).toBe(true)
+  })
+
+  it('Ctrl+B typed in a plain note still toggles the sidebar', () => {
+    const { s } = setup()
+    const content = document.querySelector('.cm-content') as HTMLElement
+    act(
+      () => void fireEvent.keyDown(content, { code: 'KeyB', key: 'b', keyCode: 66, ctrlKey: true }),
+    )
+    expect(s().session.sidebar.open).toBe(true)
   })
 
   it('AltGr (Ctrl+Alt) does nothing', () => {

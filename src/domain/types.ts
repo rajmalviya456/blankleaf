@@ -70,6 +70,8 @@ export interface Note {
   fontSize?: number
   /** This note's text size on phones, when it differs from Settings. */
   phoneFontSize?: number
+  /** This note's editor font, when it differs from Settings. */
+  font?: EditorFont
   /** Set when the note is password-locked; `content` is then empty. */
   locked?: LockedContent
   pinned: boolean
@@ -106,12 +108,15 @@ export interface Session {
   splitNoteId?: string | null
 }
 
+/** Editor typeface. All use fonts already on the device, so nothing downloads. */
+export type EditorFont = 'mono' | 'sans' | 'serif' | 'rounded'
+
 export interface Settings {
   theme: ThemePref
   /** '' means use the theme's default accent. */
   accent: string
   uiFontSize: number
-  editorFont: 'mono' | 'sans'
+  editorFont: EditorFont
   editorFontSize: number
   /** Phones keep their own text size so the laptop's never changes from a phone. */
   phoneEditorFontSize: number
@@ -126,6 +131,8 @@ export interface Settings {
   /** Dictionary for spell check; 'auto' follows the browser's language. */
   spellLanguage: 'auto' | 'en-US' | 'en-GB' | 'en-AU' | 'en-CA' | 'es'
   showToolbar: boolean
+  /** Markdown notes hide their marks and look formatted while you type. */
+  liveMarkdown: boolean
   /** 0 disables the reminder. */
   backupReminderDays: number
   notesSort: NotesSort

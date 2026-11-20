@@ -6,6 +6,7 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { LockKeyhole, LockKeyholeOpen } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useNoteFont } from '../editor/useNoteFont'
 import { useNoteFontSize } from '../editor/useNoteFontSize'
 import { displayTitle } from '../../domain/title'
 import { getStore, useAppStore } from '../../store/store'
@@ -33,9 +34,10 @@ function UnlockedEditor({
   const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
   const stored = useAppStore((s) => s.notes[noteId]?.locked)
   const fontSize = useNoteFontSize(noteId)
+  const font = useNoteFont(noteId)
   const editorBase = useEditorExtensions({
     wrap,
-    settings: { ...settings, editorFontSize: fontSize },
+    settings: { ...settings, editorFontSize: fontSize, editorFont: font },
   })
   const spell = useSpellCheck(spellcheck)
   const extensions = useMemo(

@@ -48,6 +48,8 @@ test('formats SQL and CSS, and tidies a Markdown table with Tab', async ({ page 
       .getByRole('button', { name: /^Format:/ })
       .click()
     await page.getByRole('menuitemradio', { name, exact: true }).click()
+    // The palette key does nothing while the menu is still closing.
+    await expect(page.getByRole('menu')).toHaveCount(0)
   }
   const formatCode = async () => {
     await page.keyboard.press('ControlOrMeta+k')
@@ -83,5 +85,7 @@ test('checklist boxes tick in the Markdown preview', async ({ page }) => {
   await statusBar(page).getByRole('radio', { name: 'Preview' }).click()
   await page.getByRole('checkbox', { name: 'call mum' }).check()
   await statusBar(page).getByRole('radio', { name: 'Edit' }).click()
-  await expect(editor(page)).toHaveText('- [x] call mum')
+  // The editor shows the task as a ticked box (the note's text is `- [x] call mum`).
+  await expect(editor(page).locator('input.cm-md-check')).toBeChecked()
+  await expect(editor(page)).toContainText('call mum')
 })

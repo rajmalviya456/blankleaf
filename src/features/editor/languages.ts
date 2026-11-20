@@ -7,6 +7,8 @@ import type { Extension } from '@codemirror/state'
 import { languageMeta } from '../../domain/languages'
 import type { LanguageId } from '../../domain/types'
 import { logLanguage } from './logLanguage'
+// Small, and the toolbar and shortcuts sheet need its list anyway.
+import { markdownKeys } from './markdownKeys'
 
 type Loader = () => Promise<Extension>
 
@@ -21,8 +23,8 @@ const LOADERS: Partial<Record<LanguageId, Loader>> = {
       import('./markdownTable'),
     ])
     // GFM (tables, task lists, strikethrough) + highlighting inside ```lang fences,
-    // each fence language loading on demand. Tab tidies tables.
-    return [markdown({ base: markdownLanguage, codeLanguages: languages }), tableKeys]
+    // each fence language loading on demand. Tab tidies tables; ⌘B and friends format.
+    return [markdown({ base: markdownLanguage, codeLanguages: languages }), tableKeys, markdownKeys]
   },
   log: async () => logLanguage,
   json: async () => {

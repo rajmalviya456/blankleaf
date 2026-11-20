@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
 import {
+  EDITOR_FONTS,
   EDITOR_FONT_MAX,
   EDITOR_FONT_MIN,
   PHONE_FONT_MAX,
@@ -65,15 +66,15 @@ export function AppearanceSection({ settings: s, update }: Props) {
           ))}
         </div>
       </Row>
-      <Row label="Editor font" hint="Monospace lines up code and logs; sans reads nicer for prose.">
+      <Row
+        label="Editor font"
+        hint="Monospace lines up code and logs; sans, serif and rounded read nicer for prose. Each note can pick its own in the toolbar."
+      >
         <Segmented
           label="Editor font"
           value={s.editorFont}
           onChange={(editorFont) => update({ editorFont })}
-          options={[
-            { value: 'mono', label: 'Monospace' },
-            { value: 'sans', label: 'Sans' },
-          ]}
+          options={EDITOR_FONTS.map((f) => ({ value: f.value, label: f.label }))}
         />
       </Row>
       <Row
