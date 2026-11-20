@@ -85,7 +85,5 @@ test('checklist boxes tick in the Markdown preview', async ({ page }) => {
   await statusBar(page).getByRole('radio', { name: 'Preview' }).click()
   await page.getByRole('checkbox', { name: 'call mum' }).check()
   await statusBar(page).getByRole('radio', { name: 'Edit' }).click()
-  // The editor shows the task as a ticked box (the note's text is `- [x] call mum`).
-  await expect(editor(page).locator('input.cm-md-check')).toBeChecked()
-  await expect(editor(page)).toContainText('call mum')
+  await expect(editor(page)).toHaveText('- [x] call mum')
 })
