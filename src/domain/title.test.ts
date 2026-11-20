@@ -19,6 +19,16 @@ describe('displayTitle', () => {
     expect(displayTitle({ title: 'My note', content: 'abc' })).toBe('My note')
   })
 
+  it('drops a Markdown heading’s # marks from the first line', () => {
+    expect(displayTitle({ title: null, content: '# Trip to Lisbon\nmore' })).toBe('Trip to Lisbon')
+    expect(displayTitle({ title: null, content: '  ### Notes  ' })).toBe('Notes')
+    // Not a heading: no space after #, or nothing after the marks.
+    expect(displayTitle({ title: null, content: '#todo' })).toBe('#todo')
+    expect(displayTitle({ title: null, content: '##' })).toBe('##')
+    // An explicit title is shown exactly as typed.
+    expect(displayTitle({ title: '# Kept', content: 'abc' })).toBe('# Kept')
+  })
+
   it('ignores a blank explicit title', () => {
     expect(displayTitle({ title: '  ', content: 'abc' })).toBe('abc')
   })
