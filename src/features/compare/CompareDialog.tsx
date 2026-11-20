@@ -7,7 +7,7 @@ import { EditorState, type Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import * as Dialog from '@radix-ui/react-dialog'
 import { GitCompare, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { displayTitle } from '../../domain/title'
 import { useIsPhone } from '../../lib/media'
@@ -118,7 +118,10 @@ export function CompareDialog() {
   const other = useStore(compareStore, (s) => s.other)
   const note = useAppStore((s) => (noteId ? s.notes[noteId] : undefined))
   const phone = useIsPhone()
-  const [count, setCount] = useState<number | null>(null)
+  // The count belongs to one comparison, so a new one never shows the last one's count.
+  const [counted, setCounted] = useState<{ of: unknown; n: number } | null>(null)
+  const count = counted && counted.of === other ? counted.n : null
+  const onCount = useCallback((n: number) => setCounted({ of: other, n }), [other])
   const close = () => compareStore.getState().close()
 
   return (
@@ -150,7 +153,7 @@ export function CompareDialog() {
                 before={other.text}
                 after={note.content}
                 combined={phone}
-                onCount={setCount}
+                onCount={onCount}
               />
             </>
           )}
