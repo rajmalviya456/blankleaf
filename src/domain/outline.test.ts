@@ -32,4 +32,11 @@ describe('outline', () => {
   it('returns nothing for text without headings', () => {
     expect(outline('just text')).toEqual([])
   })
+
+  it('reads Windows line endings, with places as the editor counts them', () => {
+    expect(outline('# Title\r\ntext\r\n## Sub\r\n')).toEqual([
+      { level: 1, text: 'Title', from: 0 },
+      { level: 2, text: 'Sub', from: 13 },
+    ])
+  })
 })

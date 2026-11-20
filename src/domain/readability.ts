@@ -37,7 +37,7 @@ const WORD = /\p{L}[\p{L}\p{M}'’]*/gu
 function proseOnly(text: string): string {
   const blank = (s: string) => s.replace(/[^\n]/g, ' ')
   return text
-    .replace(/^ {0,3}(```|~~~)[^\n]*\n[\s\S]*?(?:\n {0,3}\1[^\n]*|$)/gm, blank)
+    .replace(/^ {0,3}(```|~~~)[^\n]*\n[\s\S]*?(?:\n {0,3}\1[^\n]*|(?![\s\S]))/gm, blank)
     .replace(/`[^`\n]+`/g, blank)
     .replace(/\b(?:https?:\/\/|www\.)[^\s<>()]+/g, blank)
     .replace(/\]\([^)\s]*\)/g, blank)
