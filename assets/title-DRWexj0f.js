@@ -1,2 +1,0 @@
-function e(e){let t=e.title?.trim();if(t)return t;for(let t of e.content.split(`
-`,50)){let e=t.trim();if(!e)continue;let n=e.slice(0,40);return/[\uD800-\uDBFF]$/.test(n)?n.slice(0,-1):n}return`Untitled`}function t(t){return e(t).replace(/^#{1,6}\s+/,``).trim()||e(t)}export{t as n,e as t};
