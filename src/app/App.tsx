@@ -3,6 +3,7 @@ import { Contrast, Settings as SettingsIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { importStore } from '../features/backup/importStore'
+import { backupPasswordStore } from '../features/backup/backupPasswordStore'
 import { shareStore } from '../features/share/shareStore'
 import { useZenFullscreen } from './layout/useZenFullscreen'
 import { compareStore } from '../features/compare/compareStore'
@@ -74,6 +75,11 @@ const WordGoalDialog = lazy(() =>
 const VoiceConsentDialog = lazy(() =>
   import('../features/voice/VoiceConsentDialog').then((m) => ({ default: m.VoiceConsentDialog })),
 )
+const BackupPasswordDialog = lazy(() =>
+  import('../features/backup/BackupPasswordDialog').then((m) => ({
+    default: m.BackupPasswordDialog,
+  })),
+)
 const ImportDialog = lazy(() =>
   import('../features/backup/ImportDialog').then((m) => ({ default: m.ImportDialog })),
 )
@@ -86,6 +92,7 @@ function Dialogs() {
   const about = useAppStore((s) => s.ui.aboutOpen)
   const whatsNew = useAppStore((s) => s.ui.whatsNewOpen)
   const importing = useStore(importStore, (s) => s.open)
+  const backupPassword = useStore(backupPasswordStore, (s) => s.asking !== null)
   const sharing = useStore(shareStore, (s) => s.dialogNoteId !== null)
   const history = useStore(historyStore, (s) => s.noteId !== null)
   const comparing = useStore(compareStore, (s) => s.noteId !== null)
@@ -109,6 +116,7 @@ function Dialogs() {
     whatsNew,
     importing,
     sharing,
+    backupPassword,
   })
   if (
     (palette && !seen.palette) ||
@@ -124,7 +132,8 @@ function Dialogs() {
     (tagging && !seen.tagging) ||
     (locking && !seen.locking) ||
     (goal && !seen.goal) ||
-    (voice && !seen.voice)
+    (voice && !seen.voice) ||
+    (backupPassword && !seen.backupPassword)
   ) {
     setSeen({
       voice: seen.voice || voice,
@@ -141,6 +150,7 @@ function Dialogs() {
       whatsNew: seen.whatsNew || whatsNew,
       importing: seen.importing || importing,
       sharing: seen.sharing || sharing,
+      backupPassword: seen.backupPassword || backupPassword,
     })
   }
   return (
@@ -151,6 +161,7 @@ function Dialogs() {
       {seen.about && <AboutDialog />}
       {seen.whatsNew && <WhatsNewDialog />}
       {seen.importing && <ImportDialog />}
+      {seen.backupPassword && <BackupPasswordDialog />}
       {seen.sharing && <ShareDialog />}
       {seen.history && <HistoryDialog />}
       {seen.comparing && <CompareDialog />}

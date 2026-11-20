@@ -109,7 +109,7 @@ describe('exporting', () => {
     ) {
       names.push(this.download)
     })
-    await exportAll()
+    await exportAll(Date.now(), 'plain')
     expect(names[0]).toMatch(/^blankleaf-backup-\d{4}-\d{2}-\d{2}\.json$/)
     const json = JSON.parse(await created[0].text())
     expect(json.notes.map((n: { id: string }) => n.id)).toContain(a)

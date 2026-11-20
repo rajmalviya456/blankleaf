@@ -3,6 +3,7 @@ import type { Settings } from '../../../domain/types'
 import { formatBytes, getStorageInfo, type StorageInfo } from '../../../lib/storageInfo'
 import { clearAllData } from '../../../store/dataReset'
 import { exportAll, pickFilesToImport } from '../../backup/actions'
+import { BackupPasswordRow } from '../../backup/BackupPasswordRow'
 import { FolderBackupRow } from '../../backup/FolderBackupRow'
 import { getLastBackupAt } from '../../backup/meta'
 import { relativeTime } from '../../../lib/relativeTime'
@@ -54,9 +55,10 @@ export function DataSection({ settings: s, update }: Props) {
           Import…
         </button>
       </Row>
+      <BackupPasswordRow />
       <Row
         label="Download as files"
-        hint="Every note as its own file (.md, .txt, .py, …) in one .zip, to open in any app."
+        hint="Every note as its own file (.md, .txt, .py, …) in one .zip, to open in any app. Not encrypted."
       >
         <button
           type="button"

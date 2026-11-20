@@ -13,7 +13,16 @@ import { WELCOME_CONTENT } from '../../domain/defaults'
 import { getStore, type AppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { buildBackupFile, importFileList } from './actions'
-import { backupFileName } from './backup'
+import { backupFileName, looksLikeBackup } from './backup'
+import {
+  backupSalt,
+  decryptBackup,
+  encryptBackup,
+  isEncryptedBackup,
+  type BackupKey,
+} from './backupCrypto'
+import { getBackupKey, onBackupKeyChange } from './backupKey'
+import { backupPasswordStore } from './backupPasswordStore'
 import { getLastBackupAt, markBackedUp } from './meta'
 
 export const LATEST_FILE = 'blankleaf-backup-latest.json'
@@ -129,10 +138,16 @@ async function writeNow(now: number): Promise<void> {
   if (!target || folderBackupStore.getState().status !== 'on' || !hasSomethingToSave()) return
   dirty = false
   try {
-    const { text } = await buildBackupFile(now)
+    const { text: plain } = await buildBackupFile(now)
+    const key = await getBackupKey()
+    const text = key ? await encryptBackup(plain, key) : plain
     await writeFile(target, LATEST_FILE, text)
     await writeFile(target, dailyName(now), text)
     await pruneDailyCopies(target)
+    // Another window changed the backup password during this save: save again with the new one.
+    const after = await getBackupKey()
+    if ((after?.salt ?? null) !== (key?.salt ?? null)) schedule()
+    await encryptLeftovers(target, after)
     await markBackedUp(now)
     set({ savedAt: now })
   } catch (e) {
@@ -170,6 +185,74 @@ function schedule() {
   }, delay)
 }
 
+/** The folder's files this app writes (never backups exported into it by hand). */
+const ownFile = (name: string) =>
+  name === LATEST_FILE || name === PREVIOUS_FILE || DAILY_FILE.test(name)
+
+/**
+ * Rewrite this app's backups in the folder for the backup key `to` (unencrypted for null):
+ * files encrypted with `from` are opened with it, readable ones are encrypted. A file neither
+ * key opens (an older password) is left as it is. Returns how many files couldn't be rewritten.
+ */
+async function recryptFiles(
+  target: BackupFolder,
+  from: BackupKey | null,
+  to: BackupKey | null,
+): Promise<number> {
+  let failed = 0
+  const names: string[] = []
+  for await (const name of target.keys()) if (ownFile(name)) names.push(name)
+  for (const name of names) {
+    try {
+      const now = await (
+        await (await target.getFileHandle(name, { create: false })).getFile()
+      ).text()
+      let plain: string | null = null
+      if (isEncryptedBackup(now)) {
+        if (to && backupSalt(now) === to.salt) continue // already right
+        plain = from ? await decryptBackup(now, from).catch(() => null) : null
+      } else if (looksLikeBackup(now)) {
+        if (!to) continue // already right
+        plain = now
+      }
+      if (plain === null) continue
+      await writeFile(target, name, to ? await encryptBackup(plain, to) : plain)
+    } catch (e) {
+      console.error(`Blankleaf: could not re-encrypt ${name}`, e)
+      failed++
+    }
+  }
+  return failed
+}
+
+/** The key the folder's files were last checked against (once per key, not on every save). */
+let checkedFor: string | null | undefined
+
+/** After a save: any readable backup left in the folder (older copies) gets encrypted too. */
+async function encryptLeftovers(target: BackupFolder, key: BackupKey | null): Promise<void> {
+  const salt = key?.salt ?? null
+  if (!key || checkedFor === salt) return
+  if ((await recryptFiles(target, null, key)) === 0) checkedFor = salt
+}
+
+/** The backup password was set, changed or removed: redo the saved backups, after any save. */
+function onKeyChange(from: BackupKey | null, to: BackupKey | null): Promise<void> {
+  const target = folder
+  if (!target) return Promise.resolve()
+  const run = async () => {
+    const failed = await recryptFiles(target, from, to).catch(() => 1)
+    // Otherwise the next save tries the leftovers again (paused folder, a locked file…).
+    checkedFor = failed ? undefined : (to?.salt ?? null)
+    if (failed)
+      toast(
+        `${failed === 1 ? 'A backup' : `${failed} backups`} in “${target.name}” couldn’t be re-encrypted. Back up now to replace ${failed === 1 ? 'it' : 'them'}.`,
+        { tone: 'warn', action: { label: 'Back up now', run: () => void backupToFolderNow() } },
+      )
+  }
+  writing = (writing ?? Promise.resolve()).then(run)
+  return writing
+}
+
 /** Load the remembered folder and keep it up to date. Returns a function that stops watching. */
 export async function startFolderBackup(
   store: StoreApi<AppStore>,
@@ -180,6 +263,7 @@ export async function startFolderBackup(
   delay = saveDelay
   memory = mem
   folder = null
+  checkedFor = undefined
   dirty = false
   writing = null
   set({ savedAt: getLastBackupAt(), folderName: null, status: picker() ? 'off' : 'unsupported' })
@@ -190,9 +274,11 @@ export async function startFolderBackup(
     if (document.visibilityState === 'hidden' && dirty) void backupToFolderNow()
   }
   document.addEventListener('visibilitychange', onHide)
+  const stopRecrypt = onBackupKeyChange(onKeyChange)
   channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(FOLDER_CHANNEL)
   if (channel) channel.onmessage = () => void followRememberedFolder()
   const stop = () => {
+    stopRecrypt()
     channel?.close()
     channel = null
     stopWatching()
@@ -243,14 +329,22 @@ export async function chooseBackupFolder(): Promise<void> {
     if (e instanceof DOMException && e.name === 'AbortError') return // the picker was closed
     throw e
   }
+  // Asked after the folder is picked: the browser shows its picker only straight after a click.
+  if (!(await getBackupKey()) && (await backupPasswordStore.getState().ask('folder')) === 'cancel')
+    return
   const existing = await existingBackup(chosen)
   folder = chosen
+  checkedFor = undefined // a new folder may hold readable backups from before
   await memory?.save(chosen)
   announce()
   set({ status: 'on', folderName: chosen.name })
   // Kept aside first, so later automatic saves can't replace it before the user decides.
   const kept = existing ? await existing.text() : null
-  if (kept !== null) await writeFile(chosen, PREVIOUS_FILE, kept)
+  if (kept !== null) {
+    const key = await getBackupKey()
+    const readable = key && !isEncryptedBackup(kept) && looksLikeBackup(kept)
+    await writeFile(chosen, PREVIOUS_FILE, readable ? await encryptBackup(kept, key) : kept)
+  }
   if (existing && kept !== null && !hasSomethingToSave()) {
     // Most likely a new browser or cleared data: offer the backup instead of replacing it.
     const copy = new File([kept], existing.name, { type: 'application/json' })

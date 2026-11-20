@@ -14,6 +14,9 @@ import {
   type BackupVersion,
   type ImportPlan,
 } from './backup'
+import { backupSalt, decryptBackup, encryptBackup, isEncryptedBackup } from './backupCrypto'
+import { getBackupKey } from './backupKey'
+import { backupPasswordStore } from './backupPasswordStore'
 import { downloadText } from './download'
 import { fileToNote, isProbablyBinary, noteExportFile } from './importFiles'
 import { importStore } from './importStore'
@@ -39,12 +42,28 @@ export async function buildBackupFile(
   }
 }
 
-export async function exportAll(now: number = Date.now()): Promise<void> {
+/**
+ * Download a backup of everything, encrypted with the backup password. Without one yet, it asks
+ * for one first (or, if the person chooses, saves without: `plain`).
+ */
+export async function exportAll(
+  now: number = Date.now(),
+  how: 'ask' | 'plain' = 'ask',
+): Promise<void> {
+  const key = await getBackupKey()
+  if (!key && how === 'ask') {
+    const answer = await backupPasswordStore.getState().ask('export')
+    if (answer === 'set') return exportAll(now)
+    if (answer === 'plain') return exportAll(now, 'plain')
+    return
+  }
   const { text, noteCount, hasHistory } = await buildBackupFile(now)
-  downloadText(backupFileName(now), 'application/json', text)
+  const out = key ? await encryptBackup(text, key) : text
+  downloadText(backupFileName(now), 'application/json', out)
   await markBackedUp(now)
-  if (hasHistory) toast(`Backup saved (${noteCount} notes). Keep it somewhere safe.`)
-  else toast(`Backup saved (${noteCount} notes), without version history.`, { tone: 'warn' })
+  const what = key ? 'Encrypted backup saved' : 'Backup saved'
+  if (hasHistory) toast(`${what} (${noteCount} notes). Keep it somewhere safe.`)
+  else toast(`${what} (${noteCount} notes), without version history.`, { tone: 'warn' })
 }
 
 /** Every saved version of these notes. A problem reading them never blocks the backup. */
@@ -107,19 +126,22 @@ export async function importFileList(
     }
     // A backup is recognised by its content, so renamed or extension-less files still work.
     if (looksLikeBackup(text)) {
-      try {
-        const backup = parseBackup(text)
-        const tombs = opts.tombstoneIds ?? (await tombstoneIdsFromDb())
-        importStore.getState().show({
-          fileName: file.name,
-          plan: planImport(getStore().getState().notes, tombs, backup),
-        })
-      } catch (e) {
-        importStore.getState().show({
-          fileName: file.name,
-          error: e instanceof BackupError ? e.message : 'This file could not be read.',
-        })
+      if (isEncryptedBackup(text)) {
+        // This device's own backups open by themselves; others ask for the password.
+        const key = await getBackupKey()
+        const opened =
+          key && backupSalt(text) === key.salt
+            ? await decryptBackup(text, key).catch(() => null)
+            : null
+        if (opened === null) {
+          pendingTombstones = opts.tombstoneIds
+          importStore.getState().show({ fileName: file.name, encrypted: text })
+          continue
+        }
+        await showImportPlan(file.name, opened, opts.tombstoneIds)
+        continue
       }
+      await showImportPlan(file.name, text, opts.tombstoneIds)
       continue
     }
     const note = fileToNote(file.name, text, Date.now(), s.settings)
@@ -132,6 +154,48 @@ export async function importFileList(
     })
   if (opened.length > 1) toast(`Opened ${opened.length} files as notes.`)
 }
+
+/** Read a backup's text and show what importing it would change (or why it can't). */
+async function showImportPlan(fileName: string, text: string, tombstoneIds?: Set<string>) {
+  try {
+    const backup = parseBackup(text)
+    const tombs = tombstoneIds ?? (await tombstoneIdsFromDb())
+    importStore.getState().show({
+      fileName,
+      plan: planImport(getStore().getState().notes, tombs, backup),
+    })
+  } catch (e) {
+    importStore.getState().show({
+      fileName,
+      error: e instanceof BackupError ? e.message : 'This file could not be read.',
+    })
+  }
+}
+
+/**
+ * Open the encrypted backup waiting in the import dialog. Returns false for a wrong password
+ * (the dialog stays open to try again).
+ */
+export async function unlockImport(password: string): Promise<boolean> {
+  const { encrypted, fileName } = importStore.getState()
+  if (!encrypted) return false
+  let text: string
+  try {
+    text = await decryptBackup(encrypted, password)
+  } catch (e) {
+    if (!(e instanceof BackupError)) return false
+    importStore.getState().show({ fileName, error: e.message })
+    return true
+  }
+  // Closed (or another file opened) while the password was being checked: leave it closed.
+  const now = importStore.getState()
+  if (!now.open || now.encrypted !== encrypted) return true
+  await showImportPlan(fileName, text, pendingTombstones)
+  return true
+}
+
+/** Tombstones handed to importFileList, kept for the backup waiting for its password. */
+let pendingTombstones: Set<string> | undefined
 
 /** Apply a confirmed import plan to the store; persistence writes it to IndexedDB. */
 export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Promise<number> {

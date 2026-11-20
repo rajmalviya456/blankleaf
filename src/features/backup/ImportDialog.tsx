@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useState } from 'react'
 import { useStore } from 'zustand'
 import { toast } from '../../ui/toast'
-import { applyImport } from './actions'
+import { applyImport, unlockImport } from './actions'
 import { importStore } from './importStore'
 import { DialogSurface } from '../../ui/DialogSurface'
 
@@ -10,8 +10,19 @@ const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
 
 /** Summary of what a backup import will change, with an explicit Import button. */
 export function ImportDialog() {
-  const { open, fileName, plan, error, close } = useStore(importStore)
+  const { open, fileName, plan, error, encrypted, close } = useStore(importStore)
   const [restoreDeleted, setRestoreDeleted] = useState(false)
+  const [password, setPassword] = useState('')
+  const [wrong, setWrong] = useState(false)
+  const [opening, setOpening] = useState(false)
+  const unlock = async () => {
+    if (!password || opening) return
+    setOpening(true)
+    const ok = await unlockImport(password)
+    setOpening(false)
+    setWrong(!ok)
+    if (ok) setPassword('')
+  }
 
   const nothing = plan && !plan.add.length && !plan.update.length && !plan.deletedRestorable.length
 
@@ -22,6 +33,8 @@ export function ImportDialog() {
         if (!o) {
           close()
           setRestoreDeleted(false)
+          setPassword('')
+          setWrong(false)
         }
       }}
     >
@@ -34,7 +47,48 @@ export function ImportDialog() {
           <Dialog.Title className="text-sm font-medium text-fg">Import backup</Dialog.Title>
           <p className="mt-0.5 truncate text-[11.5px] text-fg-faint">{fileName}</p>
 
-          {error ? (
+          {encrypted ? (
+            <form
+              className="mt-3 space-y-2 text-[12.5px] text-fg-muted"
+              onSubmit={(e) => {
+                e.preventDefault()
+                void unlock()
+              }}
+            >
+              <p>This backup is encrypted. Enter the backup password it was saved with.</p>
+              <label className="block text-[12px]">
+                Backup password
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setWrong(false)
+                  }}
+                  className="mt-1 w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg outline-none focus:border-accent max-sm:h-11"
+                />
+              </label>
+              {wrong && (
+                <p role="alert" className="text-danger">
+                  Wrong password. Try again.
+                </p>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <Dialog.Close className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
+                  Cancel
+                </Dialog.Close>
+                <button
+                  type="submit"
+                  disabled={!password || opening}
+                  className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] text-accent-fg disabled:opacity-40"
+                >
+                  {opening ? 'Opening…' : 'Open backup'}
+                </button>
+              </div>
+            </form>
+          ) : error ? (
             <p role="alert" className="mt-3 text-[12.5px] text-danger">
               {error} Nothing was changed.
             </p>
@@ -78,7 +132,7 @@ export function ImportDialog() {
             </div>
           ) : null}
 
-          <div className="mt-4 flex justify-end gap-2">
+          <div className={encrypted ? 'hidden' : 'mt-4 flex justify-end gap-2'}>
             <Dialog.Close className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover">
               {error || nothing ? 'Close' : 'Cancel'}
             </Dialog.Close>
