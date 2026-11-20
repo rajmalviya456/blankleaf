@@ -79,6 +79,13 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
   const meta: Meta = { ...DEFAULT_META, ...data.meta }
   const notes: Record<string, Note> = Object.fromEntries(data.notes.map((n) => [n.id, n]))
   let session = sanitizeSession(data.session, notes)
+  // Notes saved before the welcome flag existed: this person has been here before.
+  if (!meta.welcomeShown && data.notes.length > 0) {
+    meta.welcomeShown = true
+    await putKv(db, 'meta', meta).catch((e) =>
+      console.error('Blankleaf: could not save that the welcome was shown', e),
+    )
+  }
   const firstRun = !meta.welcomeShown
 
   if (session.openTabIds.length === 0) {

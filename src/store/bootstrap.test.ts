@@ -46,6 +46,14 @@ describe('loadInitialState', () => {
     expect(state.session!.perTab[welcome.id]?.previewMode).toBe('split')
   })
 
+  it('someone who already has notes (saved before the welcome flag) never gets Welcome', async () => {
+    await insertNote(db, note({ content: 'my old note' }))
+    await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null })
+    const { state } = await loadInitialState(db, NOW)
+    expect(Object.values(state.notes!).some((n) => n.title === 'Welcome')).toBe(false)
+    expect((await loadAll(db)).meta?.welcomeShown).toBe(true)
+  })
+
   it('later runs with no tabs open an empty note instead of Welcome', async () => {
     await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null, welcomeShown: true })
     const { state } = await loadInitialState(db, NOW)
