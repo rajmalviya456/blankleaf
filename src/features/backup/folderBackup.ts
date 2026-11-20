@@ -248,15 +248,18 @@ export async function chooseBackupFolder(): Promise<void> {
   await memory?.save(chosen)
   announce()
   set({ status: 'on', folderName: chosen.name })
-  if (existing && !hasSomethingToSave()) {
+  // Kept aside first, so later automatic saves can't replace it before the user decides.
+  const kept = existing ? await existing.text() : null
+  if (kept !== null) await writeFile(chosen, PREVIOUS_FILE, kept)
+  if (existing && kept !== null && !hasSomethingToSave()) {
     // Most likely a new browser or cleared data: offer the backup instead of replacing it.
+    const copy = new File([kept], existing.name, { type: 'application/json' })
     toast('This folder already has a backup. Restore your notes from it?', {
       durationMs: 0,
-      action: { label: 'Restore', run: () => void importFileList([existing]) },
+      action: { label: 'Restore', run: () => void importFileList([copy]) },
     })
     return
   }
-  if (existing) await writeFile(chosen, PREVIOUS_FILE, await existing.text())
   await backupToFolderNow()
   toast(`Automatic backup is on. Saving to “${chosen.name}”.`)
 }
