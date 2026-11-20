@@ -10,6 +10,13 @@ No sign-up. No server. Your notes stay in your browser.
 
 ### [Open Blankleaf →](https://rajmalviya456.github.io/blankleaf/)
 
+<a href="https://www.producthunt.com/products/blankleaf?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-blankleaf" target="_blank" rel="noopener noreferrer">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1322649&theme=dark">
+    <img alt="Blankleaf on Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1322649&theme=light">
+  </picture>
+</a>
+
 [![CI](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml/badge.svg)](https://github.com/rajmalviya456/blankleaf/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/rajmalviya456/blankleaf?label=release)](https://github.com/rajmalviya456/blankleaf/releases/latest)
 [![MIT license](https://img.shields.io/github/license/rajmalviya456/blankleaf)](LICENSE)
