@@ -19,6 +19,7 @@ import {
   PHONE_FONT_MIN,
 } from '../domain/defaults'
 import { languageMeta } from '../domain/languages'
+import { plainLineBreaks } from '../domain/lineEndings'
 import { displayTitle } from '../domain/title'
 import type {
   LanguageId,
@@ -226,6 +227,7 @@ export function createAppStore(
 
       newNote(partial) {
         const draft: Note = { ...newNoteDraft(now(), get().settings), ...partial }
+        draft.content = plainLineBreaks(draft.content)
         const notes = { ...get().notes, [draft.id]: draft }
         const session = get().session
         set({
@@ -341,7 +343,8 @@ export function createAppStore(
         })
       },
 
-      updateContent(id, content) {
+      updateContent(id, text) {
+        const content = plainLineBreaks(text)
         const note = get().notes[id]
         // A locked note's text lives only in its encrypted data.
         if (!note || note.locked || note.content === content) return
@@ -476,7 +479,12 @@ export function createAppStore(
         for (const n of incoming) {
           const current = notes[n.id]
           // A note already here keeps its pin; imported ones arrive unpinned.
-          notes[n.id] = { ...n, pinned: current?.pinned ?? false, rev: current ? current.rev : 0 }
+          notes[n.id] = {
+            ...n,
+            content: plainLineBreaks(n.content),
+            pinned: current?.pinned ?? false,
+            rev: current ? current.rev : 0,
+          }
           if (n.deletedAt !== null) session = withoutNote(session, n.id)
         }
         set({

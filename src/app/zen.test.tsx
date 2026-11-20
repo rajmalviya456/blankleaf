@@ -108,4 +108,3 @@ describe('zen mode on a laptop', () => {
     expect(s().session.zen).toBe(false)
   })
 })
-

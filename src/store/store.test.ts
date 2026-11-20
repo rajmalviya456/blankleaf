@@ -380,3 +380,15 @@ describe('app store: locked notes', () => {
     expect(s().notes[id].content).toBe('')
   })
 })
+
+describe('app store: Windows line endings', () => {
+  it('notes keep one kind of line break, however their text arrives', () => {
+    const { s } = setup()
+    const id = s().newNote({ content: 'one\r\ntwo\rthree' })
+    expect(s().notes[id].content).toBe('one\ntwo\nthree')
+    s().updateContent(id, 'a\r\nb')
+    expect(s().notes[id].content).toBe('a\nb')
+    s().importNotes([{ ...s().notes[id], id: 'imported', content: 'x\r\ny', updatedAt: 99999 }])
+    expect(s().notes.imported.content).toBe('x\ny')
+  })
+})
