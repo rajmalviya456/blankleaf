@@ -21,6 +21,13 @@ function typingInCode(e: KeyboardEvent, state: AppState): boolean {
   return !!lang && languageMeta(lang).kind === 'code'
 }
 
+/** A dialog (Settings, Share, the palette…) is open over the notes. */
+function dialogOpen(): boolean {
+  return !!document.querySelector(
+    '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]',
+  )
+}
+
 /**
  * Listens for command shortcuts on the whole window (capture phase, so they work while the
  * editor has focus). Only a matching key is consumed; all other typing passes through.
@@ -40,6 +47,8 @@ export function useGlobalShortcuts(): void {
             !(s.yieldsToCode && typingInCode(e, state)),
         )
         if (!hit) continue
+        // Behind a dialog only the palette key works (it toggles the palette itself).
+        if (cmd.id !== 'palette.open' && dialogOpen()) return
         if (!commandEnabled(cmd, state)) return
         e.preventDefault()
         e.stopPropagation()

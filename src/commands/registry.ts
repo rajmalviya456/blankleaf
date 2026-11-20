@@ -426,6 +426,8 @@ export const COMMANDS: Command[] = [
     shortcuts: [{ code: 'KeyF', mod: true, shift: true }],
     run: (ctx) => {
       st(ctx).setUi({ paletteOpen: false, focusSearch: st(ctx).ui.focusSearch + 1 })
+      // Zen hides the sidebar: leave it, or nothing would show.
+      if (st(ctx).session.zen) st(ctx).toggleZen()
       // Phones have no sidebar: open the Library's search instead.
       if (isPhoneNow()) return openLibrary('search')
       st(ctx).setSidebar({ open: true, panel: 'search' })
@@ -442,6 +444,7 @@ export const COMMANDS: Command[] = [
         st(ctx).setUi({ paletteOpen: false })
         return openLibrary('trash')
       }
+      if (st(ctx).session.zen) st(ctx).toggleZen()
       st(ctx).setSidebar({ open: true, panel: 'trash' })
     },
   },

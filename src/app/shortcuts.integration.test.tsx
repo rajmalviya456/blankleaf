@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createAppStore, initStore } from '../store/store'
+import { COMMANDS } from '../commands/registry'
+import { createAppStore, getStore, initStore } from '../store/store'
 import { App } from './App'
 
 // jsdom reports a non-Mac platform: mod = Ctrl, Mod2 = Alt.
@@ -21,6 +22,30 @@ describe('global shortcuts', () => {
     expect(s().session.openTabIds).toHaveLength(2)
     press('KeyW', { altKey: true })
     expect(s().session.openTabIds).toHaveLength(1)
+  })
+
+  it('note shortcuts do nothing while a dialog is open', async () => {
+    const { s, id } = setup()
+    press('Comma', { ctrlKey: true })
+    await screen.findByRole('dialog', { name: 'Settings' })
+    press('KeyN', { altKey: true })
+    expect(s().session.openTabIds).toHaveLength(1)
+    press('KeyW', { altKey: true })
+    expect(s().session.openTabIds).toHaveLength(1)
+    expect(s().notes[id]).toBeDefined()
+  })
+
+  it('searching or showing Trash from zen leaves zen so the sidebar shows', () => {
+    const { s } = setup()
+    act(() => s().toggleZen())
+    press('KeyF', { ctrlKey: true, shiftKey: true })
+    expect(s().session.zen).toBe(false)
+    expect(s().session.sidebar).toEqual({ open: true, panel: 'search' })
+    act(() => s().toggleZen())
+    const trash = COMMANDS.find((c) => c.id === 'view.trash')!
+    act(() => trash.run({ store: getStore() }))
+    expect(s().session.zen).toBe(false)
+    expect(s().session.sidebar).toEqual({ open: true, panel: 'trash' })
   })
 
   it('AltGr (Ctrl+Alt) does nothing', () => {
