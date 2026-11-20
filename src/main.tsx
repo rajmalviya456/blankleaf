@@ -17,7 +17,7 @@ import { parseShareHash } from './features/share/link'
 import { pickTransport } from './features/share/pickTransport'
 import { setShareHost } from './features/share/shareStore'
 import { setPersistentStorageStatus } from './lib/storageStatus'
-import { applySettingsToDocument, systemPrefersDark } from './lib/theme'
+import { applySettingsToDocument, savedTheme, systemPrefersDark } from './lib/theme'
 import { DEFAULT_SETTINGS } from './domain/defaults'
 import type { Note } from './domain/types'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
@@ -104,7 +104,12 @@ async function main() {
   }
   // Keep the key out of the address bar and history once read.
   history.replaceState(null, '', location.pathname + location.search)
-  applySettingsToDocument(DEFAULT_SETTINGS, systemPrefersDark())
+  // The person's own theme, without saving anything: their settings load only if they open the app.
+  applySettingsToDocument(
+    { ...DEFAULT_SETTINGS, theme: savedTheme() ?? DEFAULT_SETTINGS.theme },
+    systemPrefersDark(),
+    false,
+  )
   const [{ ShareView }, { downloadText }] = await Promise.all([
     import('./features/share/ShareView'),
     import('./features/backup/download'),

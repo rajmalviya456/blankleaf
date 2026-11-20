@@ -2,6 +2,7 @@ import { openDb, type BlankleafDB } from '../db/db'
 import { insertNote, loadAll, putKv } from '../db/notesRepo'
 import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
 import type { Note } from '../domain/types'
+import type { Meta } from '../db/db'
 import { bootstrap, loadInitialState, requestPersistentStorage } from './bootstrap'
 import { JOURNAL_PREFIX, readAllJournals, readJournal, writeJournal } from './journal'
 
@@ -48,7 +49,7 @@ describe('loadInitialState', () => {
 
   it('someone who already has notes (saved before the welcome flag) never gets Welcome', async () => {
     await insertNote(db, note({ content: 'my old note' }))
-    await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null })
+    await putKv(db, 'meta', { schemaVersion: 1, lastBackupAt: null } as unknown as Meta)
     const { state } = await loadInitialState(db, NOW)
     expect(Object.values(state.notes!).some((n) => n.title === 'Welcome')).toBe(false)
     expect((await loadAll(db)).meta?.welcomeShown).toBe(true)

@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS } from '../domain/defaults'
-import { applySettingsToDocument, applyTheme, resolveTheme, THEME_COLOR } from './theme'
+import { applySettingsToDocument, applyTheme, resolveTheme, savedTheme, THEME_COLOR } from './theme'
 
 describe('resolveTheme', () => {
   it('follows the system preference when set to system', () => {
@@ -61,5 +61,18 @@ describe('browser bar colour', () => {
     applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: 'light' }, true)
     expect(meta.content).toBe(THEME_COLOR.light)
     meta.remove()
+  })
+})
+
+describe('the share-link view', () => {
+  afterEach(() => localStorage.clear())
+  it('shows the saved theme and leaves the saved choice alone', () => {
+    localStorage.setItem('blankleaf:theme', 'dark')
+    applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: savedTheme() ?? 'system' }, false, false)
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(localStorage.getItem('blankleaf:theme')).toBe('dark')
+    localStorage.clear()
+    applySettingsToDocument(DEFAULT_SETTINGS, false, false)
+    expect(localStorage.getItem('blankleaf:theme')).toBeNull()
   })
 })

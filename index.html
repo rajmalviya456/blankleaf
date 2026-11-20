@@ -87,6 +87,9 @@
         // the instant first paint shows its opening lines rather than an empty page.
         if (saved === null) document.documentElement.dataset.firstVisit = '1'
         document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        // The browser bar's colour too (it matches --bg).
+        var bar = document.querySelector('meta[name="theme-color"]')
+        if (bar) bar.setAttribute('content', dark ? '#111318' : '#ffffff')
       })()
     </script>
     <style>
