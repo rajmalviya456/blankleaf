@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.0](https://github.com/rajmalviya456/blankleaf/compare/v1.17.0...v1.18.0) (2026-11-20)
+
+
+### Features
+
+* collapse sections in Markdown notes ([#99](https://github.com/rajmalviya456/blankleaf/issues/99)) ([83bb49f](https://github.com/rajmalviya456/blankleaf/commit/83bb49fe5b08f373e4027b886759cfbde0b8e9f7))
+* remove "Format Markdown as you type" ([f266dbe](https://github.com/rajmalviya456/blankleaf/commit/f266dbe1f94cbea07e0dbebc5c60e82fdc0ae224))
+
 ## [1.17.0](https://github.com/rajmalviya456/blankleaf/compare/v1.16.0...v1.17.0) (2026-11-20)
 
 
