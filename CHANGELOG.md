@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.3](https://github.com/rajmalviya456/blankleaf/compare/v1.13.2...v1.13.3) (2026-11-20)
+
+
+### Bug Fixes
+
+* **voice:** keep the last words, never type twice, and type them neatly ([#87](https://github.com/rajmalviya456/blankleaf/issues/87)) ([b130cd9](https://github.com/rajmalviya456/blankleaf/commit/b130cd9c673512fdab484b0dc3ce0c8b66ca1cb4))
+
 ## [1.13.2](https://github.com/rajmalviya456/blankleaf/compare/v1.13.1...v1.13.2) (2026-11-20)
 
 
