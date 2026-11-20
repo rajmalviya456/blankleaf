@@ -65,7 +65,15 @@ function NoteView(props: { noteId: string; viewOverride?: 'edit' | 'preview' }) 
   )
 }
 
-function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'edit' | 'preview' }) {
+function OpenNote({
+  noteId,
+  viewOverride,
+  side = false,
+}: {
+  noteId: string
+  viewOverride?: 'edit' | 'preview'
+  side?: boolean
+}) {
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
   const saved = useAppStore((s) =>
     markdown ? (s.session.perTab[noteId]?.previewMode ?? 'edit') : 'edit',
@@ -79,7 +87,7 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
   // A big note's preview is rebuilt when typing pauses, not on every keystroke.
   const deferred = useCalmValue(content)
 
-  if (view === 'edit') return <Editor noteId={noteId} />
+  if (view === 'edit') return <Editor noteId={noteId} side={side} />
   if (view === 'preview')
     return (
       <div className="np-preview-pane min-h-0 flex-1 overflow-y-auto">
@@ -89,7 +97,7 @@ function OpenNote({ noteId, viewOverride }: { noteId: string; viewOverride?: 'ed
   return (
     <div className="grid min-h-0 flex-1 grid-cols-2">
       <div className="flex min-h-0 min-w-0 flex-col border-r border-border">
-        <Editor noteId={noteId} />
+        <Editor noteId={noteId} side={side} />
       </div>
       <div className="np-preview-pane min-h-0 min-w-0 overflow-y-auto bg-bg">
         <Preview source={deferred} noteId={noteId} />
@@ -137,7 +145,12 @@ function SideNote({ activeId }: { activeId: string }) {
           This note is locked. Open its tab to unlock it.
         </p>
       ) : (
-        <Editor key={note.id} noteId={note.id} side />
+        // The side note gets its own Edit/Split/Preview view, format chip and readability panel.
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          <OpenNote key={note.id} noteId={note.id} side />
+          <DetectChip noteId={note.id} />
+          <ReadabilityPanel key={note.id} noteId={note.id} />
+        </div>
       )}
     </section>
   )
@@ -156,9 +169,10 @@ export function EditorArea({
 } = {}) {
   const zen = useAppStore((s) => s.session.zen)
   const activeId = useAppStore((s) => s.session.activeTabId)
-  const locked = useAppStore((s) => !!(activeId && s.notes[activeId]?.locked))
   const sideNote = useAppStore((s) => (s.ui.sideFocused ? s.session.splitNoteId : null))
   const toolbarNote = sideNote ?? activeId
+  // Whether the toolbar's own note is locked (the main one may be, while the side one isn't).
+  const locked = useAppStore((s) => !!(toolbarNote && s.notes[toolbarNote]?.locked))
   const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen) && !locked
   return (
     <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg${zen ? ' np-zen' : ''}`}>
@@ -170,7 +184,7 @@ export function EditorArea({
             <VoiceStatus />
             {!zen && <SampleHint noteId={activeId} />}
             {!zen && <DetectChip noteId={activeId} />}
-            {!zen && <ReadabilityPanel noteId={activeId} />}
+            {!zen && <ReadabilityPanel key={activeId} noteId={activeId} />}
           </div>
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>

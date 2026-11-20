@@ -94,7 +94,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
 
   useEffect(() => {
     const view = viewRef.current
-    if (!view || !reveal || side) return
+    if (!view || !reveal) return
     const len = view.state.doc.length
     const clamp = (n: number) => Math.max(0, Math.min(n, len))
     view.dispatch({
@@ -102,7 +102,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
       scrollIntoView: true,
     })
     view.focus()
-  }, [reveal, side])
+  }, [reveal])
 
   const s = () => getStore().getState()
 
