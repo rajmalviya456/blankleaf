@@ -11,6 +11,7 @@ import {
   toB64Long,
   WrongPasswordError,
 } from '../lock/lockCrypto'
+import { BackupError } from './backup'
 
 /** A backup password's key. This device keeps it so automatic backups stay encrypted. */
 export interface BackupKey {
@@ -25,8 +26,8 @@ interface EncryptedFile {
 }
 
 const AAD = new TextEncoder().encode('blankleaf-backup-v1')
-/** A changed file could ask for any number of rounds: more than this would freeze the tab. */
-const MAX_ITERATIONS = 5_000_000
+/** More rounds than this (3× the default) would stall the tab: only a changed file asks for it. */
+const MAX_ITERATIONS = 2_000_000
 
 export async function newBackupKey(password: string): Promise<BackupKey> {
   const salt = crypto.getRandomValues(new Uint8Array(16))
@@ -84,27 +85,37 @@ export function backupSalt(text: string): string | null {
   }
 }
 
-/** The backup's plain text. Throws WrongPasswordError for a wrong password or a changed file. */
+/**
+ * The backup's plain text. Throws WrongPasswordError for a wrong password (or a file changed
+ * since it was made), and BackupError for a file too damaged to try.
+ */
 export async function decryptBackup(text: string, with_: string | BackupKey): Promise<string> {
   let e: EncryptedFile['encrypted']
+  let salt: Uint8Array
+  let iv: Uint8Array
+  let data: Uint8Array
   try {
     e = (JSON.parse(text) as EncryptedFile).encrypted
+    // A changed file could ask for any amount of password work: refuse rather than freeze.
+    if (!Number.isInteger(e.iterations) || e.iterations < 1 || e.iterations > MAX_ITERATIONS)
+      throw new Error('iterations')
+    salt = fromB64(e.salt)
+    iv = fromB64(e.iv)
+    data = fromB64(e.data)
   } catch {
-    throw new WrongPasswordError('Not an encrypted backup')
+    throw new BackupError('bad-schema')
   }
-  if (!Number.isInteger(e?.iterations) || e.iterations < 1 || e.iterations > MAX_ITERATIONS)
-    throw new WrongPasswordError('This backup is damaged')
   let key: CryptoKey
-  if (typeof with_ === 'string') key = await deriveKey(with_, fromB64(e.salt), e.iterations)
+  if (typeof with_ === 'string') key = await deriveKey(with_, salt, e.iterations)
   else if (with_.salt !== e.salt) throw new WrongPasswordError('Made with another password')
   else key = with_.key
   let body: Uint8Array
   try {
     body = new Uint8Array(
       await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: fromB64(e.iv) as BufferSource, additionalData: AAD },
+        { name: 'AES-GCM', iv: iv as BufferSource, additionalData: AAD },
         key,
-        fromB64(e.data) as BufferSource,
+        data as BufferSource,
       ),
     )
   } catch {

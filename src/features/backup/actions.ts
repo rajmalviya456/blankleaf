@@ -134,6 +134,7 @@ export async function importFileList(
             ? await decryptBackup(text, key).catch(() => null)
             : null
         if (opened === null) {
+          pendingTombstones = opts.tombstoneIds
           importStore.getState().show({ fileName: file.name, encrypted: text })
           continue
         }
@@ -181,12 +182,20 @@ export async function unlockImport(password: string): Promise<boolean> {
   let text: string
   try {
     text = await decryptBackup(encrypted, password)
-  } catch {
-    return false
+  } catch (e) {
+    if (!(e instanceof BackupError)) return false
+    importStore.getState().show({ fileName, error: e.message })
+    return true
   }
-  await showImportPlan(fileName, text)
+  // Closed (or another file opened) while the password was being checked: leave it closed.
+  const now = importStore.getState()
+  if (!now.open || now.encrypted !== encrypted) return true
+  await showImportPlan(fileName, text, pendingTombstones)
   return true
 }
+
+/** Tombstones handed to importFileList, kept for the backup waiting for its password. */
+let pendingTombstones: Set<string> | undefined
 
 /** Apply a confirmed import plan to the store; persistence writes it to IndexedDB. */
 export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Promise<number> {

@@ -47,7 +47,10 @@ async function store(key: BackupKey | null): Promise<void> {
     else await db.kv.delete('backupKey')
   }
   backupKeyStore.setState({ hasPassword: !!key })
-  for (const fn of listeners) await fn(from, key)
+  for (const fn of listeners)
+    await Promise.resolve()
+      .then(() => fn(from, key))
+      .catch((e) => console.error('Blankleaf: after the backup password changed', e))
 }
 
 /** Set or change the backup password: new backups use it, and saved automatic ones are redone. */

@@ -21,18 +21,28 @@ export function BackupPasswordDialog() {
   const [pw, setPw] = useState('')
   const [again, setAgain] = useState('')
   const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
   const answer = backupPasswordStore.getState().answer
   const reset = () => {
     setPw('')
     setAgain('')
     setBusy(false)
+    setFailed(false)
   }
   const mismatch = again.length > 0 && pw !== again
   const ready = pw.length > 0 && pw === again && !busy
   const save = async () => {
     if (!ready) return
     setBusy(true)
-    await setBackupPassword(pw)
+    setFailed(false)
+    try {
+      await setBackupPassword(pw)
+    } catch (e) {
+      console.error('Blankleaf: could not save the backup password', e)
+      setBusy(false)
+      setFailed(true)
+      return
+    }
     reset()
     answer('set')
   }
@@ -43,7 +53,8 @@ export function BackupPasswordDialog() {
     <Dialog.Root
       open={asking !== null}
       onOpenChange={(o) => {
-        if (!o) {
+        // Not while the password is being saved: it takes effect either way.
+        if (!o && !busy) {
           reset()
           answer('cancel')
         }
@@ -100,6 +111,11 @@ export function BackupPasswordDialog() {
                 className={field}
               />
             </label>
+            {failed && (
+              <p role="alert" className="text-[12px] text-danger">
+                The password couldn’t be saved in this browser. Try again.
+              </p>
+            )}
             {mismatch && (
               <p role="alert" className="text-[12px] text-danger">
                 The passwords don’t match
@@ -118,7 +134,10 @@ export function BackupPasswordDialog() {
                   Save without a password
                 </button>
               )}
-              <Dialog.Close className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover max-sm:min-h-11">
+              <Dialog.Close
+                disabled={busy}
+                className="rounded-md px-3 py-1.5 text-[12.5px] text-fg-muted hover:bg-bg-hover disabled:opacity-40 max-sm:min-h-11"
+              >
                 Cancel
               </Dialog.Close>
               <button

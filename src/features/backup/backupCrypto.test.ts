@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { __setLockIterations, LOCK_ITERATIONS, WrongPasswordError } from '../lock/lockCrypto'
 import { decryptBackup, encryptBackup, isEncryptedBackup, newBackupKey } from './backupCrypto'
-import { looksLikeBackup } from './backup'
+import { BackupError, looksLikeBackup } from './backup'
 
 beforeAll(() => __setLockIterations(1000))
 afterAll(() => __setLockIterations(LOCK_ITERATIONS))
@@ -64,6 +64,16 @@ describe('encrypted backups', () => {
     const key = await newBackupKey('pw')
     const f = JSON.parse(await encryptBackup(plain, key))
     f.encrypted.iterations = 1e12
-    await expect(decryptBackup(JSON.stringify(f), 'pw')).rejects.toBeInstanceOf(WrongPasswordError)
+    await expect(decryptBackup(JSON.stringify(f), 'pw')).rejects.toBeInstanceOf(BackupError)
+  })
+
+  it('a damaged file says it’s damaged, not that the password is wrong', async () => {
+    const key = await newBackupKey('pw')
+    const f = JSON.parse(await encryptBackup(plain, key))
+    f.encrypted.salt = '%%%'
+    await expect(decryptBackup(JSON.stringify(f), 'pw')).rejects.toBeInstanceOf(BackupError)
+    f.encrypted.salt = key.salt
+    f.encrypted.iterations = 3_000_000
+    await expect(decryptBackup(JSON.stringify(f), 'pw')).rejects.toBeInstanceOf(BackupError)
   })
 })

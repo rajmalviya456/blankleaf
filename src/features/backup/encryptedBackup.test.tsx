@@ -7,7 +7,7 @@ import { registerStorage } from '../../store/dataReset'
 import { createAppStore, initStore } from '../../store/store'
 import { toastStore } from '../../ui/toast'
 import { __setLockIterations, LOCK_ITERATIONS } from '../lock/lockCrypto'
-import { exportAll, importFileList } from './actions'
+import { exportAll, importFileList, unlockImport } from './actions'
 import { decryptBackup, isEncryptedBackup } from './backupCrypto'
 import { __forgetBackupKey, backupKeyStore, getBackupKey, setBackupPassword } from './backupKey'
 import { backupPasswordStore } from './backupPasswordStore'
@@ -139,5 +139,34 @@ describe('restoring an encrypted backup', () => {
     const d = await screen.findByRole('dialog', { name: 'Import backup' })
     expect(within(d).queryByLabelText('Backup password')).toBeNull()
     expect(d).toHaveTextContent(/already here|up to date/)
+  })
+
+  it('closing the dialog while the backup opens keeps it closed', async () => {
+    const { s, id, file } = await encryptedFile()
+    __forgetBackupKey()
+    await db.kv.delete('backupKey')
+    act(() => {
+      s().trashNote(id)
+      s().purgeNote(id)
+    })
+    await act(() => importFileList([file]))
+    const opening = unlockImport(PASSWORD)
+    act(() => importStore.getState().close())
+    await act(() => opening)
+    expect(importStore.getState().open).toBe(false)
+  })
+})
+
+describe('the password dialog while it works', () => {
+  it('can’t be cancelled halfway, and reports a problem saving the password', async () => {
+    const { user } = setup()
+    void exportAll()
+    const d = await dialog()
+    await user.type(within(d).getByLabelText('Backup password'), PASSWORD)
+    await user.type(within(d).getByLabelText('Repeat password'), PASSWORD)
+    vi.spyOn(db.kv, 'put').mockRejectedValueOnce(new Error('disk full'))
+    await user.click(within(d).getByRole('button', { name: 'Save encrypted backup' }))
+    expect(await within(d).findByRole('alert')).toHaveTextContent(/couldn’t be saved/)
+    expect(within(d).getByRole('button', { name: 'Save encrypted backup' })).toBeEnabled()
   })
 })

@@ -344,4 +344,40 @@ describe('encrypted automatic backups', () => {
     await waitFor(() => expect(isEncryptedBackup(folder.files.get(LATEST_FILE)!)).toBe(false))
     expect(parseBackup(folder.files.get(LATEST_FILE)!).notes.length).toBeGreaterThan(0)
   })
+
+  it('a save already running when the password is set never leaves a readable file', async () => {
+    const { folder, store } = await setup()
+    await chooseBackupFolder()
+    store.getState().newNote({ content: 'typed just now' })
+    const saving = backupToFolderNow()
+    const setting = setBackupPassword('pw')
+    await Promise.all([saving, setting])
+    await backupToFolderNow()
+    for (const [name, text] of folder.files) expect(isEncryptedBackup(text), name).toBe(true)
+  })
+
+  it('backups saved while paused, or already in the chosen folder, get encrypted too', async () => {
+    const folder = fakeFolder()
+    folder.files.set(LATEST_FILE, '{"app":"blankleaf","schemaVersion":1,"notes":[],"x":"older"}')
+    folder.files.set(
+      'blankleaf-auto-2026-01-01.json',
+      '{"app":"blankleaf","schemaVersion":1,"notes":[]}',
+    )
+    folder.files.set('blankleaf-backup-2026-01-01.json', 'exported by hand')
+    await setup(folder)
+    await setBackupPassword('pw')
+    await chooseBackupFolder()
+    for (const [name, text] of folder.files)
+      if (name !== 'blankleaf-backup-2026-01-01.json')
+        expect(isEncryptedBackup(text), name).toBe(true)
+    expect(folder.files.get('blankleaf-backup-2026-01-01.json')).toBe('exported by hand')
+  })
+
+  it('says so if some backups in the folder couldn’t be re-encrypted', async () => {
+    const { folder } = await setup()
+    await chooseBackupFolder()
+    folder.failWith = new DOMException('busy', 'NoModificationAllowedError')
+    await setBackupPassword('pw')
+    expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/couldn’t be re-encrypted/)
+  })
 })
