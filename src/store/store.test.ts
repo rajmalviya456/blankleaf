@@ -299,3 +299,34 @@ describe('app store: reveal', () => {
     expect(s().ui.reveal?.nonce).toBe(2)
   })
 })
+
+describe('app store: text size per note', () => {
+  it('sets one note’s size, clamped, leaving Settings and other notes alone', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    const b = s().newNote({ content: 'b' })
+    s().setNoteFontSize(a, 99, false)
+    expect(s().notes[a].fontSize).toBe(72)
+    expect(s().notes[b].fontSize).toBeUndefined()
+    expect(s().settings.editorFontSize).toBe(14)
+    s().setNoteFontSize(a, 18, true)
+    expect(s().notes[a].phoneFontSize).toBe(18)
+    expect(s().notes[a].fontSize).toBe(72)
+  })
+
+  it('going back to the Settings size follows Settings again', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFontSize(a, 15, false)
+    s().setNoteFontSize(a, 14, false)
+    expect(s().notes[a].fontSize).toBeUndefined()
+  })
+
+  it('a duplicate keeps the size', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFontSize(a, 20, false)
+    const copy = s().duplicateNote(a)
+    expect(s().notes[copy].fontSize).toBe(20)
+  })
+})

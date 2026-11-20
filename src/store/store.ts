@@ -8,7 +8,16 @@
  */
 import { createStore, useStore, type StoreApi } from 'zustand'
 import { LOCKED_TITLE } from '../domain/locked'
-import { CLOSED_STACK_MAX, DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
+import {
+  CLOSED_STACK_MAX,
+  DEFAULT_SETTINGS,
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+  emptySession,
+  newNoteDraft,
+  PHONE_FONT_MAX,
+  PHONE_FONT_MIN,
+} from '../domain/defaults'
 import { languageMeta } from '../domain/languages'
 import { displayTitle } from '../domain/title'
 import type {
@@ -73,6 +82,8 @@ export interface AppActions {
   toggleSpellcheck(id: string): void
   setNoteTags(id: string, tags: string[]): void
   setWordGoal(id: string, goal: number | undefined): void
+  /** This note's text size on laptops or phones (clamped); the Settings size clears it. */
+  setNoteFontSize(id: string, size: number, phone: boolean): void
   setSplitNote(id: string | null): void
   applyLock(id: string, locked: LockedContent, title: string): void
   updateLocked(id: string, locked: LockedContent): void
@@ -314,6 +325,8 @@ export function createAppStore(
           spellcheck: src.spellcheck,
           tags: src.tags,
           wordGoal: src.wordGoal,
+          fontSize: src.fontSize,
+          phoneFontSize: src.phoneFontSize,
           title: `${displayTitle(src)} (copy)`,
         })
       },
@@ -362,6 +375,20 @@ export function createAppStore(
       },
       setWordGoal(id, goal) {
         patchNote(id, { wordGoal: goal })
+      },
+      setNoteFontSize(id, size, phone) {
+        const note = get().notes[id]
+        if (!note) return
+        const { settings } = get()
+        const [min, max, base] = phone
+          ? [PHONE_FONT_MIN, PHONE_FONT_MAX, Math.max(PHONE_FONT_MIN, settings.phoneEditorFontSize)]
+          : [EDITOR_FONT_MIN, EDITOR_FONT_MAX, settings.editorFontSize]
+        const v = Math.round(Math.min(max, Math.max(min, size)))
+        // The same as Settings means "follow Settings", so a later change there applies here too.
+        const value = v === base ? undefined : v
+        const key = phone ? 'phoneFontSize' : 'fontSize'
+        if (note[key] === value) return
+        patchNote(id, { [key]: value })
       },
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })

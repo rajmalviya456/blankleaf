@@ -78,3 +78,18 @@ describe('two notes side by side', () => {
     expect(s().session.splitNoteId).toBeNull()
   })
 })
+
+describe('text size is per note', () => {
+  it('changing the size in one note’s toolbar leaves the side note alone', async () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    const before = s().settings.editorFontSize
+    await userEvent.click(screen.getByRole('button', { name: 'Larger text' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Larger text' }))
+    expect(s().notes[b].fontSize).toBe(before + 2)
+    expect(s().notes[a].fontSize).toBeUndefined()
+    expect(s().settings.editorFontSize).toBe(before)
+    expect(screen.getByRole('spinbutton', { name: 'Text size' })).toHaveValue(before + 2)
+  })
+})

@@ -69,14 +69,15 @@ describe('Toolbar', () => {
 
   it('a text size can be typed: Enter applies it, clamped to 10–72', async () => {
     const user = userEvent.setup()
-    const { s } = setup('x', false)
+    const { s, id } = setup('x', false)
     const field = screen.getByRole('spinbutton', { name: 'Text size' })
     await user.clear(field)
     await user.type(field, '40{Enter}')
-    expect(s().settings.editorFontSize).toBe(40)
+    expect(s().notes[id].fontSize).toBe(40)
     await user.clear(field)
     await user.type(field, '500{Enter}')
-    expect(s().settings.editorFontSize).toBe(72)
+    expect(s().notes[id].fontSize).toBe(72)
+    expect(s().settings.editorFontSize).toBe(14)
     expect(field).toHaveValue(72)
   })
 
@@ -88,13 +89,14 @@ describe('Toolbar', () => {
     expect(s().notes[id].content).toBe('ship **tabs**')
   })
 
-  it('changes the editor font size within bounds', async () => {
+  it('changes this note’s text size within bounds', async () => {
     const user = userEvent.setup()
-    const { s } = setup('x', false)
+    const { s, id } = setup('x', false)
     const before = s().settings.editorFontSize
     await user.click(screen.getByRole('button', { name: 'Larger text' }))
-    expect(s().settings.editorFontSize).toBe(before + 1)
-    act(() => s().updateSettings({ editorFontSize: 72 }))
+    expect(s().notes[id].fontSize).toBe(before + 1)
+    expect(s().settings.editorFontSize).toBe(before)
+    act(() => s().setNoteFontSize(id, 72, false))
     expect(screen.getByRole('button', { name: 'Larger text' })).toBeDisabled()
   })
 

@@ -53,6 +53,8 @@ export function resolveConflict(
     spellcheck: local.spellcheck,
     tags: local.tags,
     wordGoal: local.wordGoal,
+    fontSize: local.fontSize,
+    phoneFontSize: local.phoneFontSize,
     locked: local.locked,
     pinned: false,
   })

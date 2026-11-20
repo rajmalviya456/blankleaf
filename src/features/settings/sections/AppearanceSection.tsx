@@ -79,7 +79,10 @@ export function AppearanceSection({ settings: s, update }: Props) {
       <Row
         label="Editor font size"
         htmlFor="editor-font-size"
-        hint={phone ? 'On this phone' : undefined}
+        hint={
+          (phone ? 'On this phone. ' : '') +
+          'For every note; the toolbar’s text size changes just the note you’re in.'
+        }
       >
         <button
           type="button"

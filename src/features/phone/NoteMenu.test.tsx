@@ -72,16 +72,17 @@ describe('Note menu', () => {
     expect(s().notes[id].deletedAt).not.toBeNull()
   })
 
-  it('text size − / + changes the phone size (16–72) and leaves the laptop size alone', async () => {
-    const { s, user } = setup()
+  it('text size − / + changes this note’s phone size (16–72), not Settings or the laptop size', async () => {
+    const { s, id, user } = setup()
     const menu = await openMenu()
     await user.click(within(menu).getByRole('button', { name: 'Larger text' }))
-    expect(s().settings.phoneEditorFontSize).toBe(17)
+    expect(s().notes[id].phoneFontSize).toBe(17)
     await user.click(within(menu).getByRole('button', { name: 'Smaller text' }))
     await user.click(within(menu).getByRole('button', { name: 'Smaller text' }))
-    expect(s().settings.phoneEditorFontSize).toBe(16)
+    expect(s().notes[id].phoneFontSize).toBeUndefined()
     expect(within(menu).getByRole('button', { name: 'Smaller text' })).toBeDisabled()
-    expect(s().settings.editorFontSize).toBe(14)
+    expect(s().settings.phoneEditorFontSize).toBe(16)
+    expect(s().notes[id].fontSize).toBeUndefined()
   })
 
   it('footer shows line, column, words and characters', async () => {

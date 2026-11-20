@@ -66,6 +66,10 @@ export interface Note {
   tags?: string[]
   /** Target number of words for this note. */
   wordGoal?: number
+  /** This note's text size on laptops, when it differs from Settings. */
+  fontSize?: number
+  /** This note's text size on phones, when it differs from Settings. */
+  phoneFontSize?: number
   /** Set when the note is password-locked; `content` is then empty. */
   locked?: LockedContent
   pinned: boolean

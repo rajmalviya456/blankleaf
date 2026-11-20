@@ -12,6 +12,7 @@ import { Toolbar } from '../../features/toolbar/Toolbar'
 import { ReadabilityPanel } from '../../features/readability/ReadabilityPanel'
 import { SampleHint } from '../../features/sample/SampleHint'
 import { VoiceStatus } from '../../features/voice/VoiceStatus'
+import { useNoteFontSize } from '../../features/editor/useNoteFontSize'
 import { getStore, useAppStore } from '../../store/store'
 
 // Markdown rendering is only needed for markdown notes in split/preview, so load it on demand.
@@ -40,13 +41,16 @@ function Preview({ source, noteId }: { source: string; noteId: string }) {
     },
     [noteId],
   )
+  const fontSize = useNoteFontSize(noteId)
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
-      {source.length > CHUNKED_CHARS && canChunk(source) ? (
-        <ChunkedPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
-      ) : (
-        <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
-      )}
+      <div style={{ '--editor-font-size': `${fontSize}px` } as React.CSSProperties}>
+        {source.length > CHUNKED_CHARS && canChunk(source) ? (
+          <ChunkedPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+        ) : (
+          <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+        )}
+      </div>
     </Suspense>
   )
 }
