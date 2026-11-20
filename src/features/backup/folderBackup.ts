@@ -13,7 +13,10 @@ import { WELCOME_CONTENT } from '../../domain/defaults'
 import { getStore, type AppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
 import { buildBackupFile, importFileList } from './actions'
-import { backupFileName } from './backup'
+import { backupFileName, looksLikeBackup } from './backup'
+import { decryptBackup, encryptBackup, isEncryptedBackup, type BackupKey } from './backupCrypto'
+import { getBackupKey, onBackupKeyChange } from './backupKey'
+import { backupPasswordStore } from './backupPasswordStore'
 import { getLastBackupAt, markBackedUp } from './meta'
 
 export const LATEST_FILE = 'blankleaf-backup-latest.json'
@@ -129,7 +132,9 @@ async function writeNow(now: number): Promise<void> {
   if (!target || folderBackupStore.getState().status !== 'on' || !hasSomethingToSave()) return
   dirty = false
   try {
-    const { text } = await buildBackupFile(now)
+    const { text: plain } = await buildBackupFile(now)
+    const key = await getBackupKey()
+    const text = key ? await encryptBackup(plain, key) : plain
     await writeFile(target, LATEST_FILE, text)
     await writeFile(target, dailyName(now), text)
     await pruneDailyCopies(target)
@@ -170,6 +175,35 @@ function schedule() {
   }, delay)
 }
 
+/** The folder's files this app writes (never backups exported into it by hand). */
+const ownFile = (name: string) =>
+  name === LATEST_FILE || name === PREVIOUS_FILE || DAILY_FILE.test(name)
+
+/**
+ * The backup password was set, changed or removed: rewrite the saved automatic backups with the
+ * new key (or unencrypted), so none is left readable, or locked with a forgotten password.
+ */
+async function recryptFolder(from: BackupKey | null, to: BackupKey | null): Promise<void> {
+  const target = folder
+  if (!target || folderBackupStore.getState().status !== 'on') return
+  try {
+    for await (const name of target.keys()) {
+      if (!ownFile(name)) continue
+      const text = await (await target.getFileHandle(name, { create: false })).getFile()
+      const now = await text.text()
+      let plain: string | null = null
+      if (isEncryptedBackup(now))
+        plain = from ? await decryptBackup(now, from).catch(() => null) : null
+      else if (looksLikeBackup(now)) plain = now
+      // A file this key can't open (an older password) is left as it is.
+      if (plain === null) continue
+      await writeFile(target, name, to ? await encryptBackup(plain, to) : plain)
+    }
+  } catch (e) {
+    console.error('Blankleaf: could not re-encrypt the backup folder', e)
+  }
+}
+
 /** Load the remembered folder and keep it up to date. Returns a function that stops watching. */
 export async function startFolderBackup(
   store: StoreApi<AppStore>,
@@ -190,9 +224,11 @@ export async function startFolderBackup(
     if (document.visibilityState === 'hidden' && dirty) void backupToFolderNow()
   }
   document.addEventListener('visibilitychange', onHide)
+  const stopRecrypt = onBackupKeyChange(recryptFolder)
   channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(FOLDER_CHANNEL)
   if (channel) channel.onmessage = () => void followRememberedFolder()
   const stop = () => {
+    stopRecrypt()
     channel?.close()
     channel = null
     stopWatching()
@@ -243,6 +279,9 @@ export async function chooseBackupFolder(): Promise<void> {
     if (e instanceof DOMException && e.name === 'AbortError') return // the picker was closed
     throw e
   }
+  // Asked after the folder is picked: the browser shows its picker only straight after a click.
+  if (!(await getBackupKey()) && (await backupPasswordStore.getState().ask('folder')) === 'cancel')
+    return
   const existing = await existingBackup(chosen)
   folder = chosen
   await memory?.save(chosen)

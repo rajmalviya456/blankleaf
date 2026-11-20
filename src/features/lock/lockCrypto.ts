@@ -11,6 +11,9 @@ export const __setLockIterations = (n: number) => void (iterations = n)
 
 export class WrongPasswordError extends Error {}
 
+/** PBKDF2 rounds for new keys. */
+export const passwordIterations = () => iterations
+
 /** An unlocked note's key, held in memory only while the note is open. */
 export interface LockKey {
   key: CryptoKey
@@ -19,16 +22,21 @@ export interface LockKey {
   origin: string
 }
 
-const toB64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
-const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0))
-function toB64Long(bytes: Uint8Array): string {
+export const toB64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
+export const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0))
+export function toB64Long(bytes: Uint8Array): string {
   let out = ''
   for (let i = 0; i < bytes.length; i += 0x8000)
     out += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
   return btoa(out)
 }
 
-async function deriveKey(password: string, salt: Uint8Array, rounds: number): Promise<CryptoKey> {
+/** AES-256-GCM key from a password (also used for encrypted backups). */
+export async function deriveKey(
+  password: string,
+  salt: Uint8Array,
+  rounds: number,
+): Promise<CryptoKey> {
   const material = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password.normalize('NFC')),

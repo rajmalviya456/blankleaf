@@ -11,13 +11,17 @@ test.beforeEach(async ({ context }) => {
   })
 })
 
-test('keeps a restorable backup in the chosen folder, and remembers it', async ({ page }) => {
+test('keeps an encrypted backup in the chosen folder, and remembers it', async ({ page }) => {
   await openApp(page)
   await newNote(page, 'safe in the folder')
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
   const settings = page.getByRole('dialog', { name: 'Settings' })
   await settings.getByRole('button', { name: 'Choose folder…' }).click()
-  await expect(settings).toContainText('Saving to “Backups”')
+  const protect = page.getByRole('dialog', { name: 'Protect your backups with a password' })
+  await protect.getByLabel('Backup password').fill('pw')
+  await protect.getByLabel('Repeat password').fill('pw')
+  await protect.getByRole('button', { name: 'Turn on encrypted backup' }).click()
+  await expect(settings).toContainText('Saving to “Backups”, encrypted')
 
   const read = () =>
     page.evaluate(async () => {
@@ -26,7 +30,8 @@ test('keeps a restorable backup in the chosen folder, and remembers it', async (
       const file = await dir.getFileHandle('blankleaf-backup-latest.json')
       return (await file.getFile()).text()
     })
-  await expect.poll(read).toContain('safe in the folder')
+  await expect.poll(read).toContain('"encrypted"')
+  expect(await read()).not.toContain('safe in the folder')
 
   await page.reload()
   await page.getByRole('button', { name: 'Settings', exact: true }).click()

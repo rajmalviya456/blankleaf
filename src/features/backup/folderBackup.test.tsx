@@ -1,12 +1,16 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { openDb, type BlankleafDB } from '../../db/db'
 import { WELCOME_CONTENT } from '../../domain/defaults'
 import { registerStorage } from '../../store/dataReset'
 import { createAppStore, initStore } from '../../store/store'
 import { toastStore } from '../../ui/toast'
 import { parseBackup } from './backup'
+import { __setLockIterations, LOCK_ITERATIONS } from '../lock/lockCrypto'
+import { decryptBackup, isEncryptedBackup } from './backupCrypto'
+import { __forgetBackupKey, removeBackupPassword, setBackupPassword } from './backupKey'
+import { backupPasswordStore, type PasswordAnswer } from './backupPasswordStore'
 import { FolderBackupRow } from './FolderBackupRow'
 import {
   backupToFolderNow,
@@ -68,12 +72,20 @@ const setPicker = (fn?: unknown) =>
     value: fn,
   })
 
+let autoAnswer: PasswordAnswer | null = 'plain'
+let unsubscribeAsk: () => void = () => {}
 beforeEach(() => {
   db = openDb(`folder-${Math.random()}`)
   registerStorage(db, null)
   remembered = null
+  autoAnswer = 'plain'
+  unsubscribeAsk = backupPasswordStore.subscribe((st) => {
+    if (st.asking && autoAnswer) queueMicrotask(() => st.answer(autoAnswer!))
+  })
 })
 afterEach(async () => {
+  unsubscribeAsk()
+  __forgetBackupKey()
   stop?.()
   setPicker(undefined)
   act(() => toastStore.setState({ toasts: [] }))
@@ -289,5 +301,47 @@ describe('the setting', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Choose folder…' }))
     expect(await screen.findByText(/Saving to “Backups”/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Back up now' })).toBeInTheDocument()
+  })
+})
+
+describe('encrypted automatic backups', () => {
+  beforeAll(() => __setLockIterations(1000))
+  afterAll(() => __setLockIterations(LOCK_ITERATIONS))
+
+  it('with a backup password, every file in the folder is encrypted', async () => {
+    const { folder } = await setup()
+    await setBackupPassword('pw')
+    await chooseBackupFolder()
+    const names = [...folder.files.keys()]
+    expect(names.length).toBeGreaterThanOrEqual(2)
+    for (const name of names) {
+      const text = folder.files.get(name)!
+      expect(isEncryptedBackup(text)).toBe(true)
+      expect(text).not.toContain('important')
+    }
+    expect(await decryptBackup(folder.files.get(LATEST_FILE)!, 'pw')).toContain('my important note')
+  })
+
+  it('choosing a folder without a password asks for one; Cancel leaves backup off', async () => {
+    const { folder } = await setup()
+    autoAnswer = 'cancel'
+    await chooseBackupFolder()
+    expect(folderBackupStore.getState().status).toBe('off')
+    expect(folder.files.size).toBe(0)
+  })
+
+  it('setting a password later re-encrypts the saved backups; removing it undoes that', async () => {
+    const { folder } = await setup()
+    await chooseBackupFolder()
+    folder.files.set('blankleaf-backup-2026-01-01.json', 'exported by hand')
+    expect(isEncryptedBackup(folder.files.get(LATEST_FILE)!)).toBe(false)
+    await setBackupPassword('pw')
+    await waitFor(() => expect(isEncryptedBackup(folder.files.get(LATEST_FILE)!)).toBe(true))
+    for (const [name, text] of folder.files)
+      if (name.startsWith('blankleaf-auto-')) expect(isEncryptedBackup(text)).toBe(true)
+    expect(folder.files.get('blankleaf-backup-2026-01-01.json')).toBe('exported by hand')
+    await removeBackupPassword()
+    await waitFor(() => expect(isEncryptedBackup(folder.files.get(LATEST_FILE)!)).toBe(false))
+    expect(parseBackup(folder.files.get(LATEST_FILE)!).notes.length).toBeGreaterThan(0)
   })
 })

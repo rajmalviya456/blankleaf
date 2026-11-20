@@ -19,6 +19,8 @@ export interface KvMap {
   meta: Meta
   /** The folder chosen for automatic backups (a browser file handle). */
   backupFolder: unknown
+  /** The backup password's key (not the password), so automatic backups stay encrypted. */
+  backupKey: unknown
 }
 
 export type KvKey = keyof KvMap

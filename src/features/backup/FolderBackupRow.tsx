@@ -1,5 +1,6 @@
 import { useStore } from 'zustand'
 import { relativeTime } from '../../lib/relativeTime'
+import { backupKeyStore } from './backupKey'
 import { buttonClass, Row } from '../settings/controls'
 import {
   backupToFolderNow,
@@ -13,6 +14,7 @@ import {
 /** Settings › Data: turn automatic backup to a folder on and off. */
 export function FolderBackupRow() {
   const { status, folderName, savedAt } = useStore(folderBackupStore)
+  const encrypted = useStore(backupKeyStore, (s) => s.hasPassword)
   const label = 'Automatic backup'
   const hasFolder = hasBackupFolder()
   if (status === 'unsupported')
@@ -28,7 +30,7 @@ export function FolderBackupRow() {
     return (
       <Row
         label={label}
-        hint="Keeps a backup file updated in a folder you choose. Locked notes stay encrypted; other notes are readable there."
+        hint="Keeps a backup file updated in a folder you choose, encrypted with your backup password."
       >
         <button type="button" onClick={() => void chooseBackupFolder()} className={buttonClass}>
           Choose folder…
@@ -59,7 +61,9 @@ export function FolderBackupRow() {
   return (
     <Row
       label={label}
-      hint={`Saving to “${folderName}”.${savedAt ? ` Last saved ${relativeTime(savedAt)}.` : ''}`}
+      hint={`Saving to “${folderName}”${encrypted ? ', encrypted' : ' — not encrypted (set a backup password)'}.${
+        savedAt ? ` Last saved ${relativeTime(savedAt)}.` : ''
+      }`}
     >
       <button type="button" onClick={() => void backupToFolderNow()} className={buttonClass}>
         Back up now
