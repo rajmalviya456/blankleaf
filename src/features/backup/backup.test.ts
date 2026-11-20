@@ -84,6 +84,20 @@ describe('parseBackup', () => {
   })
 })
 
+describe('parseBackup: note fonts', () => {
+  const file = (font: unknown) =>
+    JSON.stringify({
+      app: 'blankleaf',
+      schemaVersion: 1,
+      notes: [{ id: 'a', content: 'x', font }],
+    })
+
+  it('keeps a known font and drops anything else', () => {
+    expect(parseBackup(file('rounded')).notes[0].font).toBe('rounded')
+    expect(parseBackup(file('wingdings')).notes[0]).not.toHaveProperty('font')
+  })
+})
+
 describe('planImport', () => {
   it('newer updatedAt → update, older → olderSkipped, equal → unchanged, unknown id → add', () => {
     const base = note({ updatedAt: 100 })

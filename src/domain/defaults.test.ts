@@ -2,6 +2,10 @@ import { DEFAULT_SETTINGS, emptySession, mergeSettings, newNoteDraft } from './d
 import {
   EDITOR_FONT_MAX,
   EDITOR_FONT_MIN,
+  cleanNoteFont,
+  EDITOR_FONTS,
+  editorFontStack,
+  effectiveEditorFont,
   effectiveEditorFontSize,
   PHONE_FONT_MAX,
   PHONE_FONT_MIN,
@@ -104,5 +108,29 @@ describe('note text size', () => {
     expect(effectiveEditorFontSize(DEFAULT_SETTINGS, false, note)).toBe(20)
     expect(effectiveEditorFontSize(DEFAULT_SETTINGS, true, note)).toBe(22)
     expect(effectiveEditorFontSize(DEFAULT_SETTINGS, false, {})).toBe(14)
+  })
+})
+
+describe('editor fonts', () => {
+  it('an unknown stored font falls back to monospace', () => {
+    expect(mergeSettings({ editorFont: 'comic' } as never).editorFont).toBe('mono')
+    expect(mergeSettings({ editorFont: 'serif' }).editorFont).toBe('serif')
+  })
+
+  it('cleanNoteFont keeps only known fonts', () => {
+    expect(cleanNoteFont('rounded')).toBe('rounded')
+    expect(cleanNoteFont('x')).toBeUndefined()
+    expect(cleanNoteFont(3)).toBeUndefined()
+  })
+
+  it('a note’s own font wins over Settings', () => {
+    expect(effectiveEditorFont({ editorFont: 'sans' })).toBe('sans')
+    expect(effectiveEditorFont({ editorFont: 'sans' }, { font: 'serif' })).toBe('serif')
+  })
+
+  it('every font has its own CSS stack', () => {
+    const stacks = EDITOR_FONTS.map((f) => editorFontStack(f.value))
+    expect(new Set(stacks).size).toBe(4)
+    expect(editorFontStack('serif')).toBe('var(--font-serif)')
   })
 })

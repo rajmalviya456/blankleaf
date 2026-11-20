@@ -11,6 +11,7 @@ import {
   lineNumbers,
 } from '@codemirror/view'
 import { useMemo } from 'react'
+import { editorFontStack } from '../../domain/defaults'
 import type { Settings } from '../../domain/types'
 import { createFindPanel } from './findPanel'
 import { newlineKeepingIndent } from './keepIndent'
@@ -75,7 +76,7 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
         '.cm-scroller': {
           fontSize: `${editorFontSize}px`,
           lineHeight: String(lineHeight),
-          fontFamily: editorFont === 'mono' ? 'var(--font-mono)' : 'var(--font-ui)',
+          fontFamily: editorFontStack(editorFont),
         },
       }),
     )

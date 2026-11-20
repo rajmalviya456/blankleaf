@@ -1,4 +1,4 @@
-import type { Note, Session, Settings } from './types'
+import type { EditorFont, Note, Session, Settings } from './types'
 
 export const CLOSED_STACK_MAX = 20
 export const TRASH_RETENTION_DAYS = 30
@@ -37,6 +37,7 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
     const value = (stored as Record<string, unknown>)[key]
     if (value !== undefined && typeof value === typeof DEFAULT_SETTINGS[key]) target[key] = value
   }
+  if (!cleanNoteFont(out.editorFont)) out.editorFont = DEFAULT_SETTINGS.editorFont
   if (!['edited', 'created', 'title'].includes(out.notesSort)) out.notesSort = 'edited'
   if (![0, 80, 100, 120].includes(out.codeRuler)) out.codeRuler = DEFAULT_SETTINGS.codeRuler
   if (!['auto', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'es'].includes(out.spellLanguage))
@@ -144,4 +145,35 @@ export function cleanNoteFontSize(raw: unknown, phone: boolean): number | undefi
   return typeof raw === 'number' && Number.isInteger(raw) && raw >= min && raw <= max
     ? raw
     : undefined
+}
+
+/** The editor fonts, in the order Settings and menus list them. */
+export const EDITOR_FONTS: readonly { value: EditorFont; label: string }[] = [
+  { value: 'mono', label: 'Monospace' },
+  { value: 'sans', label: 'Sans' },
+  { value: 'serif', label: 'Serif' },
+  { value: 'rounded', label: 'Rounded' },
+]
+
+/** A known editor font, or undefined. Also cleans backup files and old settings. */
+export function cleanNoteFont(raw: unknown): EditorFont | undefined {
+  return EDITOR_FONTS.some((f) => f.value === raw) ? (raw as EditorFont) : undefined
+}
+
+/** The font one note is shown in: its own, else the Settings one. */
+export function effectiveEditorFont(
+  s: Pick<Settings, 'editorFont'>,
+  note?: Pick<Note, 'font'>,
+): EditorFont {
+  return note?.font ?? s.editorFont
+}
+
+/** CSS font-family for an editor font (the variables live in styles/index.css). */
+export function editorFontStack(font: EditorFont): string {
+  return {
+    mono: 'var(--font-mono)',
+    sans: 'var(--font-ui)',
+    serif: 'var(--font-serif)',
+    rounded: 'var(--font-rounded)',
+  }[font]
 }

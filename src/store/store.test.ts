@@ -392,3 +392,34 @@ describe('app store: Windows line endings', () => {
     expect(s().notes.imported.content).toBe('x\ny')
   })
 })
+
+describe('app store: font per note', () => {
+  it('sets one note’s font, leaving Settings and other notes alone', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    const b = s().newNote({ content: 'b' })
+    s().setNoteFont(a, 'serif')
+    expect(s().notes[a].font).toBe('serif')
+    expect(s().notes[b].font).toBeUndefined()
+    expect(s().settings.editorFont).toBe('mono')
+  })
+
+  it('the Settings font, or none, follows Settings again', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFont(a, 'rounded')
+    s().setNoteFont(a, 'mono')
+    expect(s().notes[a].font).toBeUndefined()
+    s().setNoteFont(a, 'sans')
+    s().setNoteFont(a, undefined)
+    expect(s().notes[a].font).toBeUndefined()
+  })
+
+  it('a duplicate keeps the font', () => {
+    const s = createAppStore().getState
+    const a = s().newNote({ content: 'a' })
+    s().setNoteFont(a, 'serif')
+    const copy = s().duplicateNote(a)
+    expect(s().notes[copy].font).toBe('serif')
+  })
+})

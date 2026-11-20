@@ -8,7 +8,7 @@ import { LANGUAGES } from '../../domain/languages'
 import { cleanLocked } from '../../domain/locked'
 import { cleanTags } from '../../domain/tags'
 import { cleanWordGoal } from '../../domain/wordGoal'
-import { cleanNoteFontSize } from '../../domain/defaults'
+import { cleanNoteFont, cleanNoteFontSize } from '../../domain/defaults'
 import type { LanguageId, Note, Settings } from '../../domain/types'
 
 export const BACKUP_SCHEMA_VERSION = 1
@@ -135,6 +135,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
   const wordGoal = cleanWordGoal(r.wordGoal)
   const fontSize = cleanNoteFontSize(r.fontSize, false)
   const phoneFontSize = cleanNoteFontSize(r.phoneFontSize, true)
+  const font = cleanNoteFont(r.font)
   const locked = cleanLocked(r.locked)
   // Damaged lock data must never turn a locked note into an empty one.
   if (r.locked !== undefined && !locked) return null
@@ -152,6 +153,7 @@ function cleanNote(raw: unknown, now: number): Note | null {
     ...(wordGoal ? { wordGoal } : {}),
     ...(fontSize ? { fontSize } : {}),
     ...(phoneFontSize ? { phoneFontSize } : {}),
+    ...(font ? { font } : {}),
     ...(locked ? { locked, content: '' } : {}),
     pinned: r.pinned === true,
     createdAt,

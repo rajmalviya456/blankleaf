@@ -29,7 +29,13 @@ import {
   Link2,
 } from 'lucide-react'
 import { useDeferredValue, type ReactNode } from 'react'
-import { PHONE_FONT_MAX, PHONE_FONT_MIN } from '../../domain/defaults'
+import {
+  EDITOR_FONTS,
+  editorFontStack,
+  PHONE_FONT_MAX,
+  PHONE_FONT_MIN,
+} from '../../domain/defaults'
+import { useNoteFont } from '../editor/useNoteFont'
 import { useNoteFontSize } from '../editor/useNoteFontSize'
 import {
   lineColAt,
@@ -166,6 +172,7 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
   const size = useNoteFontSize(noteId)
   const s = () => getStore().getState()
   const setSize = (n: number) => noteId && s().setNoteFontSize(noteId, n, true)
+  const font = useNoteFont(noteId)
 
   return (
     <Dialog.Root open={open && !!note} onOpenChange={(o) => !o && onClose()}>
@@ -217,6 +224,24 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                     >
                       <Plus size={17} />
                     </button>
+                  </span>
+                </div>
+                <div className={row + ' justify-between'}>
+                  <span className="pl-[30px]">Font</span>
+                  <span role="radiogroup" aria-label="Font" className="flex items-center gap-0.5">
+                    {EDITOR_FONTS.map((f) => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={font === f.value}
+                        onClick={() => s().setNoteFont(noteId, f.value)}
+                        style={{ fontFamily: editorFontStack(f.value) }}
+                        className="h-11 rounded-lg px-2 text-[14px] text-fg-muted active:bg-bg-hover aria-checked:bg-bg-sunken aria-checked:text-fg"
+                      >
+                        {f.value === 'mono' ? 'Mono' : f.value === 'rounded' ? 'Round' : f.label}
+                      </button>
+                    ))}
                   </span>
                 </div>
                 {!note.locked && (

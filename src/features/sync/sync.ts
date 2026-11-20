@@ -55,6 +55,7 @@ export function resolveConflict(
     wordGoal: local.wordGoal,
     fontSize: local.fontSize,
     phoneFontSize: local.phoneFontSize,
+    font: local.font,
     locked: local.locked,
     pinned: false,
   })

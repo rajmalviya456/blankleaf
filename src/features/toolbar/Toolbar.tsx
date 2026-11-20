@@ -40,6 +40,7 @@ import {
   SquareCode,
   Strikethrough,
   Trash2,
+  Type,
   Undo2,
   WrapText,
   type LucideIcon,
@@ -47,7 +48,12 @@ import {
 import { Fragment, type ReactNode } from 'react'
 import { useStore } from 'zustand'
 import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
-import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
+import {
+  EDITOR_FONTS,
+  editorFontStack,
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+} from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
@@ -157,6 +163,36 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
     <DropdownMenu.Item onSelect={onSelect} className={item}>
       {children}
     </DropdownMenu.Item>
+  )
+}
+
+/** This note's editor font; "Same as Settings" follows the Settings font again. */
+function FontMenu({ noteId }: { noteId: string }) {
+  const own = useAppStore((s) => s.notes[noteId]?.font)
+  const base = useAppStore((s) => s.settings.editorFont)
+  const baseLabel = EDITOR_FONTS.find((f) => f.value === base)?.label
+  const set = (v: string) =>
+    getStore()
+      .getState()
+      .setNoteFont(noteId, v === '' ? undefined : (v as (typeof EDITOR_FONTS)[number]['value']))
+  return (
+    <Menu icon={Type} label="Font">
+      <DropdownMenu.RadioGroup value={own ?? ''} onValueChange={set}>
+        <DropdownMenu.RadioItem value="" className={item}>
+          Same as Settings ({baseLabel})
+        </DropdownMenu.RadioItem>
+        {EDITOR_FONTS.map((f) => (
+          <DropdownMenu.RadioItem
+            key={f.value}
+            value={f.value}
+            className={item + ' data-[state=checked]:font-semibold'}
+            style={{ fontFamily: editorFontStack(f.value) }}
+          >
+            {f.label}
+          </DropdownMenu.RadioItem>
+        ))}
+      </DropdownMenu.RadioGroup>
+    </Menu>
   )
 }
 
@@ -344,6 +380,7 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
       {!compact && (
         <>
           <Sep />
+          <FontMenu noteId={noteId} />
           <Btn
             icon={Minus}
             label="Smaller text"

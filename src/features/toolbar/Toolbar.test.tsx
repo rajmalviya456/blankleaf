@@ -100,6 +100,19 @@ describe('Toolbar', () => {
     expect(screen.getByRole('button', { name: 'Larger text' })).toBeDisabled()
   })
 
+  it('picks a font for this note only, and can go back to the Settings one', async () => {
+    const user = userEvent.setup()
+    const { s, id, view } = setup('x', false)
+    await user.click(screen.getByRole('button', { name: 'Font' }))
+    await user.click(await screen.findByRole('menuitemradio', { name: 'Serif' }))
+    expect(s().notes[id].font).toBe('serif')
+    expect(s().settings.editorFont).toBe('mono')
+    expect(view.dom.closest('[style]')?.getAttribute('style')).toContain('--font-serif')
+    await user.click(screen.getByRole('button', { name: 'Font' }))
+    await user.click(await screen.findByRole('menuitemradio', { name: /Same as Settings/ }))
+    expect(s().notes[id].font).toBeUndefined()
+  })
+
   it('sorts lines from the Line tools menu', async () => {
     const user = userEvent.setup()
     const { id, s } = setup('b\na', false)

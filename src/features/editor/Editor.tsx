@@ -17,6 +17,8 @@ import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
 import { calmEditorTheme } from './theme'
 import { useEditorExtensions } from './useEditorExtensions'
+import { editorFontStack } from '../../domain/defaults'
+import { useNoteFont } from './useNoteFont'
 import { useNoteFontSize } from './useNoteFontSize'
 import {
   activeViewUpdated,
@@ -68,12 +70,14 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const zen = useAppStore((s) => s.session.zen)
   const large = isLargeDoc(content.length)
   const fontSize = useNoteFontSize(noteId)
+  const font = useNoteFont(noteId)
   const base = useEditorExtensions({
     wrap,
     // Zen: just the words, no line numbers or highlighted line.
     settings: {
       ...settings,
       editorFontSize: fontSize,
+      editorFont: font,
       lineNumbers: settings.lineNumbers && !zen,
       highlightActiveLine: settings.highlightActiveLine && !zen,
     },
@@ -201,7 +205,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
       className="h-full min-h-0 flex-1"
       style={
         {
-          '--editor-font': settings.editorFont === 'mono' ? 'var(--font-mono)' : 'var(--font-ui)',
+          '--editor-font': editorFontStack(font),
         } as React.CSSProperties
       }
     />

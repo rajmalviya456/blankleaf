@@ -85,6 +85,20 @@ describe('Note menu', () => {
     expect(s().notes[id].fontSize).toBeUndefined()
   })
 
+  it('font picks this note’s font; the Settings font follows Settings again', async () => {
+    const { s, id, user } = setup()
+    const menu = await openMenu()
+    const fonts = within(menu).getByRole('radiogroup', { name: 'Font' })
+    await user.click(within(fonts).getByRole('radio', { name: 'Serif' }))
+    expect(s().notes[id].font).toBe('serif')
+    expect(within(fonts).getByRole('radio', { name: 'Serif' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    await user.click(within(fonts).getByRole('radio', { name: 'Mono' }))
+    expect(s().notes[id].font).toBeUndefined()
+  })
+
   it('footer shows line, column, words and characters', async () => {
     const { s, id } = setup('one two three\nfour')
     act(() => s().setViewState(id, { anchor: 16, head: 16 }))

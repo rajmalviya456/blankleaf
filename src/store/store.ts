@@ -22,6 +22,7 @@ import { languageMeta } from '../domain/languages'
 import { plainLineBreaks } from '../domain/lineEndings'
 import { displayTitle } from '../domain/title'
 import type {
+  EditorFont,
   LanguageId,
   LockedContent,
   Note,
@@ -85,6 +86,8 @@ export interface AppActions {
   setWordGoal(id: string, goal: number | undefined): void
   /** This note's text size on laptops or phones (clamped); the Settings size clears it. */
   setNoteFontSize(id: string, size: number, phone: boolean): void
+  /** This note's editor font; the Settings font (or undefined) clears it. */
+  setNoteFont(id: string, font: EditorFont | undefined): void
   setSplitNote(id: string | null): void
   applyLock(id: string, locked: LockedContent, title: string): void
   updateLocked(id: string, locked: LockedContent): void
@@ -339,6 +342,7 @@ export function createAppStore(
           wordGoal: src.wordGoal,
           fontSize: src.fontSize,
           phoneFontSize: src.phoneFontSize,
+          font: src.font,
           title: `${displayTitle(src)} (copy)`,
         })
       },
@@ -404,6 +408,12 @@ export function createAppStore(
         const key = phone ? 'phoneFontSize' : 'fontSize'
         if (note[key] === value) return
         patchNote(id, { [key]: value })
+      },
+      setNoteFont(id, font) {
+        const note = get().notes[id]
+        if (!note) return
+        const value = font === get().settings.editorFont ? undefined : font
+        if (note.font !== value) patchNote(id, { font: value })
       },
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })
