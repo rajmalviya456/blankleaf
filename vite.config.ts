@@ -34,6 +34,9 @@ const CODEMIRROR_SETUP_STUB = fileURLToPath(
 const DIAGRAM_MODULES =
   /node_modules\/(@mermaid-js|mermaid|cytoscape[^/]*|d3[^/]*|dagre-d3-es|khroma|langium|chevrotain[^/]*|roughjs|@iconify|stylis|vscode-[^/]*)\//
 
+/** Code formatters (Prettier, sql-formatter): loaded only when someone formats code. */
+const FORMATTER_MODULES = /node_modules\/(prettier|sql-formatter)\//
+
 // GitHub Pages serves the app from /blankleaf/; dev server stays at /.
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/blankleaf/' : '/',
@@ -101,12 +104,23 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // Link previews and landing pages aren't part of the offline app. Diagrams are a large
         // download only some notes need, so they're cached the first time a note uses them.
-        globIgnores: ['**/og-image.png', 'assets/diagrams/**', ...PAGES.map((p) => `${p.slug}/**`)],
+        globIgnores: [
+          '**/og-image.png',
+          'assets/diagrams/**',
+          'assets/formatters/**',
+          ...PAGES.map((p) => `${p.slug}/**`),
+        ],
         runtimeCaching: [
           {
             urlPattern: /\/assets\/diagrams\//,
             handler: 'CacheFirst',
             options: { cacheName: 'diagrams', expiration: { maxEntries: 120 } },
+          },
+          // Code formatters: cached the first time someone formats code, then work offline.
+          {
+            urlPattern: /\/assets\/formatters\//,
+            handler: 'CacheFirst',
+            options: { cacheName: 'formatters', expiration: { maxEntries: 40 } },
           },
           // The spell check dictionary (~550 KB): only for people who turn spell check on.
           {
@@ -136,7 +150,9 @@ export default defineConfig(({ command }) => ({
         chunkFileNames: (chunk) =>
           chunk.moduleIds.some((id) => DIAGRAM_MODULES.test(id))
             ? 'assets/diagrams/[name]-[hash].js'
-            : 'assets/[name]-[hash].js',
+            : chunk.moduleIds.some((id) => FORMATTER_MODULES.test(id))
+              ? 'assets/formatters/[name]-[hash].js'
+              : 'assets/[name]-[hash].js',
         // Libraries that change rarely get files of their own: an update to Blankleaf then
         // downloads only Blankleaf's code, and the browser fetches the parts side by side.
         codeSplitting: {

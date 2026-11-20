@@ -41,6 +41,38 @@ test('Transform menu formats JSON and reports bad input', async ({ page }) => {
   await expect(editor(page)).toContainText('{"a":1}')
 })
 
+test('formats SQL and CSS, and tidies a Markdown table with Tab', async ({ page }) => {
+  await openApp(page)
+  const format = async (name: string) => {
+    await statusBar(page)
+      .getByRole('button', { name: /^Format:/ })
+      .click()
+    await page.getByRole('menuitemradio', { name, exact: true }).click()
+  }
+  const formatCode = async () => {
+    await page.keyboard.press('ControlOrMeta+k')
+    await page.getByRole('combobox').fill('Format code')
+    await page.keyboard.press('Enter')
+  }
+  await newNote(page, 'select a,b from t')
+  await format('SQL')
+  await formatCode()
+  await expect(editor(page)).toContainText('SELECT')
+  await expect(page.locator('.cm-line')).toHaveCount(5)
+
+  await newNote(page, 'a{color:red}')
+  await format('CSS')
+  await formatCode()
+  await expect(page.locator('.cm-line').nth(1)).toHaveText('  color: red;')
+
+  await newNote(page, '|a|b|\n|-|-|\n|1|2|')
+  await format('Markdown')
+  await editor(page).locator('.cm-line').first().click()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('Tab')
+  await expect(page.locator('.cm-line').first()).toHaveText('| a   | b   |')
+})
+
 test('checklist boxes tick in the Markdown preview', async ({ page }) => {
   await openApp(page)
   await newNote(page, '- [ ] call mum')
