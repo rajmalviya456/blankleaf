@@ -179,8 +179,18 @@ export function createAppStore(
       let activeTabId = session.activeTabId
       if (activeTabId === id) activeTabId = openTabIds[idx] ?? openTabIds[idx - 1] ?? null
       const { [id]: _drop, ...perTab } = session.perTab
-      const splitNoteId = session.splitNoteId === id ? null : session.splitNoteId
+      // The side note never doubles as the active one.
+      const splitNoteId =
+        session.splitNoteId === id || session.splitNoteId === activeTabId
+          ? null
+          : session.splitNoteId
       return { ...session, openTabIds, activeTabId, perTab, splitNoteId }
+    }
+
+    /** A note that's gone (or trashed) leaves its tab, the side and the closed list. */
+    const withoutNote = (session: Session, id: string): Session => {
+      const next = withoutSide(withoutTab(session, id), id)
+      return { ...next, closedStack: next.closedStack.filter((x) => x !== id) }
     }
 
     const closeOne = (id: string) => {
@@ -460,11 +470,17 @@ export function createAppStore(
       importNotes(incoming) {
         if (!incoming.length) return
         const notes = { ...get().notes }
+        let session = get().session
         for (const n of incoming) {
           const current = notes[n.id]
-          notes[n.id] = { ...n, pinned: false, rev: current ? current.rev : 0 }
+          // A note already here keeps its pin; imported ones arrive unpinned.
+          notes[n.id] = { ...n, pinned: current?.pinned ?? false, rev: current ? current.rev : 0 }
+          if (n.deletedAt !== null) session = withoutNote(session, n.id)
         }
-        set({ notes })
+        set({
+          notes,
+          session: { ...session, openTabIds: normalizeTabs(session.openTabIds, notes) },
+        })
       },
 
       cyclePreview(id) {
@@ -477,11 +493,7 @@ export function createAppStore(
       removeRemoteNote(id) {
         if (!get().notes[id]) return
         const { [id]: _gone, ...rest } = get().notes
-        const session = withoutSide(withoutTab(get().session, id), id)
-        set({
-          notes: rest,
-          session: { ...session, closedStack: session.closedStack.filter((x) => x !== id) },
-        })
+        set({ notes: rest, session: withoutNote(get().session, id) })
       },
 
       reveal(noteId, from, to) {
@@ -493,7 +505,7 @@ export function createAppStore(
       applyRemoteNote(note) {
         const notes = { ...get().notes, [note.id]: note }
         let session = get().session
-        if (note.deletedAt !== null) session = withoutTab(session, note.id)
+        if (note.deletedAt !== null) session = withoutNote(session, note.id)
         set({
           notes,
           session: { ...session, openTabIds: normalizeTabs(session.openTabIds, notes) },

@@ -330,3 +330,43 @@ describe('app store: text size per note', () => {
     expect(s().notes[copy].fontSize).toBe(20)
   })
 })
+
+describe('app store: the side note stays consistent', () => {
+  it('closing the active tab never leaves the side note as the active one', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const b = filled(store)
+    const c = filled(store)
+    s().setActive(b)
+    s().setSplitNote(c)
+    s().closeTab(b)
+    expect(s().session.activeTabId).toBe(c)
+    expect(s().session.splitNoteId).toBeNull()
+    void a
+  })
+
+  it('a note trashed in another window leaves the side and the closed list', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const x = filled(store)
+    s().closeTab(x)
+    s().setActive(a)
+    s().setSplitNote(x)
+    s().applyRemoteNote({ ...s().notes[x], deletedAt: 5000, rev: 2 })
+    expect(s().session.splitNoteId).toBeNull()
+    expect(s().session.closedStack).not.toContain(x)
+  })
+
+  it('importing a newer trashed copy of an open note closes its tab; pins are kept', () => {
+    const { store, s } = setup()
+    const a = filled(store)
+    const p = filled(store)
+    s().togglePin(p)
+    s().importNotes([
+      { ...s().notes[a], content: 'gone', deletedAt: 9000, updatedAt: 9000 },
+      { ...s().notes[p], content: 'newer', updatedAt: 9000 },
+    ])
+    expect(s().session.openTabIds).not.toContain(a)
+    expect(s().notes[p].pinned).toBe(true)
+  })
+})
