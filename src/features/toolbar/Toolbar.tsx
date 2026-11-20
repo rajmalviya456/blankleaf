@@ -19,6 +19,7 @@ import {
   Bold,
   Braces,
   CaseSensitive,
+  Check,
   ChevronDown,
   Clock,
   Code,
@@ -171,6 +172,15 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
   )
 }
 
+/** The tick beside the chosen menu item (a fixed-width space when not chosen). */
+const Tick = () => (
+  <span className="w-3.5 shrink-0">
+    <DropdownMenu.ItemIndicator>
+      <Check size={13} />
+    </DropdownMenu.ItemIndicator>
+  </span>
+)
+
 /** This note's editor font; "Same as Settings" follows the Settings font again. */
 function FontMenu({ noteId }: { noteId: string }) {
   const own = useAppStore((s) => s.notes[noteId]?.font)
@@ -184,15 +194,17 @@ function FontMenu({ noteId }: { noteId: string }) {
     <Menu icon={Type} label="Font">
       <DropdownMenu.RadioGroup value={own ?? ''} onValueChange={set}>
         <DropdownMenu.RadioItem value="" className={item}>
+          <Tick />
           Same as Settings ({baseLabel})
         </DropdownMenu.RadioItem>
         {EDITOR_FONTS.map((f) => (
           <DropdownMenu.RadioItem
             key={f.value}
             value={f.value}
-            className={item + ' data-[state=checked]:font-semibold'}
+            className={item}
             style={{ fontFamily: editorFontStack(f.value) }}
           >
+            <Tick />
             {f.label}
           </DropdownMenu.RadioItem>
         ))}

@@ -7,6 +7,8 @@ import type { Extension } from '@codemirror/state'
 import { languageMeta } from '../../domain/languages'
 import type { LanguageId } from '../../domain/types'
 import { logLanguage } from './logLanguage'
+// Small, and the toolbar and shortcuts sheet need its list anyway.
+import { markdownKeys } from './markdownKeys'
 
 type Loader = () => Promise<Extension>
 
@@ -15,13 +17,11 @@ const legacy = async (pick: () => Promise<Parameters<typeof StreamLanguage.defin
 
 const LOADERS: Partial<Record<LanguageId, Loader>> = {
   markdown: async () => {
-    const [{ markdown, markdownLanguage }, { languages }, { tableKeys }, { markdownKeys }] =
-      await Promise.all([
-        import('@codemirror/lang-markdown'),
-        import('@codemirror/language-data'),
-        import('./markdownTable'),
-        import('./markdownKeys'),
-      ])
+    const [{ markdown, markdownLanguage }, { languages }, { tableKeys }] = await Promise.all([
+      import('@codemirror/lang-markdown'),
+      import('@codemirror/language-data'),
+      import('./markdownTable'),
+    ])
     // GFM (tables, task lists, strikethrough) + highlighting inside ```lang fences,
     // each fence language loading on demand. Tab tidies tables; ⌘B and friends format.
     return [markdown({ base: markdownLanguage, codeLanguages: languages }), tableKeys, markdownKeys]

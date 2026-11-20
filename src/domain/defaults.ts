@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   codeRuler: 80,
   spellLanguage: 'auto',
   showToolbar: true,
+  liveMarkdown: true,
   backupReminderDays: 7,
   notesSort: 'edited',
 }) as Settings
