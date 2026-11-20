@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.4](https://github.com/rajmalviya456/blankleaf/compare/v1.13.3...v1.13.4) (2026-11-20)
+
+
+### Bug Fixes
+
+* the six smaller bugs from the review ([#89](https://github.com/rajmalviya456/blankleaf/issues/89)) ([0dd8f7e](https://github.com/rajmalviya456/blankleaf/commit/0dd8f7e927af98c1ae6f992402329e6830e91891))
+
 ## [1.13.3](https://github.com/rajmalviya456/blankleaf/compare/v1.13.2...v1.13.3) (2026-11-20)
 
 
