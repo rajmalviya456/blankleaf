@@ -100,9 +100,7 @@ export function AboutDialog() {
               <Dialog.Title className="text-[15px] font-semibold text-fg">
                 About Blankleaf
               </Dialog.Title>
-              <p className="text-[12px] tabular-nums text-fg-muted">
-                Version {__APP_VERSION__} · formerly Notepadz
-              </p>
+              <p className="text-[12px] tabular-nums text-fg-muted">Version {__APP_VERSION__}</p>
             </div>
           </div>
           <p id="about-tagline" className="mt-3 text-[12.5px] leading-snug text-fg-muted">

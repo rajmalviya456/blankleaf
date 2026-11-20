@@ -17,6 +17,7 @@ describe('AboutDialog', () => {
     setup()
     const dialog = screen.getByRole('dialog', { name: 'About Blankleaf' })
     expect(dialog).toHaveTextContent(`Version ${__APP_VERSION__}`)
+    expect(dialog).not.toHaveTextContent(/notepadz/i)
     expect(dialog).toHaveTextContent(/stored only in this browser/i)
   })
 
