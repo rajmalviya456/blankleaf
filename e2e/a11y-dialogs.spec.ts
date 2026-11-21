@@ -78,9 +78,14 @@ for (const scheme of ['light', 'dark'] as const) {
         await categories.getByRole('tab', { name }).click()
         expect(await violations(page)).toEqual([])
       }
-      await categories.getByRole('tab', { name: 'Food & drink' }).click()
-      await page.getByRole('button', { name: 'taco', exact: true }).click()
-      await expect(editor(page)).toContainText('🌮')
+      await page
+        .getByRole('group', { name: 'Skin tone' })
+        .getByRole('button', { name: 'Dark', exact: true })
+        .click()
+      await categories.getByRole('tab', { name: 'People' }).click()
+      expect(await violations(page)).toEqual([])
+      await page.getByRole('button', { name: 'thumbs up', exact: true }).click()
+      await expect(editor(page)).toContainText('👍🏿')
     })
 
     test('command palette with no matches', async ({ page }) => {

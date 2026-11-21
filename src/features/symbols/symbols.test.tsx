@@ -65,6 +65,27 @@ describe('symbol picker', () => {
     expect(s().notes[id].content).toBe('Go 🌮')
   })
 
+  it('types people emoji in the chosen skin tone and remembers it', async () => {
+    const { s, id, user } = setup()
+    await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
+    await user.click(await screen.findByRole('tab', { name: 'Emoji' }))
+    const tones = await screen.findByRole('group', { name: 'Skin tone' })
+    expect(within(tones).getByRole('button', { name: 'Default' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await user.click(within(tones).getByRole('button', { name: 'Medium' }))
+    expect(within(tones).getByRole('button', { name: 'Medium' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(s().settings.emojiSkinTone).toBe(3)
+    const categories = screen.getByRole('tablist', { name: 'Emoji categories' })
+    await user.click(within(categories).getByRole('tab', { name: 'People' }))
+    await user.click(await screen.findByRole('button', { name: 'waving hand' }))
+    expect(s().notes[id].content).toBe('Go 👋🏽')
+  })
+
   it('finds any emoji by search', async () => {
     const { s, id, user } = setup()
     await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))

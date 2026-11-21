@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import data from 'emojibase-data/en/data.json'
-import { EMOJI_CATEGORIES, buildEmojiGroups, loadEmoji } from './emoji'
+import { EMOJI_CATEGORIES, buildEmojiGroups, loadEmoji, withTone } from './emoji'
 import { findSymbols } from './symbols'
 
 describe('emoji data', () => {
@@ -50,5 +50,30 @@ describe('emoji the device cannot draw', () => {
   it('keeps everything when the device can draw them all', () => {
     const all = buildEmojiGroups(data, () => true).flatMap((g) => g.items)
     expect(all.map((e) => e.char)).toContain('🫜')
+  })
+})
+
+describe('skin tones', () => {
+  const all = buildEmojiGroups(data, () => true).flatMap((g) => g.items)
+  const byChar = (c: string) => all.find((e) => e.char === c)!
+
+  it('gives people and hand emoji their five tones, lightest first', () => {
+    expect(byChar('👋').skins).toEqual(['👋🏻', '👋🏼', '👋🏽', '👋🏾', '👋🏿'])
+    expect(byChar('👍').skins![2]).toBe('👍🏽')
+  })
+
+  it('uses the same tone for everyone in a group emoji', () => {
+    expect(byChar('🧑‍🤝‍🧑').skins![0]).toBe('🧑🏻‍🤝‍🧑🏻')
+    expect(byChar('🧑‍🤝‍🧑').skins).toHaveLength(5)
+  })
+
+  it('leaves emoji without tones alone', () => {
+    expect(byChar('😀').skins).toBeUndefined()
+    expect(withTone(byChar('😀'), 3).char).toBe('😀')
+  })
+
+  it('switches an emoji to the chosen tone, keeping its name', () => {
+    expect(withTone(byChar('👋'), 0).char).toBe('👋')
+    expect(withTone(byChar('👋'), 5)).toMatchObject({ char: '👋🏿', name: 'waving hand' })
   })
 })

@@ -28,6 +28,7 @@ interface RawEmoji {
   group?: number
   order?: number
   version: number
+  skins?: { emoji: string; tone?: number | number[] }[]
 }
 
 /** Versions every current phone and computer draws; only newer ones get tested. */
@@ -62,9 +63,31 @@ export function buildEmojiGroups(
     items: data
       .filter((e) => e.group === c.group && e.version < limit)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map((e) => ({ char: e.emoji, name: e.label, tags: e.tags })),
+      .map((e) => ({ char: e.emoji, name: e.label, tags: e.tags, skins: tonesOf(e) })),
   }))
 }
+
+/** The five single-tone versions, lightest first. Mixed tones (🧑🏻‍🤝‍🧑🏿) are left out. */
+function tonesOf(e: RawEmoji): string[] | undefined {
+  const skins = [1, 2, 3, 4, 5].map((t) => e.skins?.find((s) => s.tone === t)?.emoji)
+  return skins.every(Boolean) ? (skins as string[]) : undefined
+}
+
+/** The emoji in skin tone 1 to 5, or as it is for 0 or when it has no tones. */
+export function withTone(sym: Sym, tone: number): Sym {
+  const char = tone > 0 ? sym.skins?.[tone - 1] : undefined
+  return char ? { ...sym, char } : sym
+}
+
+/** Tone choices, with a raised hand to show each. */
+export const SKIN_TONES = [
+  { tone: 0, label: 'Default', sample: '✋' },
+  { tone: 1, label: 'Light', sample: '✋🏻' },
+  { tone: 2, label: 'Medium-light', sample: '✋🏼' },
+  { tone: 3, label: 'Medium', sample: '✋🏽' },
+  { tone: 4, label: 'Medium-dark', sample: '✋🏾' },
+  { tone: 5, label: 'Dark', sample: '✋🏿' },
+] as const
 
 /**
  * Whether the device's fonts draw this as a colour emoji rather than an empty box: the box

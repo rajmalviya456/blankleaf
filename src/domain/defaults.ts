@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   showToolbar: true,
   backupReminderDays: 7,
   notesSort: 'edited',
+  emojiSkinTone: 0,
 }) as Settings
 
 /** Merge stored settings over defaults, keeping only known keys with matching types. */
@@ -39,6 +40,7 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
   }
   if (!cleanNoteFont(out.editorFont)) out.editorFont = DEFAULT_SETTINGS.editorFont
   if (!['edited', 'created', 'title'].includes(out.notesSort)) out.notesSort = 'edited'
+  if (![0, 1, 2, 3, 4, 5].includes(out.emojiSkinTone)) out.emojiSkinTone = 0
   if (![0, 80, 100, 120].includes(out.codeRuler)) out.codeRuler = DEFAULT_SETTINGS.codeRuler
   if (!['auto', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'es'].includes(out.spellLanguage))
     out.spellLanguage = 'auto'

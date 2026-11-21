@@ -23,6 +23,13 @@ describe('mergeSettings', () => {
     })
   })
 
+  it('keeps an emoji skin tone from 0 (default) to 5 and drops anything else', () => {
+    expect(DEFAULT_SETTINGS.emojiSkinTone).toBe(0)
+    expect(mergeSettings({ emojiSkinTone: 3 }).emojiSkinTone).toBe(3)
+    for (const bad of [-1, 6, 2.5])
+      expect(mergeSettings({ emojiSkinTone: bad }).emojiSkinTone).toBe(0)
+  })
+
   it('drops values whose type does not match the default', () => {
     expect(mergeSettings({ tabSize: '8' } as never)).toEqual(DEFAULT_SETTINGS)
   })
