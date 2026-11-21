@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.4](https://github.com/rajmalviya456/blankleaf/compare/v1.18.3...v1.18.4) (2026-11-21)
+
+
+### Bug Fixes
+
+* **a11y:** fix the issues found in an accessibility audit ([#113](https://github.com/rajmalviya456/blankleaf/issues/113)) ([edbd902](https://github.com/rajmalviya456/blankleaf/commit/edbd90260b578451fa68bc449d4f86101acaadf6))
+
 ## [1.18.3](https://github.com/rajmalviya456/blankleaf/compare/v1.18.2...v1.18.3) (2026-11-20)
 
 
