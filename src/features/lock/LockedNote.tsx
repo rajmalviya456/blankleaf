@@ -235,7 +235,7 @@ export function LockedNote({ noteId }: { noteId: string }) {
           value={password}
           aria-invalid={!!error}
           onChange={(e) => setPassword(e.target.value)}
-          className="h-10 rounded-md border border-border bg-bg px-3 text-[14px] text-fg outline-none placeholder:text-fg-faint focus:border-accent max-sm:h-11 max-sm:text-[16px]"
+          className="h-10 rounded-md border border-border-field bg-bg px-3 text-[14px] text-fg outline-none placeholder:text-fg-faint focus:border-accent max-sm:h-11 max-sm:text-[16px]"
         />
         {error && (
           <p role="alert" className="text-center text-[12.5px] text-danger">

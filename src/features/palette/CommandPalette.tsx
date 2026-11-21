@@ -1,8 +1,8 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Command } from 'cmdk'
+import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import {
   COMMANDS,
@@ -108,11 +108,7 @@ export function CommandPalette() {
                 className="h-11 flex-1 bg-transparent text-[14px] text-fg outline-none placeholder:text-fg-faint"
               />
             </div>
-            <Command.List className="max-h-[min(420px,60vh)] overflow-y-auto p-1.5">
-              <Command.Empty className="px-3 py-6 text-center text-[12.5px] text-fg-faint">
-                No results.
-              </Command.Empty>
-
+            <ResultsList>
               {mode === 'formats' ? (
                 <Command.Group heading="Format" className={groupClass}>
                   <Command.Item
@@ -183,10 +179,31 @@ export function CommandPalette() {
                   )}
                 </>
               )}
-            </Command.List>
+            </ResultsList>
           </Command>
         </DialogSurface>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+/**
+ * The results list, hidden when nothing matches: a listbox with no options confuses screen
+ * readers, so "No results." is a status message beside it instead (and is read out).
+ */
+function ResultsList({ children }: { children: ReactNode }) {
+  const empty = useCommandState((st) => st.filtered.count === 0)
+  return (
+    <>
+      <Command.List hidden={empty} className="max-h-[min(420px,60vh)] overflow-y-auto p-1.5">
+        {children}
+      </Command.List>
+      <p
+        role="status"
+        className={empty ? 'px-3 py-6 text-center text-[12.5px] text-fg-faint' : 'sr-only'}
+      >
+        {empty ? 'No results.' : ''}
+      </p>
+    </>
   )
 }

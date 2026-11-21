@@ -11,7 +11,7 @@ import { lockNote, PASSWORD_MIN } from './lockNote'
 import { lockStore } from './lockStore'
 
 const field =
-  'h-9 w-full rounded-md border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent max-sm:h-11'
+  'h-9 w-full rounded-md border border-border-field bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent max-sm:h-11'
 
 function Form({ noteId }: { noteId: string }) {
   const note = useAppStore((s) => s.notes[noteId])

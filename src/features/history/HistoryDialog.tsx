@@ -143,6 +143,7 @@ export function HistoryDialog() {
               )}
             </div>
             <pre
+              role="region"
               aria-label="Version text"
               tabIndex={0}
               className="min-h-32 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border bg-bg p-3 font-mono text-[12.5px] leading-relaxed text-fg"

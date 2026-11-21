@@ -95,7 +95,7 @@ export function DataSection({ settings: s, update }: Props) {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder="Type delete"
-            className="w-32 rounded-md border border-border bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none transition-colors focus:border-danger focus:shadow-[0_0_0_3px_rgb(212_60_75/0.15)]"
+            className="w-32 rounded-md border border-border-field bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none transition-colors focus:border-danger focus:shadow-[0_0_0_3px_rgb(212_60_75/0.15)]"
           />
           <button
             type="button"

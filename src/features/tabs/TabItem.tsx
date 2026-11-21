@@ -2,7 +2,7 @@ import { useIsTouch } from '../../lib/media'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { LockKeyhole, Pin, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { displayTitle } from '../../domain/title'
 import type { Note } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
@@ -22,13 +22,21 @@ export function TabItem({ note, active, onRequestClose }: Props) {
     id: note.id,
     disabled: renaming,
   })
-  const ref = useRef<HTMLDivElement | null>(null)
+  // The tab's element, kept in state so the rename box can float over it.
+  const [node, setNode] = useState<HTMLDivElement | null>(null)
+  const setRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      setNodeRef(el)
+      setNode(el)
+    },
+    [setNodeRef],
+  )
   const title = displayTitle(note)
   const s = () => getStore().getState()
 
   useEffect(() => {
-    if (active) ref.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
-  }, [active])
+    if (active) node?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [active, node])
 
   const tabClass = [
     'group relative flex h-7 max-w-56 min-w-24 shrink-0 cursor-default select-none items-center gap-1 rounded-t-md pl-3 pr-1.5 text-[12.5px]',
@@ -43,10 +51,7 @@ export function TabItem({ note, active, onRequestClose }: Props) {
   return (
     <TabContextMenu note={note} onClose={onRequestClose}>
       <div
-        ref={(el) => {
-          setNodeRef(el)
-          ref.current = el
-        }}
+        ref={setRef}
         role="none"
         style={{ transform: CSS.Translate.toString(transform), transition }}
         title={title}
@@ -62,8 +67,32 @@ export function TabItem({ note, active, onRequestClose }: Props) {
         }}
         className={tabClass}
       >
-        {renaming ? (
+        <div
+          {...attributes}
+          {...listeners}
+          role="tab"
+          aria-selected={active}
+          aria-roledescription={undefined}
+          tabIndex={active ? 0 : -1}
+          onClick={() => s().setActive(note.id)}
+          className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch outline-none focus-visible:underline"
+        >
+          {note.pinned && (
+            <Pin aria-label="Pinned" size={11} strokeWidth={2} className="shrink-0 text-warn" />
+          )}
+          {note.locked && (
+            <LockKeyhole
+              aria-label="Locked"
+              size={11}
+              strokeWidth={2}
+              className="shrink-0 text-fg-muted"
+            />
+          )}
+          <span className="min-w-0 flex-1 truncate">{title}</span>
+        </div>
+        {renaming && (
           <RenameInput
+            anchor={node}
             initial={note.title ?? title}
             onCommit={(v) => {
               s().renameNote(note.id, v)
@@ -71,30 +100,6 @@ export function TabItem({ note, active, onRequestClose }: Props) {
             }}
             onCancel={() => s().setUi({ renamingId: null })}
           />
-        ) : (
-          <div
-            {...attributes}
-            {...listeners}
-            role="tab"
-            aria-selected={active}
-            aria-roledescription={undefined}
-            tabIndex={active ? 0 : -1}
-            onClick={() => s().setActive(note.id)}
-            className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch outline-none focus-visible:underline"
-          >
-            {note.pinned && (
-              <Pin aria-label="Pinned" size={11} strokeWidth={2} className="shrink-0 text-warn" />
-            )}
-            {note.locked && (
-              <LockKeyhole
-                aria-label="Locked"
-                size={11}
-                strokeWidth={2}
-                className="shrink-0 text-fg-muted"
-              />
-            )}
-            <span className="min-w-0 flex-1 truncate">{title}</span>
-          </div>
         )}
         {!note.pinned && !renaming && (
           // Mouse affordance only: hidden from assistive tech because a tablist may contain
