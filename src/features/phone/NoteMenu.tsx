@@ -59,7 +59,7 @@ import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
 import { goalStore } from '../goal/goalStore'
 import { lockStore } from '../lock/lockStore'
-import { useLinkedFrom } from '../links/LinkedFrom'
+import { useLinkedFrom } from '../links/useLinkedFrom'
 import { shareStore } from '../share/shareStore'
 import { phoneStore } from './phoneStore'
 
