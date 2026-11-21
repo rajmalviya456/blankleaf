@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.1](https://github.com/rajmalviya456/blankleaf/compare/v1.20.0...v1.20.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **symbols:** group emoji the way people expect ([#120](https://github.com/rajmalviya456/blankleaf/issues/120)) ([80cd44b](https://github.com/rajmalviya456/blankleaf/commit/80cd44b4b2e7ded2534479d3beef99167fc20c79))
+
 ## [1.20.0](https://github.com/rajmalviya456/blankleaf/compare/v1.19.0...v1.20.0) (2026-11-21)
 
 
