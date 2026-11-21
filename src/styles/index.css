@@ -13,6 +13,8 @@
   --fg-muted: #4a515c;
   --fg-faint: #5f6672;
   --border: #e2e5ea;
+  /* Text field outlines: 3:1 against every surface, so a field is visible without its text. */
+  --border-field: #80878f;
   --accent: #3d5ce6;
   --accent-soft: #3d5ce61f;
   --accent-fg: #ffffff;
@@ -54,6 +56,7 @@
   --fg-muted: #a3a9b4;
   --fg-faint: #9096a2;
   --border: #23272f;
+  --border-field: #646b79;
   --accent: #7c9cff;
   --accent-soft: #7c9cff24;
   --accent-fg: #0b0d10;
@@ -86,6 +89,7 @@
   --color-fg-muted: var(--fg-muted);
   --color-fg-faint: var(--fg-faint);
   --color-border: var(--border);
+  --color-border-field: var(--border-field);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-fg: var(--accent-fg);
@@ -622,6 +626,8 @@ input[type='search']::-webkit-search-decoration {
     --fg-muted: #4a515c;
     --fg-faint: #5f6672;
     --border: #e2e5ea;
+    /* Text field outlines: 3:1 against every surface, so a field is visible without its text. */
+    --border-field: #80878f;
     --accent: #3d5ce6;
     --accent-soft: #3d5ce61f;
     --accent-fg: #ffffff;

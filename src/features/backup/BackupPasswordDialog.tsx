@@ -6,7 +6,7 @@ import { setBackupPassword } from './backupKey'
 import { backupPasswordStore } from './backupPasswordStore'
 
 const field =
-  'mt-1 w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-[13px] text-fg outline-none focus:border-accent max-sm:h-11'
+  'mt-1 w-full rounded-md border border-border-field bg-bg px-2.5 py-1.5 text-[13px] text-fg outline-none focus:border-accent max-sm:h-11'
 
 const SAVE: Record<string, string> = {
   export: 'Save encrypted backup',

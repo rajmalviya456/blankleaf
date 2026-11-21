@@ -90,7 +90,7 @@ function NotePicker({ noteId }: { noteId: string }) {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Find a note to compare with…"
         aria-label="Find a note"
-        className="h-9 rounded-md border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent"
+        className="h-9 rounded-md border border-border-field bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent"
       />
       <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border p-1">
         {options.length === 0 && (

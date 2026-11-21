@@ -23,7 +23,7 @@ export function SettingsDialog() {
           aria-describedby={undefined}
           className="fixed left-1/2 top-[8vh] z-50 flex max-h-[84vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
-          <header className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <Dialog.Title className="text-sm font-medium text-fg">Settings</Dialog.Title>
             <Dialog.Close
               aria-label="Close settings"
@@ -31,7 +31,7 @@ export function SettingsDialog() {
             >
               <X size={15} />
             </Dialog.Close>
-          </header>
+          </div>
           <div className="space-y-5 overflow-y-auto px-4 py-4">
             <AppearanceSection settings={settings} update={update} />
             <EditorSection settings={settings} update={update} />

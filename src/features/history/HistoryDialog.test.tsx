@@ -53,7 +53,9 @@ describe.each([
       expect.stringContaining('first draft'),
     ])
     await user.click(items[2])
-    expect(within(dialog).getByLabelText('Version text')).toHaveTextContent('first draft')
+    expect(within(dialog).getByRole('region', { name: 'Version text' })).toHaveTextContent(
+      'first draft',
+    )
     await user.click(within(dialog).getByRole('button', { name: 'Restore this version' }))
     expect(s().notes[id].content).toBe('first draft')
     expect(screen.queryByRole('dialog', { name: 'Version history' })).toBeNull()

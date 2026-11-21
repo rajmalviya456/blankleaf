@@ -21,7 +21,7 @@ const EXPIRIES = [
 ]
 
 const field =
-  'h-8 min-w-0 flex-1 rounded-md border border-border bg-bg-sunken px-2.5 font-mono text-[12px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]'
+  'h-8 min-w-0 flex-1 rounded-md border border-border-field bg-bg-sunken px-2.5 font-mono text-[12px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]'
 const ghost =
   'flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 text-[12px] text-fg hover:bg-bg-hover'
 
@@ -330,7 +330,7 @@ export function ShareDialog() {
           aria-describedby={undefined}
           className="fixed left-1/2 top-[14vh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-bg-elev shadow-2xl outline-none"
         >
-          <header className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <Dialog.Title className="truncate pr-4 text-sm font-medium text-fg">
               Share “{title}”
             </Dialog.Title>
@@ -340,7 +340,7 @@ export function ShareDialog() {
             >
               <X size={15} />
             </Dialog.Close>
-          </header>
+          </div>
           <div className="p-4">
             {!host ? (
               <p className="text-[12.5px] text-fg-muted">

@@ -40,6 +40,7 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          aria-label="Insert symbol or emoji"
           align="start"
           sideOffset={4}
           collisionPadding={8}
@@ -53,7 +54,7 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
             placeholder="Find a symbol: arrow, euro, check…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="h-8 rounded border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+            className="h-8 rounded border border-border-field bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
           />
           {!query.trim() && (
             <div role="tablist" aria-label="Symbol groups" className="flex flex-wrap gap-1">
@@ -64,7 +65,7 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
                   role="tab"
                   aria-selected={tab === g.id}
                   onClick={() => setTab(g.id)}
-                  className="rounded px-2 py-0.5 text-[12px] text-fg-muted hover:bg-bg-hover aria-selected:bg-accent-soft aria-selected:text-accent"
+                  className="rounded px-2 py-0.5 text-[12px] text-fg-muted hover:bg-bg-hover aria-selected:bg-accent-soft aria-selected:font-medium aria-selected:text-fg"
                 >
                   {g.label}
                 </button>

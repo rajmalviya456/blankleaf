@@ -22,6 +22,8 @@ const EDITOR_KEYS: [string, string[], string[]][] = [
   ],
   ['Collapse or expand everything (Markdown, code)', ['⌃⌥[', '⌃⌥]'], ['Ctrl+Alt+[', 'Ctrl+Alt+]']],
   ['Indent / outdent', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
+  // Tab indents inside a note, so keyboard users need the way out spelled out.
+  ['Move focus out of the note', ['Esc then Tab'], ['Esc then Tab']],
   ['Tidy a Markdown table, next / previous cell', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
   ['Insert a heading, list, table… (Markdown, start of a line)', ['/'], ['/']],
 ]

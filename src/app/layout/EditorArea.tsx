@@ -177,6 +177,8 @@ export function EditorArea({
   const toolbar = useAppStore((s) => s.settings.showToolbar && !s.session.zen) && !locked
   return (
     <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col bg-bg${zen ? ' np-zen' : ''}`}>
+      {/* The page's top heading, for screen-reader users who jump by headings. */}
+      <h1 className="sr-only">Blankleaf</h1>
       {activeId && toolbar && showToolbar && <Toolbar key={toolbarNote} noteId={toolbarNote!} />}
       {activeId ? (
         <div className="flex min-h-0 flex-1">
