@@ -31,7 +31,7 @@ function UnlockedEditor({
 }) {
   const settings = useAppStore((s) => s.settings)
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
-  const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
+  const spellcheck = useAppStore((s) => s.settings.spellcheck)
   const stored = useAppStore((s) => s.notes[noteId]?.locked)
   const fontSize = useNoteFontSize(noteId)
   const font = useNoteFont(noteId)

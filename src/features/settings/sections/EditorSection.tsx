@@ -35,6 +35,23 @@ export function EditorSection({ settings: s, update }: Props) {
           onChange={(showToolbar) => update({ showToolbar })}
         />
       </Row>
+      <Row
+        label="Live Markdown"
+        hint="Markdown notes look formatted as you type: bold looks bold, headings look big. The ** and # marks show on the line you’re editing."
+      >
+        <Toggle
+          label="Live Markdown"
+          checked={s.liveMarkdown}
+          onChange={(liveMarkdown) => update({ liveMarkdown })}
+        />
+      </Row>
+      <Row label="Spell check" hint="Underlines misspelled words in every note.">
+        <Toggle
+          label="Spell check"
+          checked={s.spellcheck}
+          onChange={(spellcheck) => update({ spellcheck })}
+        />
+      </Row>
       <Row label="Line numbers">
         <Toggle
           label="Line numbers"

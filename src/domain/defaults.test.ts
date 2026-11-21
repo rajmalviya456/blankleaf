@@ -23,6 +23,15 @@ describe('mergeSettings', () => {
     })
   })
 
+  it('has live Markdown and spell check off until turned on', () => {
+    expect(DEFAULT_SETTINGS.liveMarkdown).toBe(false)
+    expect(DEFAULT_SETTINGS.spellcheck).toBe(false)
+    expect(mergeSettings({ liveMarkdown: true, spellcheck: true })).toMatchObject({
+      liveMarkdown: true,
+      spellcheck: true,
+    })
+  })
+
   it('keeps an emoji skin tone from 0 (default) to 5 and drops anything else', () => {
     expect(DEFAULT_SETTINGS.emojiSkinTone).toBe(0)
     expect(mergeSettings({ emojiSkinTone: 3 }).emojiSkinTone).toBe(3)

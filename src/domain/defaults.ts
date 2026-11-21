@@ -27,6 +27,8 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   backupReminderDays: 7,
   notesSort: 'edited',
   emojiSkinTone: 0,
+  liveMarkdown: false,
+  spellcheck: false,
 }) as Settings
 
 /** Merge stored settings over defaults, keeping only known keys with matching types. */
@@ -45,6 +47,18 @@ export function mergeSettings(stored: Partial<Settings> | undefined): Settings {
   if (!['auto', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'es'].includes(out.spellLanguage))
     out.spellLanguage = 'auto'
   return out
+}
+
+/**
+ * Spell check is one switch for every note. Before, each note had its own: anyone who had
+ * turned it on for a note starts with it on, until the app-wide switch is saved.
+ */
+export function carryOverSpellcheck(
+  stored: Partial<Settings> | undefined,
+  notes: { spellcheck?: boolean }[],
+): boolean {
+  if (typeof stored?.spellcheck === 'boolean') return stored.spellcheck
+  return notes.some((n) => n.spellcheck === true)
 }
 
 export function emptySession(): Session {

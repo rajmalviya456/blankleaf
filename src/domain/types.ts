@@ -60,7 +60,10 @@ export interface Note {
   mode: NoteMode
   language: LanguageId
   wrap: boolean
-  /** Browser spell check for this note. Off unless turned on. */
+  /**
+   * Spell check used to be switched per note. Now one app-wide setting decides; this is only
+   * read once, so people who had it on for any note start with it on.
+   */
   spellcheck?: boolean
   /** Labels for organizing notes (see domain/tags). */
   tags?: string[]
@@ -134,6 +137,10 @@ export interface Settings {
   /** 0 disables the reminder. */
   backupReminderDays: number
   notesSort: NotesSort
+  /** Markdown notes hide their marks and look formatted while you type. */
+  liveMarkdown: boolean
+  /** Underline misspelled words, in every note. */
+  spellcheck: boolean
   /** Skin tone for people emoji: 0 is the default yellow, 1 (light) to 5 (dark). */
   emojiSkinTone: number
 }

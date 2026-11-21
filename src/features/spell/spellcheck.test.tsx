@@ -26,7 +26,8 @@ afterEach(() => setSpellServiceForTests(null))
 function setup(content: string, spellcheck = true) {
   const store = initStore(createAppStore())
   const s = () => store.getState()
-  const id = s().newNote({ content, spellcheck })
+  s().updateSettings({ spellcheck })
+  const id = s().newNote({ content })
   const { container } = render(<Editor noteId={id} />)
   const view = EditorView.findFromDOM(container.querySelector('.cm-editor') as HTMLElement)!
   return { s, id, view, container }
@@ -108,8 +109,8 @@ describe('spell check language', () => {
     )
     const store = initStore(createAppStore())
     const s = () => store.getState()
-    s().updateSettings({ spellLanguage: 'en-US' })
-    const id = s().newNote({ content: '- the house la casa', spellcheck: true })
+    s().updateSettings({ spellLanguage: 'en-US', spellcheck: true })
+    const id = s().newNote({ content: '- the house la casa' })
     const { container } = render(<Editor noteId={id} />)
     await waitFor(() => expect(marked(container)).toEqual(['la', 'casa']))
     act(() => s().updateSettings({ spellLanguage: 'es' }))

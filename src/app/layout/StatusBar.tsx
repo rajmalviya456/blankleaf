@@ -116,6 +116,8 @@ const menuItem =
 /** On narrower windows the settings that don't fit in the bar live here (shown below 1280px). */
 function MoreSettings({ note, line, col }: { note: Note; line: number; col: number }) {
   const s = () => getStore().getState()
+  const spellcheck = useAppStore((st) => st.settings.spellcheck)
+  const liveMarkdown = useAppStore((st) => st.settings.liveMarkdown)
   return (
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
@@ -146,15 +148,27 @@ function MoreSettings({ note, line, col }: { note: Note; line: number; col: numb
             Wrap long lines
           </DropdownMenu.CheckboxItem>
           <DropdownMenu.CheckboxItem
-            checked={!!note.spellcheck}
-            onCheckedChange={() => s().toggleSpellcheck(note.id)}
+            checked={spellcheck}
+            onCheckedChange={() => s().toggleSpellcheck()}
             className={menuItem}
           >
             <span aria-hidden className="w-3">
-              {note.spellcheck ? '✓' : ''}
+              {spellcheck ? '✓' : ''}
             </span>
             Spell check
           </DropdownMenu.CheckboxItem>
+          {note.mode === 'markdown' && (
+            <DropdownMenu.CheckboxItem
+              checked={liveMarkdown}
+              onCheckedChange={() => s().updateSettings({ liveMarkdown: !liveMarkdown })}
+              className={menuItem}
+            >
+              <span aria-hidden className="w-3">
+                {liveMarkdown ? '✓' : ''}
+              </span>
+              Live Markdown
+            </DropdownMenu.CheckboxItem>
+          )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item
             onSelect={() => tagsStore.getState().open(note.id)}
@@ -179,6 +193,8 @@ function MoreSettings({ note, line, col }: { note: Note; line: number; col: numb
 }
 
 function NoteInfo({ note }: { note: Note }) {
+  const spellcheck = useAppStore((s) => s.settings.spellcheck)
+  const liveMarkdown = useAppStore((s) => s.settings.liveMarkdown)
   const head = useAppStore((s) => s.session.perTab[note.id]?.head ?? 0)
   const anchor = useAppStore((s) => s.session.perTab[note.id]?.anchor)
   const content = useDeferredValue(note.content)
@@ -221,13 +237,25 @@ function NoteInfo({ note }: { note: Note }) {
       >
         {note.tags?.length ? `Tags: ${note.tags.length}` : 'Add tags'}
       </button>
+      {note.mode === 'markdown' && (
+        <button
+          type="button"
+          aria-pressed={liveMarkdown}
+          title="Show Markdown formatted as you type, in every Markdown note"
+          onClick={() => getStore().getState().updateSettings({ liveMarkdown: !liveMarkdown })}
+          className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
+        >
+          Live Markdown: {liveMarkdown ? 'on' : 'off'}
+        </button>
+      )}
       <button
         type="button"
-        title="Toggle spell check for this note"
-        onClick={() => getStore().getState().toggleSpellcheck(note.id)}
+        aria-pressed={spellcheck}
+        title="Check spelling in every note"
+        onClick={() => getStore().getState().toggleSpellcheck()}
         className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
       >
-        Spelling: {note.spellcheck ? 'on' : 'off'}
+        Spelling: {spellcheck ? 'on' : 'off'}
       </button>
       <MoreSettings note={note} line={line} col={col} />
       {isLargeDoc(content.length) && (

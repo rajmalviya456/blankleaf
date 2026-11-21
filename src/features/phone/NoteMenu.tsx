@@ -173,6 +173,8 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
   const s = () => getStore().getState()
   const setSize = (n: number) => noteId && s().setNoteFontSize(noteId, n, true)
   const font = useNoteFont(noteId)
+  const spellcheck = useAppStore((st) => st.settings.spellcheck)
+  const liveMarkdown = useAppStore((st) => st.settings.liveMarkdown)
 
   return (
     <Dialog.Root open={open && !!note} onOpenChange={(o) => !o && onClose()}>
@@ -197,9 +199,16 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                 />
                 <SwitchRow
                   label="Spell check"
-                  on={!!note.spellcheck}
-                  onToggle={() => s().toggleSpellcheck(noteId)}
+                  on={spellcheck}
+                  onToggle={() => s().toggleSpellcheck()}
                 />
+                {note.mode === 'markdown' && (
+                  <SwitchRow
+                    label="Live Markdown"
+                    on={liveMarkdown}
+                    onToggle={() => s().updateSettings({ liveMarkdown: !liveMarkdown })}
+                  />
+                )}
               </Group>
               <Group>
                 <div className={row + ' justify-between'}>
