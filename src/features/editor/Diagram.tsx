@@ -1,7 +1,5 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
-
-/** Ready-made drawings for static copies (print, export). */
-export const ReadyDiagrams = createContext<Map<string, string> | undefined>(undefined)
+import { useContext, useEffect, useState, useSyncExternalStore } from 'react'
+import { ReadyDiagrams } from './readyDiagrams'
 
 const watchTheme = (cb: () => void) => {
   const observer = new MutationObserver(cb)

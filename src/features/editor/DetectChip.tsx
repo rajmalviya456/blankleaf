@@ -1,26 +1,12 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useStore } from 'zustand'
-import { createStore } from 'zustand/vanilla'
 import { languageMeta } from '../../domain/languages'
-import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
+import { detectStore } from './detectStore'
 
 /** How long "Detected Python" stays up when nobody touches it. */
 const SHOW_MS = 10_000
-
-interface DetectState {
-  detected: { noteId: string; language: LanguageId } | null
-  show(noteId: string, language: LanguageId): void
-  clear(): void
-}
-
-/** The format auto-detect just picked, so the chip can say so. */
-export const detectStore = createStore<DetectState>((set) => ({
-  detected: null,
-  show: (noteId, language) => set({ detected: { noteId, language } }),
-  clear: () => set({ detected: null }),
-}))
 
 /** "Detected Python · Undo": a wrong guess takes one click to fix. */
 export function DetectChip({ noteId }: { noteId: string }) {

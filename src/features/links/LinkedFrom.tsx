@@ -1,20 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Link2 } from 'lucide-react'
-import { backlinks } from '../../domain/links'
 import { displayTitle } from '../../domain/title'
-import type { Note } from '../../domain/types'
-import { getStore, useAppStore } from '../../store/store'
-
-/** Ids of the notes linking to this one, as one string so the selector only re-renders on change. */
-export function useLinkedFrom(noteId: string): Note[] {
-  const ids = useAppStore((s) =>
-    backlinks(s.notes, noteId)
-      .map((n) => n.id)
-      .join(' '),
-  )
-  const notes = getStore().getState().notes
-  return ids ? ids.split(' ').flatMap((id) => (notes[id] ? [notes[id]] : [])) : []
-}
+import { getStore } from '../../store/store'
+import { useLinkedFrom } from './useLinkedFrom'
 
 const label = (n: number) => `Linked from ${n} ${n === 1 ? 'note' : 'notes'}`
 
