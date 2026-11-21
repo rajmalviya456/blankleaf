@@ -1,9 +1,10 @@
 import * as Popover from '@radix-ui/react-popover'
 import { Omega } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { getActiveView } from '../editor/activeView'
 import { insertText } from '../toolbar/editCommands'
+import { EMOJI_CATEGORIES, loadEmoji, type EmojiCategoryId, type EmojiGroup } from './emoji'
 import { SYMBOL_GROUPS, findSymbols, type Sym } from './symbols'
 import { symbolStore } from './symbolStore'
 
@@ -11,11 +12,36 @@ import { symbolStore } from './symbolStore'
 export function SymbolPicker({ className, disabled }: { className: string; disabled?: boolean }) {
   const open = useStore(symbolStore, (s) => s.open)
   const setOpen = symbolStore.getState().setOpen
-  const [tab, setTab] = useState(SYMBOL_GROUPS[0].id)
+  const [tab, setTab] = useState<string>(SYMBOL_GROUPS[0].id)
+  const [category, setCategory] = useState<EmojiCategoryId>('smileys')
   const [query, setQuery] = useState('')
+  const [emoji, setEmoji] = useState<EmojiGroup[] | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  // Every emoji is a big list, so it loads the first time the picker opens.
+  useEffect(() => {
+    if (!open || emoji) return
+    let live = true
+    loadEmoji().then(
+      (groups) => {
+        if (!live) return
+        setEmoji(groups)
+        setFailed(false)
+      },
+      () => live && setFailed(true),
+    )
+    return () => {
+      live = false
+    }
+  }, [open, emoji])
+
+  const allEmoji = emoji?.flatMap((g) => g.items) ?? []
+  const onEmojiTab = tab === 'emoji'
   const shown: Sym[] = query.trim()
-    ? findSymbols(query)
-    : (SYMBOL_GROUPS.find((g) => g.id === tab)?.items ?? [])
+    ? findSymbols(query, allEmoji)
+    : onEmojiTab
+      ? (emoji?.find((g) => g.id === category)?.items ?? [])
+      : (SYMBOL_GROUPS.find((g) => g.id === tab)?.items ?? [])
 
   const pick = (char: string) => {
     const view = getActiveView()
@@ -70,7 +96,39 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
                   {g.label}
                 </button>
               ))}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={onEmojiTab}
+                onClick={() => setTab('emoji')}
+                className="rounded px-2 py-0.5 text-[12px] text-fg-muted hover:bg-bg-hover aria-selected:bg-accent-soft aria-selected:font-medium aria-selected:text-fg"
+              >
+                Emoji
+              </button>
             </div>
+          )}
+          {!query.trim() && onEmojiTab && (
+            <div role="tablist" aria-label="Emoji categories" className="flex justify-between">
+              {EMOJI_CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={category === c.id}
+                  aria-label={c.label}
+                  title={c.label}
+                  onClick={() => setCategory(c.id)}
+                  className="grid size-8 place-items-center rounded text-[16px] hover:bg-bg-hover aria-selected:bg-accent-soft"
+                >
+                  <span aria-hidden="true">{c.icon}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {(onEmojiTab || query.trim()) && !emoji && (
+            <p role="status" className="px-1 text-[12px] text-fg-faint">
+              {failed ? 'Couldn’t load emoji. Close and open again to retry.' : 'Loading emoji…'}
+            </p>
           )}
           <div className="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto">
             {shown.map((s) => (
