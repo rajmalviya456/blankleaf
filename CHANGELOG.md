@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/rajmalviya456/blankleaf/compare/v1.18.4...v1.19.0) (2026-11-21)
+
+
+### Features
+
+* **symbols:** offer every emoji in the picker ([#115](https://github.com/rajmalviya456/blankleaf/issues/115)) ([b4468d8](https://github.com/rajmalviya456/blankleaf/commit/b4468d82f7ce3ef59de87e12225de4ece7f949bc))
+
 ## [1.18.4](https://github.com/rajmalviya456/blankleaf/compare/v1.18.3...v1.18.4) (2026-11-21)
 
 
