@@ -134,4 +134,6 @@ export interface Settings {
   /** 0 disables the reminder. */
   backupReminderDays: number
   notesSort: NotesSort
+  /** Skin tone for people emoji: 0 is the default yellow, 1 (light) to 5 (dark). */
+  emojiSkinTone: number
 }

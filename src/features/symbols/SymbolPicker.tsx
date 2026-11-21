@@ -4,7 +4,15 @@ import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { getActiveView } from '../editor/activeView'
 import { insertText } from '../toolbar/editCommands'
-import { EMOJI_CATEGORIES, loadEmoji, type EmojiCategoryId, type EmojiGroup } from './emoji'
+import { getStore, useAppStore } from '../../store/store'
+import {
+  EMOJI_CATEGORIES,
+  SKIN_TONES,
+  loadEmoji,
+  withTone,
+  type EmojiCategoryId,
+  type EmojiGroup,
+} from './emoji'
 import { SYMBOL_GROUPS, findSymbols, type Sym } from './symbols'
 import { symbolStore } from './symbolStore'
 
@@ -17,6 +25,7 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
   const [query, setQuery] = useState('')
   const [emoji, setEmoji] = useState<EmojiGroup[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const tone = useAppStore((s) => s.settings.emojiSkinTone)
 
   // Every emoji is a big list, so it loads the first time the picker opens.
   useEffect(() => {
@@ -37,11 +46,14 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
 
   const allEmoji = emoji?.flatMap((g) => g.items) ?? []
   const onEmojiTab = tab === 'emoji'
-  const shown: Sym[] = query.trim()
-    ? findSymbols(query, allEmoji)
-    : onEmojiTab
-      ? (emoji?.find((g) => g.id === category)?.items ?? [])
-      : (SYMBOL_GROUPS.find((g) => g.id === tab)?.items ?? [])
+  const shown: Sym[] = (
+    query.trim()
+      ? findSymbols(query, allEmoji)
+      : onEmojiTab
+        ? (emoji?.find((g) => g.id === category)?.items ?? [])
+        : (SYMBOL_GROUPS.find((g) => g.id === tab)?.items ?? [])
+  ).map((s) => withTone(s, tone))
+  const showTones = !!emoji && (onEmojiTab || (!!query.trim() && shown.some((s) => s.skins)))
 
   const pick = (char: string) => {
     const view = getActiveView()
@@ -121,6 +133,26 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
                   className="grid size-8 place-items-center rounded text-[16px] hover:bg-bg-hover aria-selected:bg-accent-soft"
                 >
                   <span aria-hidden="true">{c.icon}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {showTones && (
+            <div role="group" aria-label="Skin tone" className="flex items-center gap-1">
+              <span aria-hidden="true" className="mr-auto px-1 text-[12px] text-fg-muted">
+                Skin tone
+              </span>
+              {SKIN_TONES.map((t) => (
+                <button
+                  key={t.tone}
+                  type="button"
+                  aria-pressed={tone === t.tone}
+                  aria-label={t.label}
+                  title={t.label}
+                  onClick={() => getStore().getState().updateSettings({ emojiSkinTone: t.tone })}
+                  className="grid size-7 place-items-center rounded text-[15px] hover:bg-bg-hover aria-pressed:bg-accent-soft aria-pressed:ring-1 aria-pressed:ring-accent"
+                >
+                  <span aria-hidden="true">{t.sample}</span>
                 </button>
               ))}
             </div>

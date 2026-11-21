@@ -4,6 +4,8 @@ export interface Sym {
   name: string
   /** Extra words to find it by. */
   tags?: string[]
+  /** The same emoji in skin tones 1 (light) to 5 (dark), if it has them. */
+  skins?: string[]
 }
 
 const group = (
