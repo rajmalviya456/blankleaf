@@ -2,6 +2,8 @@
 export interface Sym {
   char: string
   name: string
+  /** Extra words to find it by. */
+  tags?: string[]
 }
 
 const group = (
@@ -130,75 +132,30 @@ export const SYMBOL_GROUPS = [
 ⇧ shift key
 ⏎ return key`,
   ),
-  group(
-    'emoji',
-    'Emoji',
-    `
-😀 grinning face
-😂 tears of joy
-🙂 slightly smiling face
-😉 winking face
-😍 heart eyes
-🤔 thinking face
-😅 sweat smile
-😎 cool sunglasses
-😢 crying face
-😡 angry face
-😴 sleeping face
-🤯 mind blown
-🥳 party face
-👍 thumbs up
-👎 thumbs down
-👏 clapping hands
-🙏 folded hands please thanks
-💪 flexed biceps strong
-👋 waving hand
-👀 eyes
-❤️ red heart
-🔥 fire
-✨ sparkles
-⭐ star
-🎉 party popper celebrate
-🚀 rocket
-💡 light bulb idea
-✅ check mark button done
-❌ cross mark
-❓ question mark
-❗ exclamation mark
-⚠️ warning sign
-📌 pushpin
-📎 paperclip
-📝 memo note
-📅 calendar
-⏰ alarm clock
-📚 books
-💻 laptop
-📱 mobile phone
-☕ coffee
-🍕 pizza
-🎯 direct hit target
-🏆 trophy
-💰 money bag
-🛒 shopping cart
-🏠 house home
-✈️ airplane travel
-🌍 globe earth
-🐛 bug
-🔒 locked
-🔑 key
-🔗 link`,
-  ),
 ]
 
-/** Symbols whose name (or the character itself) matches every word typed, best first. */
-export function findSymbols(query: string): Sym[] {
+const wordsOf = (s: Sym) => [
+  ...s.name.toLowerCase().split(/[\s:,]+/),
+  ...(s.tags ?? []).map((t) => t.toLowerCase()),
+]
+
+/**
+ * Symbols (and any extra, such as emoji) whose name, keywords or the character itself match
+ * every word typed, best first.
+ */
+export function findSymbols(query: string, extra: Sym[] = []): Sym[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
   const words = q.split(/\s+/)
-  const all = SYMBOL_GROUPS.flatMap((g) => g.items)
-  const hits = all.filter(
-    (s) => s.char === q || words.every((w) => s.name.split(' ').some((n) => n.startsWith(w))),
-  )
-  // Names that start with what's typed first.
-  return hits.sort((a, b) => Number(!a.name.startsWith(q)) - Number(!b.name.startsWith(q)))
+  const all = [...SYMBOL_GROUPS.flatMap((g) => g.items), ...extra]
+  const hits = all.filter((s) => {
+    if (s.char === q) return true
+    const own = wordsOf(s)
+    return words.every((w) => own.some((n) => n.startsWith(w)))
+  })
+  // Names that start with what's typed first; otherwise keep the list's order.
+  return hits
+    .map((s, i) => ({ s, i, rank: Number(!s.name.toLowerCase().startsWith(q)) }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map((h) => h.s)
 }

@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EditorView } from '@codemirror/view'
 import { describe, expect, it } from 'vitest'
@@ -25,9 +25,9 @@ function setup(content = 'Go ') {
 }
 
 describe('symbols', () => {
-  it('has arrows, maths, money, typography, marks and emoji', () => {
+  it('has arrows, maths, money, typography and marks', () => {
     const all = SYMBOL_GROUPS.flatMap((g) => g.items.map((i) => i.char))
-    for (const c of ['→', '±', '½', '€', '₹', '—', '©', '✓', '😀']) expect(all).toContain(c)
+    for (const c of ['→', '±', '½', '€', '₹', '—', '©', '✓']) expect(all).toContain(c)
   })
 
   it('finds symbols by name', () => {
@@ -42,7 +42,8 @@ describe('symbol picker', () => {
     const { s, id, user } = setup()
     await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
     await user.type(await screen.findByRole('searchbox', { name: 'Find a symbol' }), 'right arrow')
-    await user.click(screen.getByRole('button', { name: 'right arrow' }))
+    // The emoji ➡️ shares the name; plain symbols come first.
+    await user.click(screen.getAllByRole('button', { name: 'right arrow' })[0])
     expect(s().notes[id].content).toBe('Go →')
   })
 
@@ -50,8 +51,26 @@ describe('symbol picker', () => {
     const { s, id, user } = setup()
     await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
     await user.click(await screen.findByRole('tab', { name: 'Emoji' }))
-    await user.click(screen.getByRole('button', { name: 'grinning face' }))
+    await user.click(await screen.findByRole('button', { name: 'grinning face' }))
     expect(s().notes[id].content).toBe('Go 😀')
+  })
+
+  it('shows every emoji category, not just a few favourites', async () => {
+    const { s, id, user } = setup()
+    await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
+    await user.click(await screen.findByRole('tab', { name: 'Emoji' }))
+    const categories = await screen.findByRole('tablist', { name: 'Emoji categories' })
+    await user.click(within(categories).getByRole('tab', { name: 'Food & drink' }))
+    await user.click(await screen.findByRole('button', { name: 'taco' }))
+    expect(s().notes[id].content).toBe('Go 🌮')
+  })
+
+  it('finds any emoji by search', async () => {
+    const { s, id, user } = setup()
+    await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
+    await user.type(await screen.findByRole('searchbox', { name: 'Find a symbol' }), 'unicorn')
+    await user.click(await screen.findByRole('button', { name: 'unicorn' }))
+    expect(s().notes[id].content).toBe('Go 🦄')
   })
 
   it('opens from the command palette', () => {

@@ -70,6 +70,19 @@ for (const scheme of ['light', 'dark'] as const) {
       })
     }
 
+    test('every emoji category', async ({ page }) => {
+      await runCommand(page, 'Insert symbol or emoji…')
+      await page.getByRole('tab', { name: 'Emoji', exact: true }).click()
+      const categories = page.getByRole('tablist', { name: 'Emoji categories' })
+      for (const name of ['Smileys', 'People', 'Food & drink', 'Flags']) {
+        await categories.getByRole('tab', { name }).click()
+        expect(await violations(page)).toEqual([])
+      }
+      await categories.getByRole('tab', { name: 'Food & drink' }).click()
+      await page.getByRole('button', { name: 'taco', exact: true }).click()
+      await expect(editor(page)).toContainText('🌮')
+    })
+
     test('command palette with no matches', async ({ page }) => {
       await openPalette(page)
       await page.keyboard.type('zzzqqq')
