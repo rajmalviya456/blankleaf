@@ -1,7 +1,13 @@
 import { plainLineBreaks } from '../domain/lineEndings'
 import { openDb, SCHEMA_VERSION, type Meta, type BlankleafDB } from '../db/db'
 import { loadAll, purgeExpiredTrash, putKv, saveNote } from '../db/notesRepo'
-import { emptySession, mergeSettings, newNoteDraft, WELCOME_CONTENT } from '../domain/defaults'
+import {
+  carryOverSpellcheck,
+  emptySession,
+  mergeSettings,
+  newNoteDraft,
+  WELCOME_CONTENT,
+} from '../domain/defaults'
 import type { Note, Session, Settings } from '../domain/types'
 import { clearJournal, readAllJournals } from './journal'
 import type { AppState } from './store'
@@ -76,7 +82,10 @@ export async function loadInitialState(db: BlankleafDB, now: number): Promise<In
     console.error('Blankleaf: could not empty old Trash items', e),
   )
   const data = await loadAll(db)
-  const settings: Settings = mergeSettings(data.settings)
+  const settings: Settings = {
+    ...mergeSettings(data.settings),
+    spellcheck: carryOverSpellcheck(data.settings, data.notes),
+  }
   const meta: Meta = { ...DEFAULT_META, ...data.meta }
   const notes: Record<string, Note> = Object.fromEntries(
     data.notes.map((n) => [n.id, { ...n, content: plainLineBreaks(n.content) }]),

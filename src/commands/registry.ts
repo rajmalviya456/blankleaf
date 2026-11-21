@@ -388,11 +388,15 @@ export const COMMANDS: Command[] = [
     section: 'View',
     keywords: ['spelling', 'typos', 'proofread'],
     shortcuts: [],
-    when: hasActive,
-    run: (ctx) => {
-      const id = noteId(ctx)
-      if (id) st(ctx).toggleSpellcheck(id)
-    },
+    run: (ctx) => st(ctx).toggleSpellcheck(),
+  },
+  {
+    id: 'view.liveMarkdown',
+    title: 'Toggle live Markdown',
+    section: 'View',
+    keywords: ['format as you type', 'rich text', 'wysiwyg', 'preview'],
+    shortcuts: [],
+    run: (ctx) => st(ctx).updateSettings({ liveMarkdown: !st(ctx).settings.liveMarkdown }),
   },
   {
     id: 'view.toolbar',

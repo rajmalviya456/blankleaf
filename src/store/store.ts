@@ -81,7 +81,8 @@ export interface AppActions {
   setNoteMode(id: string, mode: NoteMode): void
   setLanguage(id: string, lang: LanguageId): void
   toggleWrap(id: string): void
-  toggleSpellcheck(id: string): void
+  /** Spell check on or off for every note. */
+  toggleSpellcheck(): void
   setNoteTags(id: string, tags: string[]): void
   setWordGoal(id: string, goal: number | undefined): void
   /** This note's text size on laptops or phones (clamped); the Settings size clears it. */
@@ -418,9 +419,8 @@ export function createAppStore(
       setNoteTags(id, tags) {
         if (get().notes[id]) patchNote(id, { tags: tags.length ? tags : undefined })
       },
-      toggleSpellcheck(id) {
-        const note = get().notes[id]
-        if (note) patchNote(id, { spellcheck: !note.spellcheck })
+      toggleSpellcheck() {
+        get().updateSettings({ spellcheck: !get().settings.spellcheck })
       },
 
       trashNote(id) {

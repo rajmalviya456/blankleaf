@@ -176,7 +176,7 @@ describe('controls on locked notes', () => {
 
   it('spell check applies while unlocked', async () => {
     const { s, id } = await lockedNote('secret')
-    act(() => s().toggleSpellcheck(id))
+    act(() => s().toggleSpellcheck())
     setSpellServiceForTests({
       check: async (words) => new Set(words.filter((w) => w === 'secrt')),
       suggest: async () => [],

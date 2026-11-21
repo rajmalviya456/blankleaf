@@ -44,6 +44,20 @@ function useLanguageExtension(lang: LanguageId, large: boolean): Extension | nul
   return !large && loaded?.lang === lang ? loaded.ext : null
 }
 
+/** "Formatted while you type", loaded the first time a Markdown note needs it. */
+function useLiveMarkdown(enabled: boolean): Extension | null {
+  const [ext, setExt] = useState<Extension | null>(null)
+  useEffect(() => {
+    if (!enabled || ext) return
+    let alive = true
+    void import('./liveMarkdown').then((m) => alive && setExt(m.liveMarkdown))
+    return () => {
+      alive = false
+    }
+  }, [enabled, ext])
+  return enabled ? ext : null
+}
+
 /** While a note's format is 'auto', guess it from the content and save the guess. */
 function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
   const deferred = useDeferredValue(content)
@@ -64,7 +78,7 @@ function useAutoDetect(noteId: string, lang: LanguageId, content: string) {
 export function Editor({ noteId, side = false }: { noteId: string; side?: boolean }) {
   const content = useAppStore((s) => s.notes[noteId]?.content ?? '')
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
-  const spellcheck = useAppStore((s) => s.notes[noteId]?.spellcheck ?? false)
+  const spellcheck = useAppStore((s) => s.settings.spellcheck)
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const settings = useAppStore((s) => s.settings)
   const zen = useAppStore((s) => s.session.zen)
@@ -84,6 +98,7 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     large,
   })
   const langExt = useLanguageExtension(lang, large)
+  const live = useLiveMarkdown(lang === 'markdown' && settings.liveMarkdown && !large && !!langExt)
   const links = useMemo(() => noteLinks(noteId), [noteId])
   const longOn = useStore(readabilityStore, (r) => r.highlight && r.noteId === noteId)
   const rulerAt = languageMeta(lang).kind === 'code' ? settings.codeRuler : 0
@@ -94,8 +109,9 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     if (spell) ext.push(spell)
     if (longOn) ext.push(longSentences)
     if (ruler) ext.push(ruler)
+    if (live) ext.push(live)
     return langExt ? [...ext, langExt, calmSyntax] : ext
-  }, [base, links, spell, ruler, longOn, langExt])
+  }, [base, links, spell, ruler, longOn, langExt, live])
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)

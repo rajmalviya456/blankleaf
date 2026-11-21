@@ -107,9 +107,6 @@ describe('working in the side note', () => {
     const wrapA = s().notes[a].wrap
     run('view.wrap')
     expect(s().notes[a].wrap).toBe(!wrapA)
-    run('view.spellcheck')
-    expect(s().notes[a].spellcheck).toBe(true)
-    expect(s().notes[b].spellcheck).toBeFalsy()
     run('note.pin')
     expect(s().notes[a].pinned).toBe(true)
     expect(s().notes[b].pinned).toBe(false)
