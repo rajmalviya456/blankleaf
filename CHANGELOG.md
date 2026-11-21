@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/rajmalviya456/blankleaf/compare/v1.19.0...v1.20.0) (2026-11-21)
+
+
+### Features
+
+* **symbols:** pick a skin tone for people emoji ([#118](https://github.com/rajmalviya456/blankleaf/issues/118)) ([958ee85](https://github.com/rajmalviya456/blankleaf/commit/958ee85d4606dd1c85f6b29d8dec2fb2541e80fb))
+
 ## [1.19.0](https://github.com/rajmalviya456/blankleaf/compare/v1.18.4...v1.19.0) (2026-11-21)
 
 
