@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/rajmalviya456/blankleaf/compare/v1.20.1...v1.21.0) (2026-11-21)
+
+
+### Features
+
+* live Markdown and app-wide spell check, switchable anywhere ([#122](https://github.com/rajmalviya456/blankleaf/issues/122)) ([22b70f3](https://github.com/rajmalviya456/blankleaf/commit/22b70f32cde4785dba28e67dae1b42ef4cff26e8))
+
 ## [1.20.1](https://github.com/rajmalviya456/blankleaf/compare/v1.20.0...v1.20.1) (2026-11-21)
 
 
