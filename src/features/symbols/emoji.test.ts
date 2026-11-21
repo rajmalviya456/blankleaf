@@ -77,3 +77,44 @@ describe('skin tones', () => {
     expect(withTone(byChar('👋'), 5)).toMatchObject({ char: '👋🏿', name: 'waving hand' })
   })
 })
+
+describe('emoji categories people expect (as on the iPhone keyboard)', () => {
+  const groups = buildEmojiGroups(data, () => true)
+  const tab = (id: string) => groups.find((g) => g.id === id)!.items.map((e) => e.char)
+
+  it('puts hearts with symbols, first', () => {
+    for (const c of ['❤️', '💔', '💕']) {
+      expect(tab('symbols')).toContain(c)
+      expect(tab('smileys')).not.toContain(c)
+    }
+    expect(tab('symbols')[0]).toBe('💌')
+  })
+
+  it('puts sun, moon, weather and fire with nature', () => {
+    for (const c of ['☀️', '🌙', '🌈', '❄️', '🔥', '🌊']) {
+      expect(tab('animals')).toContain(c)
+      expect(tab('travel')).not.toContain(c)
+    }
+  })
+
+  it('puts clothes with people', () => {
+    for (const c of ['👕', '👗', '👟', '👑']) {
+      expect(tab('people')).toContain(c)
+      expect(tab('objects')).not.toContain(c)
+    }
+  })
+
+  it('puts clocks and timers with objects', () => {
+    for (const c of ['⏰', '⌛', '🕐']) {
+      expect(tab('objects')).toContain(c)
+      expect(tab('travel')).not.toContain(c)
+    }
+  })
+
+  it('keeps faces with smileys and still lists every emoji once', () => {
+    expect(tab('smileys')).toContain('😺')
+    const all = groups.flatMap((g) => g.items.map((e) => e.char))
+    expect(new Set(all).size).toBe(all.length)
+    expect(all.length).toBe(data.filter((e) => e.group !== undefined && e.group !== 2).length)
+  })
+})

@@ -1,3 +1,4 @@
+import meta from 'emojibase-data/meta/groups.json'
 import type { Sym } from './symbols'
 
 /** Emoji categories in Unicode order, numbered as in emojibase's groups (2 is skin-tone parts). */
@@ -14,6 +15,25 @@ export const EMOJI_CATEGORIES = [
 ] as const
 
 export type EmojiCategoryId = (typeof EMOJI_CATEGORIES)[number]['id']
+
+/**
+ * Unicode's own groups put some emoji where people don't look for them. These move to the
+ * tab the iPhone keyboard uses, so hearts are with symbols and the sun with nature.
+ */
+const MOVED: Record<string, EmojiCategoryId> = {
+  heart: 'symbols',
+  emotion: 'symbols', // 💯 💢 💬 💤
+  'sky-weather': 'animals', // ☀️ 🌙 🌈 🔥 🌊
+  time: 'objects', // ⏰ ⌛ 🕐
+  clothing: 'people', // 👕 👗 👟 👑
+}
+
+const subgroupNames = meta.subgroups as Record<string, string>
+
+function categoryOf(e: RawEmoji): EmojiCategoryId | undefined {
+  const moved = e.subgroup === undefined ? undefined : MOVED[subgroupNames[e.subgroup]]
+  return moved ?? EMOJI_CATEGORIES.find((c) => c.group === e.group)?.id
+}
 export interface EmojiGroup {
   id: EmojiCategoryId
   label: string
@@ -26,6 +46,7 @@ interface RawEmoji {
   label: string
   tags?: string[]
   group?: number
+  subgroup?: number
   order?: number
   version: number
   skins?: { emoji: string; tone?: number | number[] }[]
@@ -61,7 +82,7 @@ export function buildEmojiGroups(
     id: c.id,
     label: c.label,
     items: data
-      .filter((e) => e.group === c.group && e.version < limit)
+      .filter((e) => categoryOf(e) === c.id && e.version < limit)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       .map((e) => ({ char: e.emoji, name: e.label, tags: e.tags, skins: tonesOf(e) })),
   }))
