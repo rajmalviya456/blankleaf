@@ -12,6 +12,7 @@ import { longSentences } from '../readability/longSentences'
 import { readabilityStore } from '../readability/readabilityStore'
 import { useStore } from 'zustand'
 import { columnRuler } from './ruler'
+import { focusMode, typewriter } from './writingModes'
 import { loadLanguage } from './languages'
 import type { LanguageId } from '../../domain/types'
 import { getStore, useAppStore } from '../../store/store'
@@ -110,8 +111,10 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     if (longOn) ext.push(longSentences)
     if (ruler) ext.push(ruler)
     if (live) ext.push(live)
+    if (settings.typewriter) ext.push(typewriter)
+    if (settings.focusMode) ext.push(focusMode)
     return langExt ? [...ext, langExt, calmSyntax] : ext
-  }, [base, links, spell, ruler, longOn, langExt, live])
+  }, [base, links, spell, ruler, longOn, langExt, live, settings.typewriter, settings.focusMode])
   useAutoDetect(noteId, lang, content)
   const scrollCleanup = useRef<() => void>(() => {})
   const viewRef = useRef<EditorView | null>(null)

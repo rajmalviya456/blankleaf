@@ -228,6 +228,16 @@ describe('Outline', () => {
     expect(s().session.perTab[id]?.previewMode).toBe('split')
   })
 
+  it('can keep the outline open beside the note', async () => {
+    const { s } = setup(DOC, true)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Outline' }))
+    await user.click(
+      await screen.findByRole('menuitemcheckbox', { name: 'Keep open beside the note' }),
+    )
+    expect(s().settings.showOutline).toBe(true)
+  })
+
   it('says when there are no headings yet', async () => {
     setup('no headings', true)
     const user = userEvent.setup()

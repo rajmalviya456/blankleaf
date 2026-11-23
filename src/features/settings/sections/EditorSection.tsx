@@ -45,6 +45,33 @@ export function EditorSection({ settings: s, update }: Props) {
           onChange={(liveMarkdown) => update({ liveMarkdown })}
         />
       </Row>
+      <Row
+        label="Outline"
+        hint="A list of headings beside Markdown notes. Click one to jump to it."
+      >
+        <Toggle
+          label="Outline"
+          checked={s.showOutline}
+          onChange={(showOutline) => update({ showOutline })}
+        />
+      </Row>
+      <Row
+        label="Typewriter mode"
+        hint="Keeps the line you’re typing on in the middle of the screen."
+      >
+        <Toggle
+          label="Typewriter mode"
+          checked={s.typewriter}
+          onChange={(typewriter) => update({ typewriter })}
+        />
+      </Row>
+      <Row label="Focus mode" hint="Dims every paragraph except the one you’re writing.">
+        <Toggle
+          label="Focus mode"
+          checked={s.focusMode}
+          onChange={(focusMode) => update({ focusMode })}
+        />
+      </Row>
       <Row label="Spell check" hint="Underlines misspelled words in every note.">
         <Toggle
           label="Spell check"

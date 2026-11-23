@@ -23,6 +23,14 @@ describe('mergeSettings', () => {
     })
   })
 
+  it('has the outline, typewriter and focus modes off until turned on', () => {
+    expect(DEFAULT_SETTINGS).toMatchObject({
+      showOutline: false,
+      typewriter: false,
+      focusMode: false,
+    })
+  })
+
   it('has live Markdown and spell check off until turned on', () => {
     expect(DEFAULT_SETTINGS.liveMarkdown).toBe(false)
     expect(DEFAULT_SETTINGS.spellcheck).toBe(false)

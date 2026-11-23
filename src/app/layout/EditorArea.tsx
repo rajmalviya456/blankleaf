@@ -10,6 +10,7 @@ import { openLink } from '../../features/links/openLink'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
 import { ReadabilityPanel } from '../../features/readability/ReadabilityPanel'
+import { OutlinePanel } from '../../features/outline/OutlinePanel'
 import { SampleHint } from '../../features/sample/SampleHint'
 import { VoiceStatus } from '../../features/voice/VoiceStatus'
 import { useNoteFontSize } from '../../features/editor/useNoteFontSize'
@@ -106,6 +107,23 @@ function OpenNote({
   )
 }
 
+/** The outline beside a Markdown note being edited, while the setting is on. */
+function Outline({ noteId }: { noteId: string }) {
+  const show = useAppStore((s) => {
+    const note = s.notes[noteId]
+    const view = s.session.perTab[noteId]?.previewMode ?? 'edit'
+    return (
+      s.settings.showOutline &&
+      !s.session.zen &&
+      !!note &&
+      note.mode === 'markdown' &&
+      !note.locked &&
+      view !== 'preview'
+    )
+  })
+  return show ? <OutlinePanel noteId={noteId} /> : null
+}
+
 /** A second note beside the active one, on screens wide enough for two. */
 function SideNote({ activeId }: { activeId: string }) {
   const wide = useIsWide()
@@ -189,6 +207,7 @@ export function EditorArea({
             {!zen && <DetectChip noteId={activeId} />}
             {!zen && <ReadabilityPanel key={`readability-${activeId}`} noteId={activeId} />}
           </div>
+          {!viewOverride && <Outline noteId={activeId} />}
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>
       ) : (

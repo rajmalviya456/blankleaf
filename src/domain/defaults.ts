@@ -29,6 +29,9 @@ export const DEFAULT_SETTINGS: Settings = Object.freeze({
   emojiSkinTone: 0,
   liveMarkdown: false,
   spellcheck: false,
+  showOutline: false,
+  typewriter: false,
+  focusMode: false,
 }) as Settings
 
 /** Merge stored settings over defaults, keeping only known keys with matching types. */

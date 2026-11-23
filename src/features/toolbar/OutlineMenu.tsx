@@ -3,7 +3,7 @@ import { ChevronDown, ListTree } from 'lucide-react'
 import { useState } from 'react'
 import { outline } from '../../domain/outline'
 import { PHONE_QUERY } from '../../lib/media'
-import { getStore } from '../../store/store'
+import { getStore, useAppStore } from '../../store/store'
 import { phoneStore } from '../phone/phoneStore'
 
 /** Show the heading at `from` in the editor, leaving preview-only so the jump is visible. */
@@ -27,6 +27,8 @@ export function OutlineMenu({
   disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const pinned = useAppStore((st) => st.settings.showOutline)
+  const phone = typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches
   // Read when the menu opens: no need to re-parse the note on every keystroke.
   const headings = open ? outline(getStore().getState().notes[noteId]?.content ?? '') : []
   return (
@@ -64,6 +66,23 @@ export function OutlineMenu({
                 {h.text}
               </DropdownMenu.Item>
             ))
+          )}
+          {!phone && (
+            <>
+              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+              <DropdownMenu.CheckboxItem
+                checked={pinned}
+                onCheckedChange={() =>
+                  getStore().getState().updateSettings({ showOutline: !pinned })
+                }
+                className="flex min-h-8 cursor-default items-center gap-2 rounded px-2 py-1 text-[12.5px] text-fg-muted outline-none data-[highlighted]:bg-bg-hover data-[highlighted]:text-fg"
+              >
+                <span aria-hidden className="w-3">
+                  {pinned ? '✓' : ''}
+                </span>
+                Keep open beside the note
+              </DropdownMenu.CheckboxItem>
+            </>
           )}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
