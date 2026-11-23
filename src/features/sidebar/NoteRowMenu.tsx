@@ -2,6 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   Download,
   ExternalLink,
+  History,
   MoreHorizontal,
   Pin,
   PinOff,
@@ -13,6 +14,7 @@ import type { Note } from '../../domain/types'
 import { exportNote } from '../backup/actions'
 import { tagsStore } from '../tags/tagsStore'
 import { shareStore } from '../share/shareStore'
+import { historyStore } from '../history/historyStore'
 import { getStore } from '../../store/store'
 
 const item =
@@ -71,6 +73,12 @@ export function NoteRowMenu({
               </DropdownMenu.Item>
               <DropdownMenu.Item className={item} onSelect={() => exportNote(note.id)}>
                 <Download size={16} aria-hidden /> Download
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                className={item}
+                onSelect={() => historyStore.getState().open(note.id)}
+              >
+                <History size={16} aria-hidden /> Version history…
               </DropdownMenu.Item>
             </>
           )}

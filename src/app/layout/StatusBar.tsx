@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { AlertTriangle, Check, Loader, Share2, MoreHorizontal } from 'lucide-react'
+import { AlertTriangle, Check, History, Loader, Share2, MoreHorizontal } from 'lucide-react'
 import { useDeferredValue, useMemo } from 'react'
 import { useCalmValue } from '../../lib/useCalmValue'
 import type { Note } from '../../domain/types'
@@ -17,6 +17,7 @@ import { getStore, useAppStore } from '../../store/store'
 import { FormatPicker } from '../../features/editor/FormatPicker'
 import { LinkedFromMenu } from '../../features/links/LinkedFrom'
 import { shareStore } from '../../features/share/shareStore'
+import { historyStore } from '../../features/history/historyStore'
 import { SharesIndicator } from '../../features/share/SharesIndicator'
 import { isLargeDoc } from '../../domain/languages'
 
@@ -278,6 +279,18 @@ export function StatusBar() {
       <div className="ml-auto flex shrink-0 items-center gap-2 bg-bg-sunken pl-2">
         <SharesIndicator />
         {note && <LinkedFromMenu noteId={note.id} />}
+        {note && !note.locked && (
+          <button
+            type="button"
+            aria-label="Version history"
+            title="Version history: see and restore earlier versions"
+            onClick={() => historyStore.getState().open(note.id)}
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-md:hidden"
+          >
+            <History size={11} aria-hidden />
+            History
+          </button>
+        )}
         {note && !note.locked && (
           <button
             type="button"
