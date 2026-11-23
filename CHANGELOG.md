@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/rajmalviya456/blankleaf/compare/v1.22.0...v1.23.0) (2026-11-23)
+
+
+### Features
+
+* **history:** open version history from the status bar and the note row menu ([#126](https://github.com/rajmalviya456/blankleaf/issues/126)) ([87dea14](https://github.com/rajmalviya456/blankleaf/commit/87dea14e1c5c83eb454db96d755ff5d787f2524c))
+
 ## [1.22.0](https://github.com/rajmalviya456/blankleaf/compare/v1.21.0...v1.22.0) (2026-11-23)
 
 
