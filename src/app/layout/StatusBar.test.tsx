@@ -69,6 +69,31 @@ describe('StatusBar', () => {
     expect(shareStore.getState().dialogNoteId).toBe(id)
     act(() => shareStore.getState().close())
   })
+
+  it('History button opens version history for the active note', async () => {
+    const { id } = setup()
+    const { historyStore } = await import('../../features/history/historyStore')
+    await userEvent.click(screen.getByRole('button', { name: 'Version history' }))
+    expect(historyStore.getState().noteId).toBe(id)
+    act(() => historyStore.getState().close())
+  })
+
+  it('narrow windows find version history in the More note settings menu', async () => {
+    const { id } = setup()
+    const { historyStore } = await import('../../features/history/historyStore')
+    await userEvent.click(screen.getByRole('button', { name: 'More note settings' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Version history…' }))
+    expect(historyStore.getState().noteId).toBe(id)
+    act(() => historyStore.getState().close())
+  })
+
+  it('has no History button for a locked note', () => {
+    const { id, s } = setup()
+    act(() =>
+      s().applyLock(id, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id }, 'L'),
+    )
+    expect(screen.queryByRole('button', { name: 'Version history' })).toBeNull()
+  })
 })
 
 describe('StatusBar for assistive tech', () => {

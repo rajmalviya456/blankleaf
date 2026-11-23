@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { editor, newNote, openApp, statusBar, tabs } from './helpers'
+import { editor, newNote, openApp, statusBar } from './helpers'
 
 test('version history: bring back earlier text, then undo the restore', async ({ page }) => {
   await page.clock.install()
@@ -11,8 +11,7 @@ test('version history: bring back earlier text, then undo the restore', async ({
   await page.keyboard.type(' and more')
   await expect(statusBar(page)).toContainText('Saved')
 
-  await tabs(page).last().click({ button: 'right' })
-  await page.getByRole('menuitem', { name: 'Version history…' }).click()
+  await statusBar(page).getByRole('button', { name: 'Version history' }).click()
   const dialog = page.getByRole('dialog', { name: 'Version history' })
   const older = dialog.getByRole('option').filter({ hasText: /^(?!Now).*first draft$/ })
   await older.click()

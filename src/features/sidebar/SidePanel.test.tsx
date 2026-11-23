@@ -4,6 +4,7 @@ import { Rail } from '../../app/layout/Rail'
 import { SidePanel } from '../../app/layout/SidePanel'
 import { createAppStore, initStore } from '../../store/store'
 import { toastStore } from '../../ui/toast'
+import { stubMedia } from '../../../tests/media'
 
 function setup() {
   const store = initStore(createAppStore())
@@ -127,6 +128,20 @@ describe('Rail + SidePanel', () => {
     expect(t.msg).toBe('Moved “delete me” to Trash')
     act(() => t.action!.run())
     expect(s().notes[gone].deletedAt).toBeNull()
+  })
+
+  it('a note row menu (touch screens) opens its version history', async () => {
+    const media = stubMedia({ touch: true })
+    const { s, mk, user } = setup()
+    const id = mk('old words')
+    act(() => s().closeTab(id))
+    const { historyStore } = await import('../history/historyStore')
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    await user.click(screen.getByRole('button', { name: 'Actions for old words' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Version history…' }))
+    expect(historyStore.getState().noteId).toBe(id)
+    act(() => historyStore.getState().close())
+    media.restore()
   })
 
   it('Delete key on a focused note row moves it to Trash', async () => {
