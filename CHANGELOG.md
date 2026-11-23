@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/rajmalviya456/blankleaf/compare/v1.21.0...v1.22.0) (2026-11-23)
+
+
+### Features
+
+* outline panel, typewriter mode and focus mode ([#124](https://github.com/rajmalviya456/blankleaf/issues/124)) ([493f534](https://github.com/rajmalviya456/blankleaf/commit/493f534f5358c2ef6ea0e8ac5cbb634979f8c987))
+
 ## [1.21.0](https://github.com/rajmalviya456/blankleaf/compare/v1.20.1...v1.21.0) (2026-11-21)
 
 
