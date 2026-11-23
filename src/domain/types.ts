@@ -141,6 +141,12 @@ export interface Settings {
   liveMarkdown: boolean
   /** Underline misspelled words, in every note. */
   spellcheck: boolean
+  /** A list of the headings beside Markdown notes. */
+  showOutline: boolean
+  /** Keep the line you're typing on in the middle of the editor. */
+  typewriter: boolean
+  /** Dim every paragraph except the one you're in. */
+  focusMode: boolean
   /** Skin tone for people emoji: 0 is the default yellow, 1 (light) to 5 (dark). */
   emojiSkinTone: number
 }

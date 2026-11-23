@@ -1,4 +1,4 @@
-/** A Markdown note's headings, for the Outline menu. */
+/** A Markdown note's headings, for the Outline menu and panel. */
 export interface Heading {
   level: number
   text: string
@@ -36,4 +36,11 @@ export function outline(text: string): Heading[] {
     from += line.length + 1
   }
   return headings
+}
+
+/** Index of the heading the cursor is under (the last one at or before it), or -1. */
+export function currentHeading(headings: Heading[], pos: number): number {
+  let found = -1
+  for (let i = 0; i < headings.length && headings[i].from <= pos; i++) found = i
+  return found
 }

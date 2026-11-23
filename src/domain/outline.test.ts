@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { outline } from './outline'
+import { currentHeading, outline } from './outline'
 
 describe('outline', () => {
   it('lists headings with their level and where they start', () => {
@@ -38,5 +38,18 @@ describe('outline', () => {
       { level: 1, text: 'Title', from: 0 },
       { level: 2, text: 'Sub', from: 13 },
     ])
+  })
+})
+
+describe('currentHeading', () => {
+  const list = outline('# A\ntext\n## B\nmore')
+  it('is the last heading at or before the cursor', () => {
+    expect(currentHeading(list, 0)).toBe(0)
+    expect(currentHeading(list, 6)).toBe(0)
+    expect(currentHeading(list, list[1].from)).toBe(1)
+    expect(currentHeading(list, 999)).toBe(1)
+  })
+  it('is -1 above the first heading', () => {
+    expect(currentHeading(outline('intro\n# A'), 0)).toBe(-1)
   })
 })
