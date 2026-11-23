@@ -187,6 +187,15 @@ function MoreSettings({ note, line, col }: { note: Note; line: number; col: numb
               Word goal…
             </DropdownMenu.Item>
           )}
+          {!note.locked && (
+            <DropdownMenu.Item
+              onSelect={() => historyStore.getState().open(note.id)}
+              className={menuItem}
+            >
+              <span className="w-3" />
+              Version history…
+            </DropdownMenu.Item>
+          )}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
@@ -285,7 +294,7 @@ export function StatusBar() {
             aria-label="Version history"
             title="Version history: see and restore earlier versions"
             onClick={() => historyStore.getState().open(note.id)}
-            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-md:hidden"
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
           >
             <History size={11} aria-hidden />
             History

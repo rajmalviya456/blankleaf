@@ -78,6 +78,15 @@ describe('StatusBar', () => {
     act(() => historyStore.getState().close())
   })
 
+  it('narrow windows find version history in the More note settings menu', async () => {
+    const { id } = setup()
+    const { historyStore } = await import('../../features/history/historyStore')
+    await userEvent.click(screen.getByRole('button', { name: 'More note settings' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Version history…' }))
+    expect(historyStore.getState().noteId).toBe(id)
+    act(() => historyStore.getState().close())
+  })
+
   it('has no History button for a locked note', () => {
     const { id, s } = setup()
     act(() =>
