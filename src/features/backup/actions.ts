@@ -1,6 +1,8 @@
 import { OPENABLE_EXTENSIONS } from '../../domain/languages'
 /** User-facing backup actions: export all, export one note, import files. */
-import { importVersions } from '../../db/versionsRepo'
+import { deleteVersions, importVersions } from '../../db/versionsRepo'
+import { scrubJournals } from '../../store/journal'
+import { forgetState } from '../editor/historyCache'
 import { getActiveDb } from '../../store/dataReset'
 import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -203,11 +205,22 @@ export async function applyImport(plan: ImportPlan, restoreDeleted: boolean): Pr
   // The dialog may have stayed open while notes were edited: never replace newer text.
   const now = getStore().getState().notes
   const incoming = planned.filter((n) => !now[n.id] || n.updatedAt > now[n.id].updatedAt)
+  // Notes this import locks: like locking one here, every readable copy kept of it must go.
+  const newlyLocked = incoming.filter((n) => n.locked && now[n.id] && !now[n.id].locked)
   getStore().getState().importNotes(incoming)
+  for (const n of newlyLocked) {
+    forgetState(n.id)
+    scrubJournals(n.id)
+  }
   if (restoreDeleted && plan.deletedRestorable.length) {
     await getActiveDb()?.tombstones.bulkDelete(plan.deletedRestorable.map((n) => n.id))
   }
   const db = getActiveDb()
+  if (db && newlyLocked.length)
+    await deleteVersions(
+      db,
+      newlyLocked.map((n) => n.id),
+    )
   if (db && plan.versions) {
     // Versions of a permanently deleted note come back only if the note itself does.
     const skipped = new Set(restoreDeleted ? [] : plan.deletedRestorable.map((n) => n.id))
