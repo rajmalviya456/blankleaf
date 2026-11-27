@@ -1,3 +1,4 @@
+import { listVersions } from '../db/versionsRepo'
 import { openDb, type BlankleafDB } from '../db/db'
 import { loadAll } from '../db/notesRepo'
 import { toastStore } from '../ui/toast'
@@ -77,16 +78,27 @@ describe('persistence', () => {
     expect(all.settings?.tabSize).toBe(4)
   })
 
-  it('close of empty untitled note hard-deletes from db', async () => {
+  it('closing a blank tab that was never saved leaves nothing behind', async () => {
     const { s, p } = setup()
     const id = s().newNote()
-    s().updateContent(id, 'x')
+    s().closeTab(id)
+    await p.flush()
+    expect(await stored(id)).toBeUndefined()
+    expect(s().notes[id]).toBeUndefined()
+    expect((await loadAll(db)).tombstoneIds).toEqual([])
+  })
+
+  it('closing a note that was emptied moves it to Trash, keeping its history', async () => {
+    const { s, p } = setup()
+    const id = s().newNote()
+    s().updateContent(id, 'words worth keeping')
     await p.flush()
     s().updateContent(id, '')
     s().closeTab(id)
     await p.flush()
-    expect(await stored(id)).toBeUndefined()
-    expect((await loadAll(db)).tombstoneIds).toEqual([])
+    expect(s().notes[id].deletedAt).not.toBeNull()
+    expect((await stored(id))?.deletedAt).not.toBeNull()
+    expect((await listVersions(db, id)).map((v) => v.content)).toContain('words worth keeping')
   })
 
   it('purging a trashed note deletes it with a tombstone', async () => {
