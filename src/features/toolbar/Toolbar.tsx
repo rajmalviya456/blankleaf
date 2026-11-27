@@ -102,6 +102,7 @@ function Btn({
   disabled,
   pressed,
   keys,
+  danger,
 }: {
   icon: LucideIcon
   label: string
@@ -110,6 +111,8 @@ function Btn({
   pressed?: boolean
   /** Keyboard shortcut shown in the tooltip. */
   keys?: string
+  /** Destructive: turns red on hover and focus. */
+  danger?: boolean
 }) {
   return (
     <button
@@ -121,7 +124,7 @@ function Btn({
       // Keep the editor's selection: don't steal focus on mouse down.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={btn}
+      className={danger ? `${btn} hover:text-danger focus-visible:text-danger` : btn}
     >
       <Icon size={15} strokeWidth={1.75} />
     </button>
@@ -213,7 +216,7 @@ function FontMenu({ noteId }: { noteId: string }) {
   )
 }
 
-const Sep = () => <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border" />
+const Sep = () => <span aria-hidden data-separator className="mx-1.5 h-4 w-px shrink-0 bg-border" />
 
 /**
  * Formatting writes Markdown, so a plain-text note becomes a Markdown note. Undo on the toast
@@ -486,7 +489,8 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
             label="Share via link"
             onClick={() => shareStore.getState().open(noteId)}
           />
-          <Btn icon={Trash2} label="Move to Trash" onClick={() => s().trashNote(noteId)} />
+          <Sep />
+          <Btn icon={Trash2} label="Move to Trash" danger onClick={() => s().trashNote(noteId)} />
         </>
       )}
     </div>
