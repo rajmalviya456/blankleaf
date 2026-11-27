@@ -2,7 +2,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { peekPendingQuery, takePendingQuery, takePendingSubmit } from './pendingQuery'
 import { useShallow } from 'zustand/react/shallow'
 import {
   COMMANDS,
@@ -40,7 +41,28 @@ export function CommandPalette() {
   const mode = useAppStore((s) => s.ui.paletteMode)
   const state = useAppStore((s) => s)
   const notes = useAppStore(useShallow(liveNotesSorted))
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(peekPendingQuery)
+  // Once on screen, take everything typed while loading (including the last letters).
+  const input = useRef<HTMLInputElement>(null)
+  // Enter pressed while loading: counted here, sent once the filtered list is on screen.
+  const [queuedEnter, setQueuedEnter] = useState(0)
+  useEffect(() => {
+    const typed = takePendingQuery()
+    const submit = takePendingSubmit()
+    if (!typed && !submit) return
+    // Not cancelled on cleanup: strict mode re-runs this effect, and the text is taken once.
+    setTimeout(() => {
+      if (typed) setQuery(typed)
+      if (submit) setQueuedEnter((n) => n + 1)
+    })
+  }, [])
+  useEffect(() => {
+    if (!queuedEnter) return
+    // The list (a child) has chosen its top result by now: choose it.
+    setTimeout(() =>
+      input.current?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })),
+    )
+  }, [queuedEnter])
   const store = getStore()
   const p = platform()
 
@@ -99,6 +121,7 @@ export function CommandPalette() {
                 </button>
               )}
               <Command.Input
+                ref={input}
                 autoFocus
                 value={query}
                 onValueChange={setQuery}

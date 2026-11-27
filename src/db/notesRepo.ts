@@ -20,7 +20,9 @@ export function saveNote(db: BlankleafDB, note: Note, expectedRev: number): Prom
     // A missing row with expectedRev > 0 was deleted elsewhere: re-insert so no text is lost.
     const rev = (current ? storedRev : 0) + 1
     await db.notes.put({ ...note, rev })
-    await saveVersion(db, note.id, note.content, note.updatedAt)
+    await saveVersion(db, note.id, note.content, note.updatedAt, {
+      replaced: current && { content: current.content, at: current.updatedAt },
+    })
     return { ok: true, rev }
   })
 }

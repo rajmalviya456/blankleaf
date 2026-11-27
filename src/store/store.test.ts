@@ -369,6 +369,17 @@ describe('app store: the side note stays consistent', () => {
     expect(s().session.openTabIds).not.toContain(a)
     expect(s().notes[p].pinned).toBe(true)
   })
+
+  it('a pinned note that an import moves to Trash loses its pin, like trashing it here', () => {
+    const { store, s } = setup()
+    const p = filled(store)
+    s().togglePin(p)
+    s().importNotes([{ ...s().notes[p], deletedAt: 9000, updatedAt: 9000 }])
+    expect(s().notes[p].pinned).toBe(false)
+    s().restoreNote(p)
+    // Back in the list as an ordinary note, not a pinned one without its tab.
+    expect(s().notes[p]).toMatchObject({ deletedAt: null, pinned: false })
+  })
 })
 
 describe('app store: locked notes', () => {

@@ -8,7 +8,7 @@ import { useAppStore } from '../../store/store'
 import { Toolbar } from '../toolbar/Toolbar'
 
 export function PhoneToolbarDock({ noteId }: { noteId: string }) {
-  const box = useRef<HTMLDivElement>(null)
+  const box = useRef<HTMLElement>(null)
   const [more, setMore] = useState(false)
   const locked = useAppStore((s) => !!s.notes[noteId]?.locked)
 
@@ -27,8 +27,9 @@ export function PhoneToolbarDock({ noteId }: { noteId: string }) {
 
   if (locked) return null
   return (
-    <div
+    <section
       ref={box}
+      aria-label="Editor tools"
       className="np-toolbar-dock relative shrink-0 border-t border-border bg-bg pb-[max(0px,calc(env(safe-area-inset-bottom)-var(--kb,0px)))]"
     >
       <Toolbar noteId={noteId} compact />
@@ -46,6 +47,6 @@ export function PhoneToolbarDock({ noteId }: { noteId: string }) {
           <ChevronRight size={18} />
         </button>
       )}
-    </div>
+    </section>
   )
 }

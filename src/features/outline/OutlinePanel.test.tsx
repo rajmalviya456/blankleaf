@@ -24,6 +24,20 @@ function setup(markdown = true) {
 const outline = () => screen.queryByRole('navigation', { name: 'Outline' })
 
 describe('outline panel', () => {
+  it('shows the new note’s headings straight away when switching to a long note', () => {
+    const { s, id } = setup()
+    const big = s().newNote({ content: '# Big note\n\n' + 'word '.repeat(5000) })
+    s().setLanguage(big, 'markdown')
+    s().updateSettings({ showOutline: true })
+    s().setActive(id)
+    render(<App />)
+    expect(within(outline()!).getByRole('button', { name: 'Plan' })).toBeInTheDocument()
+    act(() => s().setActive(big))
+    const list = within(outline()!).getByRole('list')
+    expect(within(list).getByRole('button', { name: 'Big note' })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: 'Plan' })).toBeNull()
+  })
+
   it('is off until turned on, then lists the headings', () => {
     const { store, s } = setup()
     render(<App />)

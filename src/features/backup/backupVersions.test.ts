@@ -115,3 +115,26 @@ describe('applying an import later', () => {
     expect(store.getState().notes[id].content).toBe('typed while the dialog was open')
   })
 })
+
+describe('importing a locked copy of a note', () => {
+  it('removes the readable versions this browser kept of it', async () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote({ content: 'secret plans' })
+    await saveVersion(db, id, 'secret plans', 100)
+    const lockedCopy = {
+      ...store.getState().notes[id],
+      content: '',
+      updatedAt: Date.now() + 60_000,
+      locked: { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id },
+    }
+    const plan = planImport(store.getState().notes, new Set(), {
+      schemaVersion: 1,
+      exportedAt: lockedCopy.updatedAt,
+      notes: [lockedCopy],
+      settings: DEFAULT_SETTINGS,
+    } as never)
+    await applyImport(plan, false)
+    expect(store.getState().notes[id].locked).toBeTruthy()
+    expect(await listVersions(db, id)).toEqual([])
+  })
+})

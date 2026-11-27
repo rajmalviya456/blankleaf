@@ -204,6 +204,13 @@ export function createAppStore(
       if (!note || note.pinned || !session.openTabIds.includes(id)) return
       const next = withoutTab(session, id)
       if (isBlank(note)) {
+        // Never saved: an unused tab, gone without a trace. Saved, then emptied: it may have
+        // version history worth keeping, so it goes to Trash like any other note.
+        if (note.rev > 0) {
+          patchNote(id, { deletedAt: now(), pinned: false })
+          set({ session: withoutNote(next, id) })
+          return
+        }
         const { [id]: _gone, ...rest } = notes
         set({ notes: rest, session: next })
         return
@@ -488,11 +495,12 @@ export function createAppStore(
         let session = get().session
         for (const n of incoming) {
           const current = notes[n.id]
-          // A note already here keeps its pin; imported ones arrive unpinned.
+          // A note already here keeps its pin; imported ones arrive unpinned, and a note in
+          // Trash is never pinned (as when it is trashed here).
           notes[n.id] = {
             ...n,
             content: plainLineBreaks(n.content),
-            pinned: current?.pinned ?? false,
+            pinned: n.deletedAt === null && (current?.pinned ?? false),
             rev: current ? current.rev : 0,
           }
           if (n.deletedAt !== null) session = withoutNote(session, n.id)

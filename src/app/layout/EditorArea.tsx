@@ -207,7 +207,7 @@ export function EditorArea({
             {!zen && <DetectChip noteId={activeId} />}
             {!zen && <ReadabilityPanel key={`readability-${activeId}`} noteId={activeId} />}
           </div>
-          {!viewOverride && <Outline noteId={activeId} />}
+          {!viewOverride && <Outline key={`outline-${activeId}`} noteId={activeId} />}
           {!viewOverride && <SideNote activeId={activeId} />}
         </div>
       ) : (
