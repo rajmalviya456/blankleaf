@@ -8,6 +8,7 @@ import { shareStore } from '../features/share/shareStore'
 import { useZenFullscreen } from './layout/useZenFullscreen'
 import { compareStore } from '../features/compare/compareStore'
 import { historyStore } from '../features/history/historyStore'
+import { PaletteLoading } from '../features/palette/PaletteLoading'
 import { printStore } from '../features/print/printStore'
 import { tagsStore } from '../features/tags/tagsStore'
 import { lockStore } from '../features/lock/lockStore'
@@ -42,9 +43,8 @@ const SettingsDialog = lazy(() =>
 const ShortcutsSheet = lazy(() =>
   import('../features/help/ShortcutsSheet').then((m) => ({ default: m.ShortcutsSheet })),
 )
-const CommandPalette = lazy(() =>
-  import('../features/palette/CommandPalette').then((m) => ({ default: m.CommandPalette })),
-)
+const loadPalette = () => import('../features/palette/CommandPalette')
+const CommandPalette = lazy(() => loadPalette().then((m) => ({ default: m.CommandPalette })))
 const ShareDialog = lazy(() =>
   import('../features/share/ShareDialog').then((m) => ({ default: m.ShareDialog })),
 )
@@ -155,7 +155,11 @@ function Dialogs() {
   }
   return (
     <Suspense fallback={null}>
-      {seen.palette && <CommandPalette />}
+      {seen.palette && (
+        <Suspense fallback={palette ? <PaletteLoading /> : null}>
+          <CommandPalette />
+        </Suspense>
+      )}
       {seen.shortcuts && <ShortcutsSheet />}
       {seen.settings && <SettingsDialog />}
       {seen.about && <AboutDialog />}
@@ -184,6 +188,11 @@ export function App() {
 
   useEffect(() => onSystemThemeChange(setSystemDark), [])
   useEffect(() => applySettingsToDocument(settings, systemDark), [settings, systemDark])
+  // The palette is the most used dialog: fetch its code once the app is idle, so ⌘K opens at once.
+  useEffect(() => {
+    const t = setTimeout(() => void loadPalette().catch(() => undefined), 2000)
+    return () => clearTimeout(t)
+  }, [])
 
   useGlobalShortcuts()
   useBackupReminder()

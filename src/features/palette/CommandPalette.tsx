@@ -3,6 +3,7 @@ import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { takePendingQuery } from './pendingQuery'
 import { useShallow } from 'zustand/react/shallow'
 import {
   COMMANDS,
@@ -40,7 +41,7 @@ export function CommandPalette() {
   const mode = useAppStore((s) => s.ui.paletteMode)
   const state = useAppStore((s) => s)
   const notes = useAppStore(useShallow(liveNotesSorted))
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(takePendingQuery)
   const store = getStore()
   const p = platform()
 
