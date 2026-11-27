@@ -1,6 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { AlertTriangle, Check, History, Loader, Share2, MoreHorizontal } from 'lucide-react'
-import { useDeferredValue, useMemo } from 'react'
+import { useDeferredValue, useMemo, type ReactNode } from 'react'
 import { useCalmValue } from '../../lib/useCalmValue'
 import type { Note } from '../../domain/types'
 import { tagsStore } from '../../features/tags/tagsStore'
@@ -20,6 +20,20 @@ import { shareStore } from '../../features/share/shareStore'
 import { historyStore } from '../../features/history/historyStore'
 import { SharesIndicator } from '../../features/share/SharesIndicator'
 import { isLargeDoc } from '../../domain/languages'
+
+/** A named set of status bar items: screen readers announce the name, and it lays out as one. */
+function Group({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div role="group" aria-label={label} className="flex shrink-0 items-center gap-2.5">
+      {children}
+    </div>
+  )
+}
+
+/** Hairline between groups. */
+function Divider({ className = '' }: { className?: string }) {
+  return <span aria-hidden className={`h-3 w-px shrink-0 bg-border ${className}`} />
+}
 
 /** Above this size, skip word counting so typing stays smooth. */
 const WORD_COUNT_LIMIT = 2_000_000
@@ -66,7 +80,7 @@ function PreviewSwitch({ noteId }: { noteId: string }) {
     { value: 'preview', label: 'Preview' },
   ] as const
   return (
-    <div role="radiogroup" aria-label="View" className="flex rounded bg-bg-hover/60 p-px">
+    <div role="radiogroup" aria-label="View" className="flex rounded-md bg-bg-hover p-px">
       {options.map((o) => (
         <button
           key={o.value}
@@ -75,8 +89,10 @@ function PreviewSwitch({ noteId }: { noteId: string }) {
           aria-checked={view === o.value}
           onClick={() => getStore().getState().setViewState(noteId, { previewMode: o.value })}
           className={[
-            'rounded-sm px-1.5 leading-[18px]',
-            view === o.value ? 'bg-bg-elev text-fg' : 'hover:text-fg',
+            'rounded px-1.5 leading-[18px]',
+            view === o.value
+              ? 'bg-bg font-medium text-fg shadow-sm ring-1 ring-border'
+              : 'hover:text-fg',
           ].join(' ')}
         >
           {o.label}
@@ -219,55 +235,64 @@ function NoteInfo({ note }: { note: Note }) {
   )
   return (
     <>
-      <FormatPicker noteId={note.id} />
-      {note.mode === 'markdown' && <PreviewSwitch noteId={note.id} />}
-      <span className="max-md:hidden">
-        Ln {line}, Col {col}
-      </span>
-      <span className={selected ? 'max-md:hidden' : undefined}>
-        {!big && `${words.toLocaleString()} words · `}
-        {chars.toLocaleString()} chars
-        {!big && words > 0 && ` · ${readingMinutes(words)} min read`}
-      </span>
-      {!note.locked && !big && <GoalButton note={note} words={words} />}
-      {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
-      <button
-        type="button"
-        title="Toggle word wrap"
-        onClick={() => getStore().getState().toggleWrap(note.id)}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
-      >
-        Wrap: {note.wrap ? 'on' : 'off'}
-      </button>
-      <button
-        type="button"
-        title="Edit this note's tags"
-        onClick={() => tagsStore.getState().open(note.id)}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
-      >
-        {note.tags?.length ? `Tags: ${note.tags.length}` : 'Add tags'}
-      </button>
-      {note.mode === 'markdown' && (
+      <Group label="Format and view">
+        <FormatPicker noteId={note.id} />
+        {note.mode === 'markdown' && <PreviewSwitch noteId={note.id} />}
+      </Group>
+      <Divider />
+      <Group label="Position and counts">
+        <span className="max-md:hidden">
+          Ln {line}, Col {col}
+        </span>
+        <span className={selected ? 'max-md:hidden' : undefined}>
+          {!big && `${words.toLocaleString()} words · `}
+          {chars.toLocaleString()} chars
+          {!big && words > 0 && ` · ${readingMinutes(words)} min read`}
+        </span>
+        {!note.locked && !big && <GoalButton note={note} words={words} />}
+        {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
+      </Group>
+      <Divider className="max-lg:hidden" />
+      <Group label="Note settings">
         <button
           type="button"
-          aria-pressed={liveMarkdown}
-          title="Show Markdown formatted as you type, in every Markdown note"
-          onClick={() => getStore().getState().updateSettings({ liveMarkdown: !liveMarkdown })}
-          className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
+          aria-pressed={note.wrap}
+          title="Toggle word wrap"
+          onClick={() => getStore().getState().toggleWrap(note.id)}
+          className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg aria-pressed:text-fg max-xl:hidden"
         >
-          Live Markdown: {liveMarkdown ? 'on' : 'off'}
+          Wrap: {note.wrap ? 'on' : 'off'}
         </button>
-      )}
-      <button
-        type="button"
-        aria-pressed={spellcheck}
-        title="Check spelling in every note"
-        onClick={() => getStore().getState().toggleSpellcheck()}
-        className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-xl:hidden"
-      >
-        Spelling: {spellcheck ? 'on' : 'off'}
-      </button>
-      <MoreSettings note={note} line={line} col={col} />
+        <button
+          type="button"
+          title="Edit this note's tags"
+          onClick={() => tagsStore.getState().open(note.id)}
+          className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
+        >
+          {note.tags?.length ? `Tags: ${note.tags.length}` : 'Add tags'}
+        </button>
+        {note.mode === 'markdown' && (
+          <button
+            type="button"
+            aria-pressed={liveMarkdown}
+            title="Show Markdown formatted as you type, in every Markdown note"
+            onClick={() => getStore().getState().updateSettings({ liveMarkdown: !liveMarkdown })}
+            className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg aria-pressed:text-fg max-xl:hidden"
+          >
+            Live Markdown: {liveMarkdown ? 'on' : 'off'}
+          </button>
+        )}
+        <button
+          type="button"
+          aria-pressed={spellcheck}
+          title="Check spelling in every note"
+          onClick={() => getStore().getState().toggleSpellcheck()}
+          className="rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg aria-pressed:text-fg max-xl:hidden"
+        >
+          Spelling: {spellcheck ? 'on' : 'off'}
+        </button>
+        <MoreSettings note={note} line={line} col={col} />
+      </Group>
       {isLargeDoc(content.length) && (
         <span className="text-warn" title="Syntax highlighting is off to keep typing fast">
           Large file · highlighting off
@@ -289,29 +314,30 @@ export function StatusBar() {
         <SharesIndicator />
         {note && <LinkedFromMenu noteId={note.id} />}
         {note && !note.locked && (
-          <button
-            type="button"
-            aria-label="Version history"
-            title="Version history: see and restore earlier versions"
-            onClick={() => historyStore.getState().open(note.id)}
-            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
-          >
-            <History size={11} aria-hidden />
-            History
-          </button>
+          <Group label="Note actions">
+            <button
+              type="button"
+              aria-label="Version history"
+              title="Version history: see and restore earlier versions"
+              onClick={() => historyStore.getState().open(note.id)}
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg max-lg:hidden"
+            >
+              <History size={11} aria-hidden />
+              History
+            </button>
+            <button
+              type="button"
+              aria-label="Share note"
+              title="Share note"
+              onClick={() => shareStore.getState().open(note.id)}
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
+            >
+              <Share2 size={11} aria-hidden />
+              Share
+            </button>
+          </Group>
         )}
-        {note && !note.locked && (
-          <button
-            type="button"
-            aria-label="Share note"
-            title="Share note"
-            onClick={() => shareStore.getState().open(note.id)}
-            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-bg-hover hover:text-fg"
-          >
-            <Share2 size={11} />
-            Share
-          </button>
-        )}
+        <Divider />
         <SaveState />
       </div>
     </footer>

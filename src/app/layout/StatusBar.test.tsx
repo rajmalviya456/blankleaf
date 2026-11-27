@@ -97,6 +97,22 @@ describe('StatusBar', () => {
 })
 
 describe('StatusBar for assistive tech', () => {
+  it('groups its items so they read, and look, as a few clear sets', () => {
+    const { id, s } = setup()
+    act(() => s().setNoteMode(id, 'markdown'))
+    const bar = screen.getByRole('contentinfo', { name: 'Status bar' })
+    const view = within(bar).getByRole('group', { name: 'Format and view' })
+    expect(within(view).getByRole('radiogroup', { name: 'View' })).toBeInTheDocument()
+    const counts = within(bar).getByRole('group', { name: 'Position and counts' })
+    expect(counts).toHaveTextContent('words')
+    const settings = within(bar).getByRole('group', { name: 'Note settings' })
+    expect(within(settings).getByRole('button', { name: /^Spelling/ })).toBeInTheDocument()
+    expect(within(settings).getByRole('button', { name: /^Live Markdown/ })).toBeInTheDocument()
+    const actions = within(bar).getByRole('group', { name: 'Note actions' })
+    expect(within(actions).getByRole('button', { name: 'Version history' })).toBeInTheDocument()
+    expect(within(actions).getByRole('button', { name: 'Share note' })).toBeInTheDocument()
+  })
+
   it('is a footer with buttons, and announces only the save state', () => {
     setup()
     const bar = screen.getByRole('contentinfo', { name: 'Status bar' })

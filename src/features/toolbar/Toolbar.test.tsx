@@ -23,6 +23,12 @@ function setup(content: string, markdown: boolean) {
 }
 
 describe('Toolbar', () => {
+  it('keeps Move to Trash apart from the other note actions', () => {
+    setup('x', false)
+    const trash = screen.getByRole('button', { name: 'Move to Trash' })
+    expect(trash.previousElementSibling).toHaveAttribute('data-separator')
+  })
+
   it('Markdown notes get formatting, not the text tools', () => {
     setup('x', true)
     expect(screen.getByRole('button', { name: 'Bold' })).toBeInTheDocument()
