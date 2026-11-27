@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.1](https://github.com/rajmalviya456/blankleaf/compare/v1.24.0...v1.24.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* seven bugs from a bug hunt (palette typing, version history, Trash, import, outline, phone a11y) ([#130](https://github.com/rajmalviya456/blankleaf/issues/130)) ([fa267da](https://github.com/rajmalviya456/blankleaf/commit/fa267da4b21fa95e4830cc3003a237562b10ebf7))
+
 ## [1.24.0](https://github.com/rajmalviya456/blankleaf/compare/v1.23.0...v1.24.0) (2026-11-27)
 
 
