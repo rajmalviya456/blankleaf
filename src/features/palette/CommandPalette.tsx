@@ -2,8 +2,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
-import { peekPendingQuery, takePendingQuery } from './pendingQuery'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { peekPendingQuery, takePendingQuery, takePendingSubmit } from './pendingQuery'
 import { useShallow } from 'zustand/react/shallow'
 import {
   COMMANDS,
@@ -43,9 +43,16 @@ export function CommandPalette() {
   const notes = useAppStore(useShallow(liveNotesSorted))
   const [query, setQuery] = useState(peekPendingQuery)
   // Once on screen, take everything typed while loading (including the last letters).
+  const input = useRef<HTMLInputElement>(null)
   useEffect(() => {
     const typed = takePendingQuery()
     if (typed) setQuery(typed)
+    if (!takePendingSubmit()) return
+    // Enter was pressed while loading: once the list has the results, choose the top one.
+    // Not cancelled on cleanup: strict mode re-runs this effect, and the Enter is taken once.
+    requestAnimationFrame(() =>
+      input.current?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })),
+    )
   }, [])
   const store = getStore()
   const p = platform()
@@ -105,6 +112,7 @@ export function CommandPalette() {
                 </button>
               )}
               <Command.Input
+                ref={input}
                 autoFocus
                 value={query}
                 onValueChange={setQuery}

@@ -1,5 +1,5 @@
 import { getStore } from '../../store/store'
-import { setPendingQuery } from './pendingQuery'
+import { setPendingQuery, submitPendingQuery } from './pendingQuery'
 
 /**
  * Stand-in shown for the moment the command palette's code is loading. It takes the focus away
@@ -19,6 +19,7 @@ export function PaletteLoading() {
             placeholder="Type a command or note title…"
             onChange={(e) => setPendingQuery(e.target.value)}
             onKeyDown={(e) => {
+              if (e.key === 'Enter') submitPendingQuery()
               if (e.key === 'Escape') {
                 setPendingQuery('')
                 getStore().getState().setUi({ paletteOpen: false })

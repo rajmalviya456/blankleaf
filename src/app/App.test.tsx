@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { vi } from 'vitest'
 import { createAppStore, getStore, initStore } from '../store/store'
 import { App } from './App'
 
@@ -39,5 +40,23 @@ describe('App', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Command palette' })
     expect(dialog.querySelector('[cmdk-input]')).toHaveValue('wrap')
     expect(getStore().getState().notes[id].content).toBe(before)
+  })
+
+  it('runs the command when Enter is pressed before the palette has loaded', async () => {
+    vi.resetModules()
+    const { App: FreshApp } = await import('./App')
+    const store = await import('../store/store')
+    store.initStore(store.createAppStore()).getState().newNote()
+    render(
+      <StrictMode>
+        <FreshApp />
+      </StrictMode>,
+    )
+    act(() => store.getStore().getState().setUi({ paletteOpen: true }))
+    const early = screen.getByRole('combobox', { name: 'Command palette' })
+    fireEvent.change(early, { target: { value: 'zen mode' } })
+    fireEvent.keyDown(early, { key: 'Enter' })
+    await waitFor(() => expect(store.getStore().getState().session.zen).toBe(true))
+    expect(store.getStore().getState().ui.paletteOpen).toBe(false)
   })
 })
