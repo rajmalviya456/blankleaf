@@ -44,16 +44,25 @@ export function CommandPalette() {
   const [query, setQuery] = useState(peekPendingQuery)
   // Once on screen, take everything typed while loading (including the last letters).
   const input = useRef<HTMLInputElement>(null)
+  // Enter pressed while loading: counted here, sent once the filtered list is on screen.
+  const [queuedEnter, setQueuedEnter] = useState(0)
   useEffect(() => {
     const typed = takePendingQuery()
-    if (typed) setQuery(typed)
-    if (!takePendingSubmit()) return
-    // Enter was pressed while loading: once the list has the results, choose the top one.
-    // Not cancelled on cleanup: strict mode re-runs this effect, and the Enter is taken once.
-    requestAnimationFrame(() =>
+    const submit = takePendingSubmit()
+    if (!typed && !submit) return
+    // Not cancelled on cleanup: strict mode re-runs this effect, and the text is taken once.
+    setTimeout(() => {
+      if (typed) setQuery(typed)
+      if (submit) setQueuedEnter((n) => n + 1)
+    })
+  }, [])
+  useEffect(() => {
+    if (!queuedEnter) return
+    // The list (a child) has chosen its top result by now: choose it.
+    setTimeout(() =>
       input.current?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })),
     )
-  }, [])
+  }, [queuedEnter])
   const store = getStore()
   const p = platform()
 
