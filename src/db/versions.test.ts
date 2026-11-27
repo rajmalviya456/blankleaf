@@ -43,8 +43,21 @@ describe('version snapshots', () => {
       ['v4', 12 * MIN], // due (5+ min since the last version)
     ])
     const v = await listVersions(db, n.id)
-    expect(v.map((x) => x.content)).toEqual(['v4', 'v3', 'v1']) // newest first
-    expect(v.map((x) => x.at)).toEqual([12 * MIN, 5 * MIN, 0])
+    // At 5 min, the text being replaced (v2) is kept too, so nothing written is lost.
+    expect(v.map((x) => x.content)).toEqual(['v4', 'v3', 'v2', 'v1']) // newest first
+    expect(v.map((x) => x.at)).toEqual([12 * MIN, 5 * MIN, 1 * MIN, 0])
+  })
+
+  it('keeps the text from before a pause when it is later replaced', async () => {
+    const n = note()
+    await edits(n, [
+      ['H', 0],
+      ['Hello, a long draft', 3 * MIN], // too soon for a version of its own
+      ['PASTED OVER', 60 * MIN], // replaces the draft after a long pause
+    ])
+    const v = await listVersions(db, n.id)
+    expect(v.map((x) => x.content)).toEqual(['PASTED OVER', 'Hello, a long draft', 'H'])
+    expect(v.map((x) => x.at)).toEqual([60 * MIN, 3 * MIN, 0])
   })
 
   it('skips empty notes', async () => {

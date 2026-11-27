@@ -21,18 +21,30 @@ export async function listVersions(db: BlankleafDB, noteId: string): Promise<Ver
 /**
  * Save `content` as a version if one is due (or always, with `force`). Call inside a
  * transaction that includes `db.versions`, or on its own.
+ *
+ * `replaced` is the text this save overwrites. When a version is due it is kept first, so the
+ * last words written before a pause are never lost between the 5-minute versions.
  */
 export async function saveVersion(
   db: BlankleafDB,
   noteId: string,
   content: string,
   at: number,
-  { force = false } = {},
+  { force = false, replaced }: { force?: boolean; replaced?: { content: string; at: number } } = {},
 ): Promise<void> {
   if (!content) return
   const last = await ofNote(db, noteId).last()
   if (last?.content === content) return
   if (!force && last && at - last.at < SNAPSHOT_EVERY_MS) return
+  if (
+    last &&
+    replaced?.content &&
+    replaced.content !== last.content &&
+    replaced.content !== content &&
+    replaced.at > last.at &&
+    replaced.at < at
+  )
+    await db.versions.add({ noteId, at: replaced.at, content: replaced.content })
   await db.versions.add({ noteId, at, content })
   const extra = (await ofNote(db, noteId).count()) - VERSIONS_KEPT
   if (extra > 0) await db.versions.bulkDelete(await ofNote(db, noteId).limit(extra).primaryKeys())
