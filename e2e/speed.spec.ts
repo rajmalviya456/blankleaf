@@ -4,6 +4,9 @@ import { newNote, openApp } from './helpers'
 // Typing must never wait for the extras: the preview, spell check, links and the word count all
 // catch up when typing pauses. A long task while typing means one of them ran on a keystroke.
 test('typing in a big note with every extra on never blocks the page', async ({ page }) => {
+  // Setting up 40 notes and a 150 KB note takes most of 30 s on a busy CI runner; what is
+  // measured (no long task while typing) does not depend on the time limit.
+  test.setTimeout(60_000)
   await page.setViewportSize({ width: 1280, height: 800 })
   await openApp(page)
   for (let i = 0; i < 40; i++) await newNote(page, `Note ${i}\n\nSee [[Note ${(i + 1) % 40}]].`)
