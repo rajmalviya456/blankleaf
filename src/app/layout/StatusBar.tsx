@@ -30,9 +30,9 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-/** Hairline between groups. */
+/** Hairline between groups, on wide screens; narrower bars need the room. */
 function Divider({ className = '' }: { className?: string }) {
-  return <span aria-hidden className={`h-3 w-px shrink-0 bg-border ${className}`} />
+  return <span aria-hidden className={`h-3 w-px shrink-0 bg-border max-lg:hidden ${className}`} />
 }
 
 /** Above this size, skip word counting so typing stays smooth. */
@@ -252,7 +252,7 @@ function NoteInfo({ note }: { note: Note }) {
         {!note.locked && !big && <GoalButton note={note} words={words} />}
         {selected && <span className="text-fg">{selectionLabel(selected)}</span>}
       </Group>
-      <Divider className="max-lg:hidden" />
+      <Divider />
       <Group label="Note settings">
         <button
           type="button"
