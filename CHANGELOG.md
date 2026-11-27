@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/rajmalviya456/blankleaf/compare/v1.23.0...v1.24.0) (2026-11-27)
+
+
+### Features
+
+* **ui:** crisper status bar and toolbar ([#128](https://github.com/rajmalviya456/blankleaf/issues/128)) ([9b1676d](https://github.com/rajmalviya456/blankleaf/commit/9b1676df49ea9803aceebb6108efffe9780a1ce0))
+
 ## [1.23.0](https://github.com/rajmalviya456/blankleaf/compare/v1.22.0...v1.23.0) (2026-11-23)
 
 
