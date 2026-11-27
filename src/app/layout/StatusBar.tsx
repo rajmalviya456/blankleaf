@@ -307,7 +307,7 @@ export function StatusBar() {
   return (
     <footer
       aria-label="Status bar"
-      className="flex h-6 shrink-0 items-center gap-3 overflow-hidden whitespace-nowrap border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
+      className="flex h-6 shrink-0 items-center gap-2 overflow-hidden whitespace-nowrap border-t border-border bg-bg-sunken px-3 text-[11px] text-fg-faint tabular-nums"
     >
       {note && <NoteInfo note={note} />}
       <div className="ml-auto flex shrink-0 items-center gap-2 bg-bg-sunken pl-2">
