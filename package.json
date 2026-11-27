@@ -1,7 +1,7 @@
 {
   "name": "blankleaf",
   "private": true,
-  "version": "1.23.0",
+  "version": "1.24.0",
   "description": "Blankleaf — a free online notepad with tabs, Markdown, code highlighting and autosave. No sign-up, works offline.",
   "license": "MIT",
   "homepage": "https://rajmalviya456.github.io/blankleaf/",
