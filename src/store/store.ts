@@ -495,11 +495,12 @@ export function createAppStore(
         let session = get().session
         for (const n of incoming) {
           const current = notes[n.id]
-          // A note already here keeps its pin; imported ones arrive unpinned.
+          // A note already here keeps its pin; imported ones arrive unpinned, and a note in
+          // Trash is never pinned (as when it is trashed here).
           notes[n.id] = {
             ...n,
             content: plainLineBreaks(n.content),
-            pinned: current?.pinned ?? false,
+            pinned: n.deletedAt === null && (current?.pinned ?? false),
             rev: current ? current.rev : 0,
           }
           if (n.deletedAt !== null) session = withoutNote(session, n.id)
