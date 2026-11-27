@@ -65,6 +65,13 @@ function setup() {
 const toolbar = () => screen.queryByRole('toolbar', { name: 'Editor toolbar' })
 
 describe('phone toolbar dock', () => {
+  it('is a named region, so screen readers can jump to it', () => {
+    const { s } = setup()
+    act(() => void s().newNote())
+    const region = screen.getByRole('region', { name: 'Editor tools' })
+    expect(region).toContainElement(screen.getByRole('toolbar', { name: 'Editor toolbar' }))
+  })
+
   it('stays above the keyboard: --kb follows the covered height', () => {
     mockViewport(800)
     const { s } = setup()
