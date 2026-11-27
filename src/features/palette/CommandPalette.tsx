@@ -2,8 +2,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
-import { takePendingQuery } from './pendingQuery'
+import { useEffect, useState, type ReactNode } from 'react'
+import { peekPendingQuery, takePendingQuery } from './pendingQuery'
 import { useShallow } from 'zustand/react/shallow'
 import {
   COMMANDS,
@@ -41,7 +41,12 @@ export function CommandPalette() {
   const mode = useAppStore((s) => s.ui.paletteMode)
   const state = useAppStore((s) => s)
   const notes = useAppStore(useShallow(liveNotesSorted))
-  const [query, setQuery] = useState(takePendingQuery)
+  const [query, setQuery] = useState(peekPendingQuery)
+  // Once on screen, take everything typed while loading (including the last letters).
+  useEffect(() => {
+    const typed = takePendingQuery()
+    if (typed) setQuery(typed)
+  }, [])
   const store = getStore()
   const p = platform()
 

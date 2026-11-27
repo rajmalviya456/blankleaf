@@ -8,6 +8,11 @@ export function setPendingQuery(q: string) {
   pending = q
 }
 
+/** Read without clearing: safe in a render, which React may run more than once. */
+export function peekPendingQuery(): string {
+  return pending
+}
+
 export function takePendingQuery(): string {
   const q = pending
   pending = ''

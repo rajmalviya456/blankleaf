@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createAppStore, getStore, initStore } from '../store/store'
 import { App } from './App'
@@ -21,7 +22,12 @@ describe('App', () => {
   })
 
   it('keeps what you type while the command palette is still loading', async () => {
-    render(<App />)
+    // Strict mode, as in main.tsx: React runs renders twice there, which once lost the text.
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
     const s = getStore().getState()
     const id = s.session.activeTabId!
     const before = s.notes[id].content
