@@ -1,0 +1,2 @@
+var e=/^(?:(?:`{3,}|~{3,})[\w+-]*|-{3,})$/;function t(t){let n=t.title?.trim();if(n)return n;let r=``;for(let n of t.content.split(`
+`,50)){let t=n.trim();if(!t)continue;if(e.test(t)){r||=t;continue}let i=(t.replace(/^#{1,6}\s+/,``)||t).slice(0,40);return/[\uD800-\uDBFF]$/.test(i)?i.slice(0,-1):i}return r?r.slice(0,40):`Untitled`}function n(e){return t(e).replace(/^#{1,6}\s+/,``).trim()||t(e)}export{n,t};
