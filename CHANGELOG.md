@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/rajmalviya456/blankleaf/compare/v1.24.2...v1.25.0) (2026-11-28)
+
+
+### Features
+
+* Cmd/Ctrl+S saves the note; 30+ fixes and polish from a third bug hunt ([#134](https://github.com/rajmalviya456/blankleaf/issues/134)) ([51a4e9a](https://github.com/rajmalviya456/blankleaf/commit/51a4e9a1adfe61321e7fe7a7ba978ff9dc679978))
+
 ## [1.24.2](https://github.com/rajmalviya456/blankleaf/compare/v1.24.1...v1.24.2) (2026-11-28)
 
 
