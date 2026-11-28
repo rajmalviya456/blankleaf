@@ -144,6 +144,19 @@ describe('Rail + SidePanel', () => {
     media.restore()
   })
 
+  it('a note row menu shows Move to Trash in the danger colour (no competing colour)', async () => {
+    const media = stubMedia({ touch: true })
+    const { mk, user } = setup()
+    mk('old words')
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    await user.click(screen.getByRole('button', { name: 'Actions for old words' }))
+    const trash = await screen.findByRole('menuitem', { name: 'Move to Trash' })
+    expect(trash).toHaveClass('text-danger')
+    expect(trash).not.toHaveClass('text-fg')
+    await user.keyboard('{Escape}')
+    media.restore()
+  })
+
   it('Delete key on a focused note row moves it to Trash', async () => {
     const { s, mk, user } = setup()
     const id = mk('press delete')
@@ -152,6 +165,21 @@ describe('Rail + SidePanel', () => {
     within(list).getByText('press delete').closest('button')!.focus()
     await user.keyboard('{Delete}')
     expect(s().notes[id].deletedAt).not.toBeNull()
+  })
+
+  it('names the search box and announces how many notes were found', async () => {
+    const { s, mk, user } = setup()
+    mk('the needle is here')
+    mk('another needle')
+    mk('nothing')
+    act(() => s().setSidebar({ open: true, panel: 'search' }))
+    const box = screen.getByRole('searchbox', { name: 'Search all notes' })
+    await user.type(box, 'needle')
+    expect(await screen.findByRole('status')).toHaveTextContent('2 notes found')
+    await user.type(box, 'zzz')
+    expect(await screen.findByRole('status')).toHaveTextContent('No notes found')
+    await user.clear(box)
+    expect(screen.getByRole('status')).toHaveTextContent('')
   })
 
   it('Enter that only confirms IME text does not open a result', async () => {

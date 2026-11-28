@@ -59,6 +59,57 @@ export function matchStatus(state: EditorState, query: SearchQuery): string {
   return total ? `${current} of ${total}` : 'No results'
 }
 
+/** Gap between the widget's bottom edge and a line scrolled up to sit just under it. */
+const ROOM_GAP = 6
+
+/**
+ * The widget floats over the top of the text, so the first lines could never scroll out from
+ * under it: a match there stayed hidden. While it's open, the text gets that much room above
+ * it (like VS Code's find widget). The scroll position moves by the same amount, so opening
+ * and closing the widget doesn't shift the text; CodeMirror already keeps a match it scrolls
+ * to clear of the widget.
+ */
+function makeRoomAbove(view: EditorView, panel: HTMLElement) {
+  let room = 0
+  let watcher: ResizeObserver | null = null
+  const apply = (next: number) => {
+    const delta = next - room
+    if (!delta) return
+    room = next
+    if (next) view.dom.style.setProperty('--np-find-space', `${next}px`)
+    else view.dom.style.removeProperty('--np-find-space')
+    view.scrollDOM.scrollTop += delta
+    view.requestMeasure()
+  }
+  const measure = () =>
+    view.requestMeasure({
+      read: () => {
+        if (!panel.isConnected) return room
+        const covered =
+          panel.getBoundingClientRect().bottom - view.scrollDOM.getBoundingClientRect().top
+        // The text already starts 14px down (or more in zen): only the rest is needed.
+        const already = parseFloat(getComputedStyle(view.contentDOM).paddingTop) - room
+        return Math.max(0, Math.ceil(covered + ROOM_GAP - already))
+      },
+      write: apply,
+    })
+  return {
+    start() {
+      measure()
+      // Showing the Replace row makes the widget taller.
+      if (typeof ResizeObserver !== 'undefined') {
+        watcher = new ResizeObserver(measure)
+        watcher.observe(panel)
+      }
+    },
+    stop() {
+      watcher?.disconnect()
+      watcher = null
+      view.requestMeasure({ read: () => 0, write: apply })
+    },
+  }
+}
+
 export function createFindPanel(view: EditorView): Panel {
   const dom = el('div', { class: 'np-find', role: 'search', 'aria-label': 'Find in note' })
   const q0 = getSearchQuery(view.state)
@@ -238,6 +289,8 @@ export function createFindPanel(view: EditorView): Panel {
     }
   })
 
+  const space = makeRoomAbove(view, dom)
+
   return {
     dom,
     top: true,
@@ -245,6 +298,10 @@ export function createFindPanel(view: EditorView): Panel {
       find.focus()
       find.select()
       refresh(view.state)
+      space.start()
+    },
+    destroy() {
+      space.stop()
     },
     update(u: ViewUpdate) {
       const query = getSearchQuery(u.state)

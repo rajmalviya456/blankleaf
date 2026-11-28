@@ -3,6 +3,8 @@ import { EditorView } from '@codemirror/view'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { COMMANDS } from '../commands/registry'
+import * as saveFile from '../features/backup/saveFile'
+import { toastStore } from '../ui/toast'
 import { createAppStore, getStore, initStore } from '../store/store'
 import { App } from './App'
 
@@ -31,6 +33,35 @@ describe('global shortcuts', () => {
     await screen.findByRole('dialog', { name: 'Settings' })
     act(() => void (allowed = fireEvent.keyDown(window, { code: 'KeyP', key: 'p', ctrlKey: true })))
     expect(allowed).toBe(false)
+  })
+
+  it('Ctrl+S saves the note as a file, instead of the browser saving the page', async () => {
+    setup()
+    const save = vi
+      .spyOn(saveFile, 'saveTextFile')
+      .mockResolvedValue({ outcome: 'saved', name: 'first note.txt' })
+    let allowed = true
+    act(() => void (allowed = fireEvent.keyDown(window, { code: 'KeyS', key: 's', ctrlKey: true })))
+    expect(allowed).toBe(false)
+    expect(save).toHaveBeenCalledWith('first note.txt', 'text/plain;charset=utf-8', 'first note')
+    await waitFor(() =>
+      expect(toastStore.getState().toasts.at(-1)?.msg).toBe('Saved “first note.txt”'),
+    )
+    save.mockRestore()
+  })
+
+  it('Ctrl+S on a locked note is kept from the browser too, and says why nothing was saved', () => {
+    const { s, id } = setup()
+    const save = vi.spyOn(saveFile, 'saveTextFile')
+    act(() =>
+      s().applyLock(id, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id }, 'L'),
+    )
+    let allowed = true
+    act(() => void (allowed = fireEvent.keyDown(window, { code: 'KeyS', key: 's', ctrlKey: true })))
+    expect(allowed).toBe(false)
+    expect(save).not.toHaveBeenCalled()
+    expect(toastStore.getState().toasts.at(-1)?.msg).toMatch(/locked/i)
+    save.mockRestore()
   })
 
   it('Alt+N creates a note and Alt+W closes it', () => {

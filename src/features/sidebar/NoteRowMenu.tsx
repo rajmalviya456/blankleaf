@@ -17,8 +17,10 @@ import { shareStore } from '../share/shareStore'
 import { historyStore } from '../history/historyStore'
 import { getStore } from '../../store/store'
 
-const item =
-  'flex min-h-11 cursor-default select-none items-center gap-3 rounded-md px-3 text-[14px] text-fg outline-none data-[highlighted]:bg-accent-soft'
+/** A menu row; its text colour is added where it's used (normal or danger). */
+const itemBase =
+  'flex min-h-11 cursor-default select-none items-center gap-3 rounded-md px-3 text-[14px] outline-none data-[highlighted]:bg-accent-soft'
+const item = `${itemBase} text-fg`
 
 /** ⋯ button (and long-press on the row) with a note's actions — for touch screens. */
 export function NoteRowMenu({
@@ -83,7 +85,7 @@ export function NoteRowMenu({
             </>
           )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <DropdownMenu.Item className={item + ' text-danger'} onSelect={onTrash}>
+          <DropdownMenu.Item className={`${itemBase} text-danger`} onSelect={onTrash}>
             <Trash2 size={16} aria-hidden /> Move to Trash
           </DropdownMenu.Item>
         </DropdownMenu.Content>

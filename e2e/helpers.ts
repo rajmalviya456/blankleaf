@@ -24,3 +24,23 @@ export async function openPhoneApp(page: Page) {
 }
 
 export const noteBar = (page: Page) => page.getByRole('banner', { name: 'Note bar' })
+
+type Box = { top: number; bottom: number; left: number; right: number }
+
+/** The match the cursor is on and the find widget, as boxes on the page. */
+export async function matchAndWidget(page: Page): Promise<{ match: Box; widget: Box }> {
+  await expect(page.locator('.cm-searchMatch-selected').first()).toBeVisible()
+  return page.evaluate(() => {
+    const box = (el: Element) => {
+      const r = el.getBoundingClientRect()
+      return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }
+    }
+    return {
+      match: box(document.querySelector('.cm-searchMatch-selected')!),
+      widget: box(document.querySelector('.np-find')!),
+    }
+  })
+}
+
+export const overlaps = (a: Box, b: Box) =>
+  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom

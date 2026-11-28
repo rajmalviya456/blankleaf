@@ -3,8 +3,9 @@
  * sheet and menus all read from here.
  */
 import type { StoreApi } from 'zustand'
-import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
+import { exportAll, pickFilesToImport, saveNoteAsFile } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
+import { trashWithUndo } from '../features/sidebar/trashWithUndo'
 import { exportNoteAs } from '../features/export/exportNote'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
@@ -181,7 +182,7 @@ export const COMMANDS: Command[] = [
     when: hasActive,
     run: (ctx) => {
       const id = noteId(ctx)
-      if (id) st(ctx).trashNote(id)
+      if (id) trashWithUndo(id)
     },
   },
   {
@@ -504,14 +505,15 @@ export const COMMANDS: Command[] = [
   },
   {
     id: 'note.export',
-    title: 'Export note as file',
-    section: 'Data',
-    keywords: ['download', 'save as'],
-    shortcuts: [],
+    title: 'Save note as file…',
+    section: 'Note',
+    keywords: ['download', 'export', 'save as'],
+    // Otherwise the browser's own "Save page" answers the key.
+    shortcuts: [{ code: 'KeyS', mod: true }],
     when: hasOpenText,
     run: (ctx) => {
       const id = noteId(ctx)
-      if (id) exportNote(id)
+      if (id) void saveNoteAsFile(id)
     },
   },
   {

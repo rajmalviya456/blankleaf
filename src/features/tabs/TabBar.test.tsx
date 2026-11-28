@@ -105,6 +105,14 @@ describe('TabBar', () => {
     ])
   })
 
+  it('context menu Move to Trash turns red when highlighted (no competing colour)', async () => {
+    setup()
+    fireEvent.contextMenu(tab(/first/))
+    const trash = await screen.findByRole('menuitem', { name: 'Move to Trash' })
+    expect(trash).toHaveClass('data-[highlighted]:text-danger')
+    expect(trash).not.toHaveClass('data-[highlighted]:text-fg')
+  })
+
   it('context menu Move to Trash trashes the note', async () => {
     const { user, ids, s } = setup()
     fireEvent.contextMenu(tab(/first/))
