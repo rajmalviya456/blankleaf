@@ -4,6 +4,9 @@ import { editor, noteBar, openPhoneApp } from './helpers'
 test('lock and unlock a note on a phone', async ({ page }) => {
   await openPhoneApp(page)
   await editor(page).tap()
+  // The whole note is just this line, so it's on screen whatever the tap or scroll position
+  // (the editor only draws the lines in view).
+  await page.keyboard.press('ControlOrMeta+a')
   await page.keyboard.type('phone secret ')
   await noteBar(page).getByRole('button', { name: 'Note menu' }).tap()
   await page
