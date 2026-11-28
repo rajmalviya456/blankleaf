@@ -19,6 +19,7 @@ import {
 import { backupSalt, decryptBackup, encryptBackup, isEncryptedBackup } from './backupCrypto'
 import { getBackupKey } from './backupKey'
 import { backupPasswordStore } from './backupPasswordStore'
+import { decodeText } from './decodeText'
 import { downloadText } from './download'
 import { fileToNote, isProbablyBinary, noteExportFile } from './importFiles'
 import { importStore } from './importStore'
@@ -132,7 +133,8 @@ export async function importFileList(
       skipped.push(file.name)
       continue
     }
-    const text = await file.text()
+    // Decoded first: UTF-16 text is full of NUL bytes, but not NUL characters.
+    const text = await decodeText(file)
     if (isProbablyBinary(text)) {
       skipped.push(file.name)
       continue

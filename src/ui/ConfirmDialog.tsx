@@ -11,6 +11,8 @@ interface Props {
   confirmLabel: string
   onConfirm(): void
   danger?: boolean
+  /** Where focus goes once it closes (call preventDefault to move it yourself). */
+  onCloseAutoFocus?(e: Event): void
 }
 
 /** Small yes/no dialog for destructive or surprising actions. */
@@ -22,6 +24,7 @@ export function ConfirmDialog({
   confirmLabel,
   onConfirm,
   danger = false,
+  onCloseAutoFocus,
 }: Props) {
   useBackStackEntry(open, () => onOpenChange(false))
   return (
@@ -30,6 +33,7 @@ export function ConfirmDialog({
         <AlertDialog.Overlay className="np-overlay fixed inset-0 z-40" />
         <DialogSurface
           kind="alert"
+          onCloseAutoFocus={onCloseAutoFocus}
           className="fixed left-1/2 top-1/3 z-50 w-[min(340px,calc(100vw-32px))] -translate-x-1/2 rounded-lg border border-border bg-bg-elev p-4 shadow-xl"
         >
           <AlertDialog.Title className="text-sm font-medium text-fg">{title}</AlertDialog.Title>

@@ -97,24 +97,24 @@ export function AppearanceSection({ settings: s, update }: Props) {
           // Phones: − / + and typing are easier than a short slider.
           className="w-28 accent-[var(--accent)] max-sm:hidden"
         />
-        <button
-          type="button"
-          aria-label="Increase editor font size"
-          onClick={() => setFont(size + 1)}
-          // Phones show "− 16 px +": the slider between the buttons is hidden there.
-          className={buttonClass + ' px-1.5 max-sm:order-2'}
-        >
-          <Plus size={12} />
-        </button>
         <SizeInput
           label="Editor font size in px"
           value={size}
           min={min}
           max={max}
           onCommit={setFont}
-          className="h-7 w-11 text-[12px] max-sm:order-1 max-sm:h-11 max-sm:w-14"
+          className="h-7 w-11 text-[12px] max-sm:h-11 max-sm:w-14"
         />
-        <span className="text-[12px] text-fg-muted max-sm:order-1">px</span>
+        <span className="text-[12px] text-fg-muted">px</span>
+        {/* − slider size px +, in the order read and tabbed through (no visual reordering). */}
+        <button
+          type="button"
+          aria-label="Increase editor font size"
+          onClick={() => setFont(size + 1)}
+          className={buttonClass + ' px-1.5'}
+        >
+          <Plus size={12} />
+        </button>
       </Row>
       <Row label="Line height" htmlFor="line-height">
         <input

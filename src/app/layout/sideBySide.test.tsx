@@ -214,6 +214,23 @@ describe('working in the side note', () => {
     expect(s().notes[b].deletedAt).toBeNull()
   })
 
+  it('with the side note in Preview, the toolbar and palette leave the main note alone', async () => {
+    const { s, a, b } = setup()
+    act(() => s().setNoteMode(a, 'markdown'))
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => (pane()!.querySelector('.cm-content') as HTMLElement).focus())
+    const cycle = COMMANDS.find((c) => c.id === 'view.preview.cycle')!
+    act(() => cycle.run({ store: getStore() })) // split
+    act(() => cycle.run({ store: getStore() })) // preview: the side note has no editor now
+    // Its toolbar has nothing to act on…
+    expect(screen.getByRole('button', { name: 'Bold' })).toBeDisabled()
+    // …and a transform from the palette doesn't reach the main note either.
+    const encode = COMMANDS.find((c) => c.id === 'text.base64.encode')!
+    await act(async () => encode.run({ store: getStore() }))
+    expect(s().notes[b].content).toBe('beta text')
+  })
+
   it('once the side note is hidden (zen), commands go back to the main note', () => {
     const { s, a, b } = setup()
     act(() => s().setSplitNote(a))

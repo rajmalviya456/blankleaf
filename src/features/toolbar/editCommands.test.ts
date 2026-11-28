@@ -167,6 +167,13 @@ describe('line prefixes', () => {
     toggleLinePrefix(w, '- ')
     expect(text(w)).toBe('- one\ntwo')
   })
+  it('numbers a nested list level by level, nesting under each number', () => {
+    const v = all('- a\n  - b\n  - c\n- d')
+    toggleLinePrefix(v, '1. ')
+    // Three spaces under "1. ": Markdown needs the number's width for the list to nest.
+    expect(text(v)).toBe('1. a\n   1. b\n   2. c\n2. d')
+  })
+
   it('switches a list from one kind to another', () => {
     const v = all('- a\n- b\n- c')
     toggleLinePrefix(v, '1. ')

@@ -4,6 +4,7 @@
  * (inline, case) or on the whole note (line tools).
  */
 import {
+  countColumn,
   EditorSelection,
   type ChangeSpec,
   type EditorState,
@@ -91,6 +92,36 @@ const kindOf = (marker = '') =>
   marker.includes('[') ? 'check' : /\d/.test(marker) ? 'number' : marker ? 'bullet' : ''
 
 /**
+ * Number a run of lines as a list, level by level: each indent level counts from 1, and a
+ * nested level sits under its parent's text (three spaces under "1. ", four under "10. "),
+ * which Markdown needs for it to nest.
+ */
+function numberLevels(state: EditorState, block: Line[]): ChangeSpec[] {
+  const levels: { indent: number; n: number; width: number; lead: string }[] = []
+  return block.map((line) => {
+    const [, lead, marker = ''] = LIST.exec(line.text)!
+    const quote = /^(?:[ \t]*>[ \t]?)*/.exec(lead)![0]
+    const ws = lead.slice(quote.length)
+    const indent = countColumn(ws, state.tabSize)
+    while (levels.length && levels.at(-1)!.indent > indent) levels.pop()
+    let level = levels.at(-1)
+    if (!level || level.indent < indent) {
+      const parent = level
+      level = { indent, n: 0, width: 0, lead: parent ? parent.lead + ' '.repeat(parent.width) : ws }
+      levels.push(level)
+    }
+    level.n++
+    const number = `${level.n}. `
+    level.width = number.length
+    return {
+      from: line.from + quote.length,
+      to: line.from + lead.length + marker.length,
+      insert: level.lead + number,
+    }
+  })
+}
+
+/**
  * Toggle a line prefix ('- ', '1. ', '- [ ] ', '> ') on the selected lines. If every line
  * already has it, remove it; otherwise replace any other list marker with it. A quote goes
  * around the whole line, list marker and all.
@@ -109,7 +140,11 @@ export function toggleLinePrefix(view: EditorView, prefix: string): boolean {
   } else {
     const kind = kindOf(prefix)
     const remove = lines.every((l) => kindOf(LIST.exec(l.text)![2]) === kind)
-    // Each run of lines is its own list, numbered from 1.
+    if (kind === 'number' && !remove) {
+      for (const block of blocks) changes.push(...numberLevels(view.state, block))
+      view.dispatch({ changes, userEvent: 'input.format' })
+      return done(view)
+    }
     for (const block of blocks)
       block.forEach((line, i) => {
         const [, lead, marker = ''] = LIST.exec(line.text)!

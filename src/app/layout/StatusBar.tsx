@@ -1,4 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { SaveAnnouncer } from '../../ui/SaveAnnouncer'
 import { AlertTriangle, Check, History, Loader, Share2, MoreHorizontal } from 'lucide-react'
 import { useDeferredValue, useMemo, type ReactNode } from 'react'
 import { useCalmValue } from '../../lib/useCalmValue'
@@ -38,12 +39,16 @@ function Divider({ className = '' }: { className?: string }) {
 /** Above this size, skip word counting so typing stays smooth. */
 const WORD_COUNT_LIMIT = 2_000_000
 
-/** Only the save state is announced: the rest of the bar changes on every keystroke. */
+/**
+ * The save state, shown; screen readers hear only problems (SaveAnnouncer), since saving
+ * happens after every pause in typing and the rest of the bar changes on every keystroke.
+ */
 function SaveState() {
   return (
-    <span role="status" aria-label="Save status" className="contents">
+    <>
       <SaveStateText />
-    </span>
+      <SaveAnnouncer />
+    </>
   )
 }
 

@@ -27,6 +27,8 @@ function undoTrash(id: string, before: { at: number; active: string | null; pinn
   const s = () => getStore().getState()
   // Deleted for good meanwhile, or already restored: nothing to undo.
   if (s().notes[id]?.deletedAt == null) return
+  // The tab you're on now: a note trashed from the background shouldn't take you away from it.
+  const current = s().session.activeTabId
   s().restoreNote(id)
   // Trash unpins; a pinned note always has its tab, so pinning it again reopens that too.
   if (before.pinned) s().togglePin(id)
@@ -34,6 +36,6 @@ function undoTrash(id: string, before: { at: number; active: string | null; pinn
   s().openNote(id)
   const now = s().session.openTabIds.indexOf(id)
   if (now >= 0 && now !== before.at) s().moveTab(now, before.at)
-  if (before.active && before.active !== id && s().session.openTabIds.includes(before.active))
-    s().setActive(before.active)
+  if (before.active !== id && current && s().session.openTabIds.includes(current))
+    s().setActive(current)
 }

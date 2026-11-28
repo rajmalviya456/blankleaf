@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App } from '../../app/App'
 import { createAppStore, initStore } from '../../store/store'
@@ -19,6 +19,19 @@ describe('SettingsDialog', () => {
     setup()
     fireEvent.keyDown(window, { key: ',', code: 'Comma', ctrlKey: true })
     expect(await screen.findByRole('dialog', { name: /settings/i })).toBeInTheDocument()
+  })
+
+  it('reads and tabs through the font size controls in the order they’re shown: − size +', async () => {
+    const { s } = setup()
+    open(s)
+    const dialog = await screen.findByRole('dialog', { name: /settings/i })
+    const minus = within(dialog).getByRole('button', { name: 'Decrease editor font size' })
+    const field = within(dialog).getByRole('spinbutton', { name: 'Editor font size in px' })
+    const plus = within(dialog).getByRole('button', { name: 'Increase editor font size' })
+    const follows = (a: Element, b: Element) =>
+      !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(follows(minus, field)).toBe(true)
+    expect(follows(field, plus)).toBe(true)
   })
 
   it('the gear button opens settings', async () => {

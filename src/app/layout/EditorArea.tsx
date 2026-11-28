@@ -6,6 +6,7 @@ import { useCalmValue } from '../../lib/useCalmValue'
 import { canChunk } from '../../features/editor/previewChunks'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
 import { DetectChip } from '../../features/editor/DetectChip'
+import { PreviewBoundary } from '../../features/editor/PreviewBoundary'
 import { openLink } from '../../features/links/openLink'
 import { Editor } from '../../features/editor/Editor'
 import { Toolbar } from '../../features/toolbar/Toolbar'
@@ -46,11 +47,13 @@ function Preview({ source, noteId }: { source: string; noteId: string }) {
   return (
     <Suspense fallback={<div className="p-6 text-[12px] text-fg-faint">Rendering…</div>}>
       <div style={{ '--editor-font-size': `${fontSize}px` } as React.CSSProperties}>
-        {source.length > CHUNKED_CHARS && canChunk(source) ? (
-          <ChunkedPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
-        ) : (
-          <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
-        )}
+        <PreviewBoundary source={source}>
+          {source.length > CHUNKED_CHARS && canChunk(source) ? (
+            <ChunkedPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+          ) : (
+            <MarkdownPreview source={source} onToggleTask={onToggleTask} onOpenNote={openLink} />
+          )}
+        </PreviewBoundary>
       </div>
     </Suspense>
   )

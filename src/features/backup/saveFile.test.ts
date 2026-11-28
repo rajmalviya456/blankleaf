@@ -55,6 +55,35 @@ describe('saveTextFile', () => {
     expect(downloaded).not.toHaveBeenCalled()
   })
 
+  it('a second save while the Save dialog is open does nothing (no extra download)', async () => {
+    let finish: (v: unknown) => void = () => {}
+    const picker = vi.fn<Picker>(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    )
+    win.showSaveFilePicker = picker
+    const first = saveTextFile('Plan.md', 'text/markdown;charset=utf-8', '# Plan')
+    const second = await saveTextFile('Plan.md', 'text/markdown;charset=utf-8', '# Plan')
+    expect(second.outcome).toBe('cancelled')
+    expect(picker).toHaveBeenCalledTimes(1)
+    expect(downloaded).not.toHaveBeenCalled()
+    finish({
+      name: 'Plan.md',
+      createWritable: async () => ({ write: async () => {}, close: async () => {} }),
+    })
+    expect((await first).outcome).toBe('saved')
+    // Once it's closed, saving works again.
+    const third = saveTextFile('Plan.md', 'text/markdown;charset=utf-8', '# Plan')
+    expect(picker).toHaveBeenCalledTimes(2)
+    finish({
+      name: 'Plan.md',
+      createWritable: async () => ({ write: async () => {}, close: async () => {} }),
+    })
+    await third
+  })
+
   it('downloads the file where there is no Save dialog (Safari, Firefox)', async () => {
     const res = await saveTextFile('Plan.md', 'text/markdown;charset=utf-8', '# Plan')
     expect(res).toEqual({ outcome: 'downloaded', name: 'Plan.md' })
