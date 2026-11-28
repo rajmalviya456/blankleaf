@@ -71,6 +71,9 @@ for (const scheme of ['light', 'dark'] as const) {
     }
 
     test('every emoji category', async ({ page }) => {
+      // Six full-page accessibility scans of a grid of hundreds of emoji: ~25s on its own, so
+      // the default 30s runs out when the whole suite shares the machine.
+      test.setTimeout(60_000)
       await runCommand(page, 'Insert symbol or emoji…')
       await page.getByRole('tab', { name: 'Emoji', exact: true }).click()
       const categories = page.getByRole('tablist', { name: 'Emoji categories' })
