@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { composing } from '../../lib/ime'
 
 interface Props {
   initial: string
   onCommit(value: string): void
   onCancel(): void
+  /** After Enter or Escape (not a click away), so focus can go back where it came from. */
+  onKeyboardDone?(): void
   /**
    * Float the input over this element instead of rendering it in place. A tab list may
    * contain only tabs, so the desktop tab bar shows its rename box on top of the tab.
@@ -13,7 +16,7 @@ interface Props {
 }
 
 /** Input used to rename a tab. Enter/blur commits, Escape cancels. */
-export function RenameInput({ initial, onCommit, onCancel, anchor }: Props) {
+export function RenameInput({ initial, onCommit, onCancel, onKeyboardDone, anchor }: Props) {
   const [value, setValue] = useState(initial)
   // Measured once: the tab doesn't move while its rename box is open.
   const [rect] = useState(() => anchor?.getBoundingClientRect() ?? null)
@@ -42,8 +45,11 @@ export function RenameInput({ initial, onCommit, onCancel, anchor }: Props) {
       onBlur={() => finish(true)}
       onKeyDown={(e) => {
         e.stopPropagation()
-        if (e.key === 'Enter') finish(true)
-        else if (e.key === 'Escape') finish(false)
+        if (composing(e)) return
+        if (e.key === 'Enter' || e.key === 'Escape') {
+          finish(e.key === 'Enter')
+          onKeyboardDone?.()
+        }
       }}
       onPointerDown={(e) => e.stopPropagation()}
       style={

@@ -1,9 +1,8 @@
 import * as Popover from '@radix-ui/react-popover'
 import { Omega } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { getActiveView } from '../editor/activeView'
-import { insertText } from '../toolbar/editCommands'
 import { getStore, useAppStore } from '../../store/store'
 import {
   EMOJI_CATEGORIES,
@@ -25,6 +24,8 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
   const [query, setQuery] = useState('')
   const [emoji, setEmoji] = useState<EmojiGroup[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const [inserted, setInserted] = useState('')
+  const content = useRef<HTMLDivElement>(null)
   const tone = useAppStore((s) => s.settings.emojiSkinTone)
 
   // Every emoji is a big list, so it loads the first time the picker opens.
@@ -55,18 +56,24 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
   ).map((s) => withTone(s, tone))
   const showTones = !!emoji && (onEmojiTab || (!!query.trim() && shown.some((s) => s.skins)))
 
-  const pick = (char: string) => {
+  // The picker stays open so several can be typed in a row; Escape or a click outside closes it.
+  const pick = (sym: Sym) => {
     const view = getActiveView()
-    if (view) {
-      insertText(view, char)
-      view.focus()
+    if (!view) return
+    // Not insertText: it focuses the note, which would close the picker.
+    view.dispatch(view.state.replaceSelection(sym.char), { userEvent: 'input' })
+    setInserted(`Inserted ${sym.name}`)
+  }
+  const changeOpen = (next: boolean) => {
+    setOpen(next)
+    if (!next) {
+      setQuery('')
+      setInserted('')
     }
-    setOpen(false)
-    setQuery('')
   }
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
+    <Popover.Root open={open} onOpenChange={changeOpen}>
       <Popover.Trigger
         aria-label="Insert symbol or emoji"
         title="Insert symbol or emoji"
@@ -82,7 +89,14 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
           align="start"
           sideOffset={4}
           collisionPadding={8}
-          onCloseAutoFocus={(e) => e.preventDefault()}
+          ref={content}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault()
+            // Back to the note, after what was typed, unless a click outside moved focus on.
+            const now = document.activeElement
+            if (!now || now === document.body || content.current?.contains(now))
+              getActiveView()?.focus()
+          }}
           className="z-50 flex w-[min(320px,calc(100vw-16px))] flex-col gap-2 rounded-md border border-border bg-bg-elev p-2 shadow-lg"
         >
           <input
@@ -169,13 +183,16 @@ export function SymbolPicker({ className, disabled }: { className: string; disab
                 type="button"
                 aria-label={s.name}
                 title={s.name}
-                onClick={() => pick(s.char)}
+                onClick={() => pick(s)}
                 className="grid h-9 place-items-center rounded text-[18px] text-fg hover:bg-bg-hover"
               >
                 {s.char}
               </button>
             ))}
           </div>
+          <p role="status" className="sr-only">
+            {inserted}
+          </p>
           {query.trim() && !shown.length && (
             <p className="px-1 text-[12px] text-fg-faint">Nothing called “{query.trim()}”.</p>
           )}

@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react'
+import { composing } from '../../lib/ime'
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
@@ -54,7 +55,7 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && results[0]) open(results[0])
+              if (e.key === 'Enter' && results[0] && !composing(e)) open(results[0])
               if (e.key === 'Escape' && query) {
                 e.preventDefault()
                 setQuery('')

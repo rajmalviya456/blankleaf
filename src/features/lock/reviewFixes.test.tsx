@@ -113,6 +113,25 @@ describe('locked notes open in two windows', () => {
     expect((await unseal(PASSWORD, copy.locked!)).text).toContain('LOCAL')
     expect((await unseal(PASSWORD, s().notes[id].locked!)).text).toBe('FROM-A')
   })
+  it('keeps unsaved typing as a locked copy when another window removes the lock', async () => {
+    const { s, id } = await lockedNote('original')
+    const { user, container } = await unlockInApp()
+    await user.click(container.querySelector('.cm-content')!)
+    await user.keyboard('LOCAL')
+    // Window A removes the lock before this window's save lands.
+    act(() => {
+      const { locked: _l, ...plain } = s().notes[id]
+      s().applyRemoteNote({ ...plain, content: 'original', rev: 9 })
+    })
+    const copy = await waitFor(() => {
+      const found = Object.values(s().notes).find((n) => n.id !== id && n.locked)
+      expect(found).toBeDefined()
+      return found!
+    })
+    expect(copy.title).toContain('conflict copy')
+    expect((await unseal(PASSWORD, copy.locked!)).text).toContain('LOCAL')
+    expect(s().notes[id].content).toBe('original')
+  })
 })
 
 describe('locked data', () => {

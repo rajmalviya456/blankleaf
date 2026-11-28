@@ -19,9 +19,18 @@ function trashFromList(id: string) {
   const s = getStore().getState()
   const note = s.notes[id]
   if (!note) return
+  const wasPinned = note.pinned
   s.trashNote(id)
   toast(`Moved “${displayTitle(note)}” to Trash`, {
-    action: { label: 'Undo', run: () => getStore().getState().restoreNote(id) },
+    action: {
+      label: 'Undo',
+      run: () => {
+        const st = getStore().getState()
+        st.restoreNote(id)
+        // Trash unpins; Undo puts it back as it was.
+        if (wasPinned && !st.notes[id]?.pinned) st.togglePin(id)
+      },
+    },
   })
 }
 
@@ -127,7 +136,11 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
                 onKeyDown={(e) => {
                   if (e.key === 'Delete' || (e.key === 'Backspace' && (e.metaKey || e.ctrlKey))) {
                     e.preventDefault()
+                    // The row goes away: keep focus in the list, on the next row (or the last).
+                    const li = e.currentTarget.closest('li')
+                    const next = li?.nextElementSibling ?? li?.previousElementSibling
                     trashFromList(n.id)
+                    next?.querySelector<HTMLElement>('button')?.focus()
                   }
                 }}
                 aria-current={n.id === activeId ? 'true' : undefined}

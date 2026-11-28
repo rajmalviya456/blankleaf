@@ -22,6 +22,7 @@ import remarkGfm from 'remark-gfm'
 import { taskLabelAt } from '../checklist/taskToggle'
 import { NOTE_HREF, remarkNoteLinks } from '../links/remarkNoteLinks'
 import { Diagram } from './Diagram'
+import { remarkBlankTasks } from './remarkBlankTasks'
 import { ReadyDiagrams } from './readyDiagrams'
 import { previewChunks, type Chunk } from './previewChunks'
 import { loadMath, needsMath, type MathPlugins, type RichExtras } from './richContent'
@@ -82,7 +83,7 @@ function TaskBox({ node: _node, ...props }: ComponentProps<'input'> & ExtraProps
     <input
       type="checkbox"
       checked={checked}
-      aria-label={taskLabelAt(source, offset) ?? undefined}
+      aria-label={taskLabelAt(source, offset) || 'Empty task'}
       onChange={() => {
         setTicked({ from: rendered, to: !checked })
         onToggleTask(offset)
@@ -173,6 +174,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
             <ReactMarkdown
               remarkPlugins={[
                 remarkGfm,
+                remarkBlankTasks,
                 ...(onOpenNote ? [remarkNoteLinks] : []),
                 ...(math?.remark ?? []),
               ]}

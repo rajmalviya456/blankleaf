@@ -20,6 +20,8 @@ import { parseShareHash } from './link'
 import { createMemoryTransport } from './memoryTransport'
 import { isReply, type Reply } from './protocol'
 import { listActiveShares } from './sharesRepo'
+import { stopSharesOfDeletedNotes } from './stopSharesOfDeletedNotes'
+import { createAppStore } from '../../store/store'
 import type { ShareTransport } from './transport'
 
 beforeAll(() => __setPbkdf2Iterations(1000))
@@ -373,5 +375,28 @@ describe('share host hardening', () => {
     await b.refresh()
     expect(b.active()).toHaveLength(1)
     await vi.waitFor(() => expect(b.active()).toEqual([]), { timeout: 3000 })
+  })
+})
+
+describe('shares of deleted notes', () => {
+  it('stop when the note is deleted for good, and its stored copy goes too', async () => {
+    const store = createAppStore()
+    const id = store.getState().newNote({ content: 'secret plans' })
+    const host = makeHost(createMemoryTransport())
+    const created = await host.create(store.getState().notes[id], {
+      expiresInMs: 300_000,
+      password: null,
+    })
+    const keep = store.getState().newNote({ content: 'keep me' })
+    const other = await host.create(store.getState().notes[keep], {
+      expiresInMs: 300_000,
+      password: null,
+    })
+    stopSharesOfDeletedNotes(store, host)
+    store.getState().trashNote(id)
+    await vi.waitFor(() => expect(host.active()).toHaveLength(2))
+    store.getState().purgeNote(id)
+    await vi.waitFor(() => expect(host.active().map((r) => r.id)).toEqual([other.id]))
+    expect(await db.shares.get(created.id)).toBeUndefined()
   })
 })

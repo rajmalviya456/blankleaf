@@ -1,6 +1,21 @@
+const graphemes =
+  typeof Intl !== 'undefined' && 'Segmenter' in Intl
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null
+
+/** Characters as people see them: an emoji or a letter with its accent counts once. */
+function countChars(text: string): number {
+  // Plain ASCII needs no segmenting; one code unit is one character.
+  if (!/[^\t\n\r\x20-\x7E]/.test(text)) return text.length
+  if (!graphemes) return Array.from(text).length
+  let n = 0
+  for (const _ of graphemes.segment(text)) n++
+  return n
+}
+
 export function textStats(text: string): { words: number; chars: number } {
   const words = text.match(/\S+/g)?.length ?? 0
-  return { words, chars: text.length }
+  return { words, chars: countChars(text) }
 }
 
 /** Minutes to read this many words, at 200 words a minute. */

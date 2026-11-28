@@ -61,6 +61,8 @@ export function useGlobalShortcuts(): void {
             !(s.yieldsToMarkdown && typingInMarkdown(e)),
         )
         if (!hit) continue
+        // The browser's own print would print the whole app, unlocked notes included.
+        if (cmd.id === 'note.print') e.preventDefault()
         // Behind a dialog only the palette key works (it toggles the palette itself).
         if (cmd.id !== 'palette.open' && dialogOpen()) return
         if (!commandEnabled(cmd, state)) return

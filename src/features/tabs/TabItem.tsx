@@ -99,6 +99,7 @@ export function TabItem({ note, active, onRequestClose }: Props) {
               s().setUi({ renamingId: null })
             }}
             onCancel={() => s().setUi({ renamingId: null })}
+            onKeyboardDone={() => node?.querySelector<HTMLElement>('[role="tab"]')?.focus()}
           />
         )}
         {!note.pinned && !renaming && (

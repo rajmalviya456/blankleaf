@@ -16,6 +16,7 @@ import { createShareHost } from './features/share/host'
 import { parseShareHash } from './features/share/link'
 import { pickTransport } from './features/share/pickTransport'
 import { setShareHost } from './features/share/shareStore'
+import { stopSharesOfDeletedNotes } from './features/share/stopSharesOfDeletedNotes'
 import { setPersistentStorageStatus } from './lib/storageStatus'
 import { applySettingsToDocument, savedTheme, systemPrefersDark } from './lib/theme'
 import { DEFAULT_SETTINGS } from './domain/defaults'
@@ -61,6 +62,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
       appUrl: new URL(import.meta.env.BASE_URL, location.origin).href,
     })
     setShareHost(shareHost)
+    stopSharesOfDeletedNotes(store, shareHost)
     void shareHost.resume()
     void startFolderBackup(store, boot.db)
   } else {

@@ -6,7 +6,9 @@ export const TAGS_PER_NOTE = 20
 
 /** A tag as stored: no leading #, single spaces, length limited. Empty if nothing is left. */
 export function normalizeTag(raw: string): string {
-  return raw.trim().replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, TAG_MAX_LENGTH).trim()
+  const cut = raw.trim().replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, TAG_MAX_LENGTH)
+  // Don't leave half an emoji (a lone surrogate) at the end.
+  return (/[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut).trim()
 }
 
 export const sameTag = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
