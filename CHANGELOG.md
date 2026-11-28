@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.1](https://github.com/rajmalviya456/blankleaf/compare/v1.25.0...v1.25.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* 30 more fixes from a fourth bug hunt (share page, preview, import, editing, a11y) ([#136](https://github.com/rajmalviya456/blankleaf/issues/136)) ([8f56b24](https://github.com/rajmalviya456/blankleaf/commit/8f56b245e02974f2e6db4e12084440d1c91eb4fb))
+
 ## [1.25.0](https://github.com/rajmalviya456/blankleaf/compare/v1.24.2...v1.25.0) (2026-11-28)
 
 
