@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.2](https://github.com/rajmalviya456/blankleaf/compare/v1.24.1...v1.24.2) (2026-11-28)
+
+
+### Bug Fixes
+
+* second bug hunt (shares of deleted notes, locked-note print, IME Enter, tabs keyboard, emoji picker) ([#132](https://github.com/rajmalviya456/blankleaf/issues/132)) ([805f60b](https://github.com/rajmalviya456/blankleaf/commit/805f60b85e31a207d61c420dd71e533a622dc0a6))
+
 ## [1.24.1](https://github.com/rajmalviya456/blankleaf/compare/v1.24.0...v1.24.1) (2026-11-27)
 
 
