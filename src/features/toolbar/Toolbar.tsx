@@ -80,7 +80,7 @@ import { runTransform, TRANSFORM_IDS, TRANSFORMS, type TransformId } from './tra
 import { canFormat, runFormatCode } from './formatCode'
 import { MoreTools } from './MoreTools'
 import { FontChoices } from './FontChoices'
-import { btn, copyAllText, item, menuBtn, menuContent } from './toolbarStyles'
+import { btn, copyAllText, item, keepMovedFocus, menuBtn, menuContent } from './toolbarStyles'
 import { useFold } from './useFold'
 
 /** Where a new group starts in the Transform menu (a separator goes before it). */
@@ -148,7 +148,7 @@ function Menu({
         <DropdownMenu.Content
           align="start"
           sideOffset={4}
-          onCloseAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={keepMovedFocus}
           className={menuContent}
         >
           {children}
@@ -183,8 +183,12 @@ const Sep = () => <span aria-hidden data-separator className="mx-1.5 h-4 w-px sh
  */
 function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorView) => unknown) {
   const s = getStore().getState()
-  if (s.notes[noteId]?.mode === 'markdown') return void format(view)
-  s.setNoteMode(noteId, 'markdown')
+  const note = s.notes[noteId]
+  if (!note || note.mode === 'markdown') return void format(view)
+  const was = note.language
+  // A format still being detected just becomes Markdown; one chosen as Plain text changes to it.
+  if (was === 'auto') s.setNoteMode(noteId, 'markdown')
+  else s.setLanguage(noteId, 'markdown')
   format(view)
   const after = view.state.doc
   toast('Switched this note to Markdown', {
@@ -194,7 +198,8 @@ function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorVi
         // The editor may have been recreated for the new format; its history carries over.
         const v = getActiveView()
         if (v && v.state.doc.eq(after) && undoDepth(v.state) > 0) undo(v)
-        getStore().getState().setNoteMode(noteId, 'plain')
+        if (was === 'auto') getStore().getState().setNoteMode(noteId, 'plain')
+        else getStore().getState().setLanguage(noteId, was)
       },
     },
   })

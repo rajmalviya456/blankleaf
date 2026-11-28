@@ -88,10 +88,42 @@ export async function formatCode(
   }
 }
 
+/** The leading spaces and tabs that all of `lines` with text in them share. */
+function sharedIndent(lines: string[]): string {
+  const indents = lines.filter((l) => /[^ \t]/.test(l)).map((l) => /^[ \t]*/.exec(l)![0])
+  if (!indents.length) return ''
+  return indents.reduce((a, b) => {
+    let i = 0
+    while (i < a.length && a[i] === b[i]) i++
+    return a.slice(0, i)
+  })
+}
+
+/**
+ * Format a selection as a piece of the note: the indent its lines share comes off for the
+ * formatter and goes back on after, and it ends in a line break only if the selection did.
+ * From mid-line, the first line has no indent of its own, so the text is formatted as it is.
+ */
+async function formatSelection(text: string, language: LanguageId, indent: string) {
+  const lines = text.split('\n')
+  const base = sharedIndent(lines)
+  // Only blank lines can be shorter than the shared indent.
+  const inner = lines.map((l) => (l.startsWith(base) ? l.slice(base.length) : '')).join('\n')
+  const out = await formatCode(inner, language, indent)
+  return out
+    .replace(/\n*$/, /\n*$/.exec(text)![0])
+    .split('\n')
+    .map((l) => (l ? base + l : l))
+    .join('\n')
+}
+
 /** Format the selection (or the whole note) as `language`; problems become a toast. */
 export async function runFormatCode(view: EditorView, language: LanguageId): Promise<void> {
+  const selection = view.state.selection.ranges.some((r) => !r.empty)
   try {
-    await applyToText(view, (text, indent) => formatCode(text, language, indent))
+    await applyToText(view, (text, indent) =>
+      (selection ? formatSelection : formatCode)(text, language, indent),
+    )
   } catch (e) {
     const { toast } = await import('../../ui/toast')
     toast(e instanceof TransformError ? e.message : 'Couldn’t format this code.', { tone: 'warn' })

@@ -6,7 +6,14 @@ import { seenVersionCheck } from './whatsNew'
 /** After an update, say so once and offer the release notes. */
 export function useUpdateNotice(): void {
   useEffect(() => {
-    const change = seenVersionCheck(__APP_VERSION__, window.localStorage)
+    // With site data blocked, even reading window.localStorage throws: then there's no notice.
+    let storage: Storage
+    try {
+      storage = window.localStorage
+    } catch {
+      return
+    }
+    const change = seenVersionCheck(__APP_VERSION__, storage)
     if (!change) return
     toast(`Blankleaf was updated to ${change.to}.`, {
       durationMs: 12_000,

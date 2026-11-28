@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { EditorView } from '@codemirror/view'
+import { EditorView, runScopeHandlers } from '@codemirror/view'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from '../editor/Editor'
@@ -115,5 +115,31 @@ describe('spell check language', () => {
     await waitFor(() => expect(marked(container)).toEqual(['la', 'casa']))
     act(() => s().updateSettings({ spellLanguage: 'es' }))
     await waitFor(() => expect(marked(container)).toEqual(['the', 'house']))
+  })
+
+  it('opens the fixes from the keyboard, with focus on the first one; Escape goes back', async () => {
+    const { s, id, view, container } = setup('I saw teh cat')
+    await waitFor(() => expect(marked(container)).toEqual(['teh']))
+    act(() => {
+      view.focus()
+      view.dispatch({ selection: { anchor: 7 } })
+    })
+    const key = (init: KeyboardEventInit) =>
+      act(() => void runScopeHandlers(view, new KeyboardEvent('keydown', init), 'editor'))
+    key({ key: 'F10', shiftKey: true })
+    const first = await screen.findByRole('button', { name: 'the' })
+    await waitFor(() => expect(first).toHaveFocus())
+    const user = userEvent.setup()
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('button', { name: 'ten' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('group', { name: /spelling/i })).toBeNull()
+    expect(view.contentDOM).toHaveFocus()
+    // The context menu key opens it too, and Enter applies the fix.
+    key({ key: 'ContextMenu' })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'the' })).toHaveFocus())
+    await user.keyboard('{Enter}')
+    expect(s().notes[id].content).toBe('I saw the cat')
+    expect(view.contentDOM).toHaveFocus()
   })
 })

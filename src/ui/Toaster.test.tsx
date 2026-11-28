@@ -24,4 +24,38 @@ describe('Toaster', () => {
     expect(screen.getAllByRole('alert')).toHaveLength(4)
     expect(screen.queryByText('msg 0')).toBeNull()
   })
+
+  it('waits while the pointer or keyboard focus is on a toast, then times out as usual', () => {
+    vi.useFakeTimers()
+    try {
+      render(<Toaster />)
+      act(() => void toast('Moved to Trash', { action: { label: 'Undo', run: () => {} } }))
+      const undo = screen.getByRole('button', { name: 'Undo' })
+      act(() => undo.focus())
+      act(() => vi.advanceTimersByTime(20_000))
+      // Still there, with focus still on Undo.
+      expect(screen.getByText('Moved to Trash')).toBeInTheDocument()
+      expect(undo).toHaveFocus()
+      act(() => undo.blur())
+      act(() => vi.advanceTimersByTime(20_000))
+      expect(screen.queryByText('Moved to Trash')).toBeNull()
+
+      act(() => void toast('Copied', { durationMs: 4000 }))
+      const box = screen.getByText('Copied').closest('[role=status]')!
+      act(() => void box.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })))
+      act(() => vi.advanceTimersByTime(10_000))
+      expect(screen.getByText('Copied')).toBeInTheDocument()
+      act(() => void box.dispatchEvent(new MouseEvent('mouseout', { bubbles: true })))
+      act(() => vi.advanceTimersByTime(4000))
+      expect(screen.queryByText('Copied')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('has a Dismiss button big enough to tap on phones', () => {
+    render(<Toaster />)
+    act(() => void toast('Hello', { durationMs: 0 }))
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toHaveClass('max-sm:size-11')
+  })
 })

@@ -1,4 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { useBackStackEntry } from '../phone/useBackStackEntry'
 import { useState } from 'react'
 import { useStore } from 'zustand'
 import { DialogSurface } from '../../ui/DialogSurface'
@@ -48,18 +49,17 @@ export function BackupPasswordDialog() {
   }
   // Saving without a password makes sense for a one-off file or a folder, not in Settings.
   const canSkip = asking === 'export' || asking === 'folder'
+  const cancel = () => {
+    // Not while the password is being saved: it takes effect either way.
+    if (busy) return
+    reset()
+    answer('cancel')
+  }
+  // Phones: Back closes this dialog, not the one under it.
+  useBackStackEntry(asking !== null, cancel)
 
   return (
-    <Dialog.Root
-      open={asking !== null}
-      onOpenChange={(o) => {
-        // Not while the password is being saved: it takes effect either way.
-        if (!o && !busy) {
-          reset()
-          answer('cancel')
-        }
-      }}
-    >
+    <Dialog.Root open={asking !== null} onOpenChange={(o) => !o && cancel()}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
         <DialogSurface

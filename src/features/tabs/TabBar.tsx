@@ -24,7 +24,6 @@ import { orderedTabs } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { TabItem } from './TabItem'
 import { TabOverflowMenu } from './TabOverflowMenu'
-import { UnpinPrompt } from './UnpinPrompt'
 import { requestCloseTab } from './requestCloseTab'
 
 export function TabBar({ actions }: { actions?: ReactNode }) {
@@ -130,8 +129,6 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
         {listed.length > 1 && <TabOverflowMenu tabs={listed} activeId={activeId} />}
         {actions}
       </div>
-
-      <UnpinPrompt />
     </header>
   )
 }

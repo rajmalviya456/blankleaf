@@ -31,7 +31,8 @@ export function RenameInput({ initial, onCommit, onCancel, onKeyboardDone, ancho
   const finish = (commit: boolean) => {
     if (done.current) return
     done.current = true
-    if (commit) onCommit(value)
+    // Unchanged is not a rename: an automatic title keeps following the first line.
+    if (commit && value.trim() !== initial.trim()) onCommit(value)
     else onCancel()
   }
 

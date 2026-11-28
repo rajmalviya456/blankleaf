@@ -1,6 +1,6 @@
-import { act, render } from '@testing-library/react'
+import { act, render, waitFor } from '@testing-library/react'
 import { language } from '@codemirror/language'
-import { EditorView } from '@codemirror/view'
+import { EditorView, runScopeHandlers } from '@codemirror/view'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from './Editor'
 
@@ -121,5 +121,16 @@ describe('Editor on a phone', () => {
     } finally {
       media.restore()
     }
+  })
+
+  it('a Markdown note whose format is still Auto edits as Markdown', async () => {
+    const store = initStore(createAppStore())
+    const id = store.getState().newNote({ content: '- milk', mode: 'markdown', language: 'auto' })
+    const utils = render(<Editor noteId={id} />)
+    const view = EditorView.findFromDOM(utils.container.querySelector('.cm-editor') as HTMLElement)!
+    await waitFor(() => expect(view.state.facet(language)?.name).toBe('markdown'))
+    act(() => view.dispatch({ selection: { anchor: view.state.doc.length } }))
+    act(() => void runScopeHandlers(view, new KeyboardEvent('keydown', { key: 'Enter' }), 'editor'))
+    expect(view.state.doc.toString()).toBe('- milk\n- ')
   })
 })

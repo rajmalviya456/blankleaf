@@ -34,7 +34,7 @@ import { trashWithUndo } from '../sidebar/trashWithUndo'
 import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
 import { insertText } from './editCommands'
 import { FontChoices } from './FontChoices'
-import { btn, copyAllText, item, itemBase, menuContent } from './toolbarStyles'
+import { btn, copyAllText, item, itemBase, keepMovedFocus, menuContent } from './toolbarStyles'
 
 const Sep = () => <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
@@ -110,7 +110,7 @@ export function MoreTools({
         <DropdownMenu.Content
           align="end"
           sideOffset={4}
-          onCloseAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={keepMovedFocus}
           className={`${menuContent} min-w-52`}
         >
           {fold >= 3 && (

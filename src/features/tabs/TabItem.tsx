@@ -90,7 +90,8 @@ export function TabItem({ note, active, onRequestClose }: Props) {
           )}
           <span className="min-w-0 flex-1 truncate">{title}</span>
         </div>
-        {renaming && (
+        {/* Once the tab is on the page: the rename box measures it to float over it. */}
+        {renaming && node && (
           <RenameInput
             anchor={node}
             initial={note.title ?? title}

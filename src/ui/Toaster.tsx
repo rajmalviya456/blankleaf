@@ -1,6 +1,6 @@
 import { useIsPhone } from '../lib/media'
 import { X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { toastStore, type ToastItem } from './toast'
 
@@ -12,16 +12,27 @@ const toneClass: Record<ToastItem['tone'], string> = {
 
 function ToastView({ t }: { t: ToastItem }) {
   const dismiss = () => toastStore.getState().dismiss(t.id)
+  // While the pointer or keyboard focus is on it (reaching for Undo), it stays; the full time
+  // starts again once they leave (WCAG 2.2.1).
+  const [hover, setHover] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const held = hover || focused
   useEffect(() => {
-    if (!t.durationMs) return
+    if (!t.durationMs || held) return
     const timer = setTimeout(dismiss, t.durationMs)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t.id, t.durationMs])
+  }, [t.id, t.durationMs, held])
 
   return (
     <div
       role={t.tone === 'error' ? 'alert' : 'status'}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false)
+      }}
       className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-lg border bg-bg-elev px-3 py-2.5 text-[12.5px] text-fg shadow-lg ${toneClass[t.tone]}`}
     >
       <p className="flex-1 leading-snug">{t.msg}</p>
@@ -41,7 +52,7 @@ function ToastView({ t }: { t: ToastItem }) {
         type="button"
         aria-label="Dismiss"
         onClick={dismiss}
-        className="shrink-0 text-fg-faint hover:text-fg"
+        className="grid shrink-0 place-items-center text-fg-faint hover:text-fg max-sm:-my-2.5 max-sm:-mr-2 max-sm:size-11"
       >
         <X size={13} />
       </button>

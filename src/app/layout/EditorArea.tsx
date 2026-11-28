@@ -1,7 +1,7 @@
 import { Plus, X } from 'lucide-react'
 import { displayTitle } from '../../domain/title'
 import { useIsWide } from '../../lib/media'
-import { lazy, Suspense, useCallback } from 'react'
+import { lazy, Suspense, useCallback, useEffect } from 'react'
 import { useCalmValue } from '../../lib/useCalmValue'
 import { canChunk } from '../../features/editor/previewChunks'
 import { toggleTaskAt } from '../../features/checklist/taskToggle'
@@ -88,21 +88,31 @@ function OpenNote({
   // A big note's preview is rebuilt when typing pauses, not on every keystroke.
   const deferred = useCalmValue(content)
 
-  if (view === 'edit') return <Editor noteId={noteId} side={side} />
   if (view === 'preview')
     return (
       <div className="np-preview-pane min-h-0 flex-1 overflow-y-auto">
         <Preview source={deferred} noteId={noteId} />
       </div>
     )
+  // Edit and Split keep the editor in the same place, so switching between them doesn't
+  // rebuild it (and lose the cursor).
+  const split = view === 'split'
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-2">
-      <div className="flex min-h-0 min-w-0 flex-col border-r border-border">
+    <div className={split ? 'grid min-h-0 flex-1 grid-cols-2' : 'flex min-h-0 flex-1 flex-col'}>
+      <div
+        className={
+          split
+            ? 'flex min-h-0 min-w-0 flex-col border-r border-border'
+            : 'flex min-h-0 min-w-0 flex-1 flex-col'
+        }
+      >
         <Editor noteId={noteId} side={side} />
       </div>
-      <div className="np-preview-pane min-h-0 min-w-0 overflow-y-auto bg-bg">
-        <Preview source={deferred} noteId={noteId} />
-      </div>
+      {split && (
+        <div className="np-preview-pane min-h-0 min-w-0 overflow-y-auto bg-bg">
+          <Preview source={deferred} noteId={noteId} />
+        </div>
+      )}
     </div>
   )
 }
@@ -134,7 +144,14 @@ function SideNote({ activeId }: { activeId: string }) {
     const id = s.session.splitNoteId
     return id && id !== activeId ? s.notes[id] : undefined
   })
-  if (!wide || zen || !note || note.deletedAt !== null) return null
+  const shown = wide && !zen && !!note && note.deletedAt === null
+  // Commands follow the side note while it has the cursor, even through a switch to preview;
+  // once it's gone from the screen (closed, zen, a narrow window) they go back to the main one.
+  useEffect(() => {
+    if (!shown && getStore().getState().ui.sideFocused)
+      getStore().getState().setUi({ sideFocused: false })
+  }, [shown])
+  if (!shown) return null
   const title = displayTitle(note)
   return (
     <section

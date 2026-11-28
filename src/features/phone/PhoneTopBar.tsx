@@ -1,5 +1,4 @@
 import { ChevronDown, Eye, Menu as MenuIcon, MoreHorizontal, PencilLine } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { displayTitle } from '../../domain/title'
 import { useAppStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -14,22 +13,31 @@ function Dot() {
   return <span aria-hidden className="absolute right-2 top-2 size-2 rounded-full bg-accent" />
 }
 
+/**
+ * Saving… / Not saved, beside the title: its own button (tap to hear why), never inside the
+ * title button, and announced to screen readers as it changes.
+ */
 function SaveState() {
   const status = useAppStore((s) => s.ui.saveStatus)
   const error = useAppStore((s) => s.ui.saveError)
-  let body: ReactNode = null
-  if (status === 'saving') body = <span className="text-fg-faint">Saving…</span>
-  if (status === 'error')
-    body = (
-      <button
-        type="button"
-        className="text-danger underline-offset-2 active:underline"
-        onClick={() => toast(error ?? 'Your latest changes could not be saved.', { tone: 'error' })}
-      >
-        Not saved
-      </button>
-    )
-  return body ? <span className="block text-[11px] leading-none">{body}</span> : null
+  return (
+    <span role="status" aria-label="Save status" className="contents">
+      {status === 'saving' && (
+        <span className="shrink-0 px-1 text-[11px] text-fg-faint">Saving…</span>
+      )}
+      {status === 'error' && (
+        <button
+          type="button"
+          className="h-11 shrink-0 px-1.5 text-[11px] text-danger underline-offset-2 active:underline"
+          onClick={() =>
+            toast(error ?? 'Your latest changes could not be saved.', { tone: 'error' })
+          }
+        >
+          Not saved
+        </button>
+      )}
+    </span>
+  )
 }
 
 /** Phone top bar: Library · title (opens tabs) · Preview/Edit · note menu. */
@@ -63,14 +71,12 @@ export function PhoneTopBar() {
         type="button"
         aria-label={`Open tabs: ${title}`}
         onClick={() => open('tabs')}
-        className="flex h-11 min-w-0 flex-1 flex-col items-start justify-center rounded-lg px-2 text-left active:bg-bg-hover"
+        className="flex h-11 min-w-0 flex-1 items-center gap-1 rounded-lg px-2 text-left active:bg-bg-hover"
       >
-        <span className="flex w-full min-w-0 items-center gap-1">
-          <span className="truncate text-[15px] font-semibold text-fg">{title}</span>
-          <ChevronDown size={15} className="shrink-0 text-fg-muted" aria-hidden />
-        </span>
-        <SaveState />
+        <span className="truncate text-[15px] font-semibold text-fg">{title}</span>
+        <ChevronDown size={15} className="shrink-0 text-fg-muted" aria-hidden />
       </button>
+      <SaveState />
       {markdown && !locked && activeId && (
         <button
           type="button"

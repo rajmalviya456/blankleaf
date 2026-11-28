@@ -103,6 +103,21 @@ describe('PhoneShell', () => {
     expect(document.querySelector('.cm-editor')).not.toBeNull()
   })
 
+  it('"Not saved" explains itself without also opening the tabs, and is announced', async () => {
+    const { s, user } = setup()
+    act(() => void s().newNote())
+    const bar = await screen.findByRole('banner', { name: 'Note bar' })
+    act(() => s().setSaveStatus('error', 'Disk full'))
+    // Its own button, not one inside the title button.
+    const notSaved = within(bar).getByRole('button', { name: 'Not saved' })
+    expect(notSaved.closest('button')?.parentElement?.closest('button')).toBeNull()
+    await user.click(notSaved)
+    expect(phoneStore.getState().stack).toEqual([])
+    expect(within(bar).getByRole('status')).toHaveTextContent('Not saved')
+    act(() => s().setSaveStatus('saving'))
+    expect(within(bar).getByRole('status')).toHaveTextContent('Saving…')
+  })
+
   it('save state: hidden when saved, "Saving…" while saving, "Not saved" on error', async () => {
     const { s } = setup()
     act(() => void s().newNote())

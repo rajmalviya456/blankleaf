@@ -10,15 +10,7 @@ import { useIsPhone } from '../../../lib/media'
 import { SizeInput } from '../../../ui/SizeInput'
 import type { Settings } from '../../../domain/types'
 import { buttonClass, Row, Section, Segmented } from '../controls'
-
-const ACCENTS: { value: string; label: string }[] = [
-  { value: '', label: 'Default blue' },
-  { value: '#8b5cf6', label: 'Violet' },
-  { value: '#14b8a6', label: 'Teal' },
-  { value: '#22a55b', label: 'Green' },
-  { value: '#f08c2e', label: 'Orange' },
-  { value: '#e0559b', label: 'Pink' },
-]
+import { ACCENTS } from '../../../domain/accents'
 
 interface Props {
   settings: Settings
@@ -50,7 +42,7 @@ export function AppearanceSection({ settings: s, update }: Props) {
         />
       </Row>
       <Row label="Accent colour">
-        <div role="radiogroup" aria-label="Accent colour" className="flex gap-1.5">
+        <div role="radiogroup" aria-label="Accent colour" className="flex gap-1.5 max-sm:gap-2">
           {ACCENTS.map((a) => (
             <button
               key={a.label}
@@ -60,7 +52,7 @@ export function AppearanceSection({ settings: s, update }: Props) {
               aria-label={a.label}
               title={a.label}
               onClick={() => update({ accent: a.value })}
-              className="size-5 rounded-full outline-none ring-offset-2 ring-offset-bg aria-checked:ring-2 aria-checked:ring-fg-muted focus-visible:ring-2 focus-visible:ring-accent"
+              className="relative size-5 rounded-full outline-none ring-offset-2 ring-offset-bg aria-checked:ring-2 aria-checked:ring-fg-muted focus-visible:ring-2 focus-visible:ring-accent max-sm:size-8 max-sm:before:absolute max-sm:before:-inset-1.5"
               style={{ background: a.value || '#5b7cff' }}
             />
           ))}
@@ -102,13 +94,15 @@ export function AppearanceSection({ settings: s, update }: Props) {
           step={1}
           value={size}
           onChange={(e) => setFont(Number(e.target.value))}
-          className="w-28 accent-[var(--accent)]"
+          // Phones: − / + and typing are easier than a short slider.
+          className="w-28 accent-[var(--accent)] max-sm:hidden"
         />
         <button
           type="button"
           aria-label="Increase editor font size"
           onClick={() => setFont(size + 1)}
-          className={buttonClass + ' px-1.5'}
+          // Phones show "− 16 px +": the slider between the buttons is hidden there.
+          className={buttonClass + ' px-1.5 max-sm:order-2'}
         >
           <Plus size={12} />
         </button>
@@ -118,9 +112,9 @@ export function AppearanceSection({ settings: s, update }: Props) {
           min={min}
           max={max}
           onCommit={setFont}
-          className="h-7 w-11 text-[12px]"
+          className="h-7 w-11 text-[12px] max-sm:order-1 max-sm:h-11 max-sm:w-14"
         />
-        <span className="text-[12px] text-fg-muted">px</span>
+        <span className="text-[12px] text-fg-muted max-sm:order-1">px</span>
       </Row>
       <Row label="Line height" htmlFor="line-height">
         <input
@@ -132,7 +126,7 @@ export function AppearanceSection({ settings: s, update }: Props) {
           step={0.1}
           value={s.lineHeight}
           onChange={(e) => update({ lineHeight: Math.round(Number(e.target.value) * 10) / 10 })}
-          className="w-28 accent-[var(--accent)]"
+          className="w-28 accent-[var(--accent)] max-sm:h-11"
         />
         <span className="w-9 text-right text-[12px] tabular-nums text-fg-muted">
           {s.lineHeight.toFixed(1)}

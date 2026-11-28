@@ -73,6 +73,19 @@ describe('Toolbar', () => {
     expect(s().notes[id].content).toBe('ship tabs') // the markers go too
   })
 
+  it('formatting a note set to Plain text makes its format Markdown, and Undo puts it back', async () => {
+    const user = userEvent.setup()
+    const { view, id, s } = setup('ship tabs', false)
+    act(() => s().setLanguage(id, 'plaintext'))
+    act(() => view.dispatch({ selection: { anchor: 5, head: 9 } }))
+    await user.click(screen.getByRole('button', { name: 'Bold' }))
+    expect(s().notes[id].mode).toBe('markdown')
+    expect(s().notes[id].language).toBe('markdown')
+    act(() => toastStore.getState().toasts.at(-1)!.action!.run())
+    expect(s().notes[id].mode).toBe('plain')
+    expect(s().notes[id].language).toBe('plaintext')
+  })
+
   it('Undo on the Markdown switch keeps later typing', async () => {
     const user = userEvent.setup()
     const { view, id, s } = setup('ship tabs', false)
@@ -223,6 +236,22 @@ describe('Outline', () => {
     const at = DOC.indexOf('## Part two')
     expect(s().ui.reveal).toMatchObject({ noteId: id, from: at, to: at })
     await vi.waitFor(() => expect(view.state.selection.main.head).toBe(at))
+    // The cursor is in the note at that heading, ready to type; the menu doesn't take it back.
+    await act(() => new Promise((r) => setTimeout(r, 20)))
+    expect(view.contentDOM).toHaveFocus()
+  })
+
+  it('after a choice made with the keyboard, focus goes back to the menu button', async () => {
+    setup('x', false)
+    const user = userEvent.setup()
+    const font = screen.getByRole('button', { name: 'Font' })
+    act(() => font.focus())
+    await user.keyboard('{Enter}')
+    await screen.findByRole('menu')
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    await act(() => new Promise((r) => setTimeout(r, 20)))
+    expect(document.activeElement).not.toBe(document.body)
+    expect(font).toHaveFocus()
   })
 
   it('switches from preview-only to side by side, so the jump is visible', async () => {

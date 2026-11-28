@@ -1,12 +1,15 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useStore } from 'zustand'
 import { DialogSurface } from '../../ui/DialogSurface'
+import { useBackStackEntry } from '../phone/useBackStackEntry'
 import { acceptVoiceConsent, voiceStore } from './voice'
 
 /** Shown before the microphone is first used: speech may leave this device. */
 export function VoiceConsentDialog() {
   const open = useStore(voiceStore, (s) => s.consentOpen)
   const close = () => voiceStore.setState({ consentOpen: false })
+  // Phones: Back closes it, like any other dialog.
+  useBackStackEntry(open, close)
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && close()}>
       <Dialog.Portal>

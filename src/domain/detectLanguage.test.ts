@@ -71,6 +71,14 @@ const cases: [string, string][] = [
   ['plaintext', 'Name: Bob Smith\nPhone: 555 0100\nNotes: call back after lunch'],
   ['plaintext', 'Select a vendor from the shortlist by Friday.'],
   ['plaintext', 'Rooms to do: kitchen => paint, hall => tiles'],
+  ['plaintext', 'todo\nlet Sam know about the party\nbuy milk'],
+  ['plaintext', 'export the slides to pdf\nemail Tom'],
+  ['plaintext', 'import stuff from the shop\nfunction room booked for 3pm'],
+  ['plaintext', 'type the letter by Friday\nsend it to Ana'],
+  ['plaintext', 'Party\nCount: number of chairs\nFood: vegetarian'],
+  ['javascript', 'let total = 0\nfor (const x of xs) total += x'],
+  ['javascript', 'export const answer = 42'],
+  ['typescript', 'type Point = { x: number; y: number }'],
   // Code that used to be misread.
   ['python', 'import os\n\nconfig = {\n    "debug": True,\n}\n\ndef main():\n    print(config)\n'],
   [

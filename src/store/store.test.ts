@@ -434,3 +434,16 @@ describe('app store: font per note', () => {
     expect(s().notes[copy].font).toBe('serif')
   })
 })
+
+describe('closed tabs', () => {
+  it('a closed note opened again some other way leaves the reopen list', () => {
+    const store = createAppStore()
+    const s = () => store.getState()
+    const a = s().newNote({ content: 'a' })
+    s().newNote({ content: 'b' })
+    s().closeTab(a)
+    expect(s().session.closedStack).toContain(a)
+    s().openNote(a)
+    expect(s().session.closedStack).not.toContain(a)
+  })
+})

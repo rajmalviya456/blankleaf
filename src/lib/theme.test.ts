@@ -1,4 +1,6 @@
 import { DEFAULT_SETTINGS } from '../domain/defaults'
+import { ACCENTS } from '../domain/accents'
+import { accentShade, contrast } from './color'
 import { applySettingsToDocument, applyTheme, resolveTheme, savedTheme, THEME_COLOR } from './theme'
 
 describe('resolveTheme', () => {
@@ -38,11 +40,23 @@ describe('applySettingsToDocument', () => {
   })
 
   it('sets a custom accent and clears it again for the theme default', () => {
-    applySettingsToDocument({ ...DEFAULT_SETTINGS, accent: '#e0559b' }, false)
-    expect(root.style.getPropertyValue('--accent')).toBe('#e0559b')
-    expect(root.style.getPropertyValue('--accent-soft')).toBe('#e0559b24')
+    applySettingsToDocument({ ...DEFAULT_SETTINGS, accent: '#3d5ce6' }, false)
+    expect(root.style.getPropertyValue('--accent')).toBe('#3d5ce6')
+    expect(root.style.getPropertyValue('--accent-soft')).toBe('#3d5ce624')
     applySettingsToDocument({ ...DEFAULT_SETTINGS, accent: '' }, false)
     expect(root.style.getPropertyValue('--accent')).toBe('')
+  })
+
+  it('draws each accent in a shade that reads well in the current theme', () => {
+    for (const { value } of ACCENTS.filter((a) => a.value)) {
+      applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: 'light', accent: value }, false)
+      const light = root.style.getPropertyValue('--accent')
+      expect(light).toBe(accentShade(value, 'light'))
+      expect(contrast(light, '#ffffff')).toBeGreaterThanOrEqual(4.5)
+      expect(root.style.getPropertyValue('--accent-soft')).toBe(`${light}24`)
+      applySettingsToDocument({ ...DEFAULT_SETTINGS, theme: 'dark', accent: value }, false)
+      expect(root.style.getPropertyValue('--accent')).toBe(accentShade(value, 'dark'))
+    }
   })
 
   it('ignores an accent that is not a hex colour', () => {

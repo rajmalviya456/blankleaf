@@ -74,6 +74,32 @@ describe('applyTransform', () => {
     )
   })
 
+  it('refuses any number that wouldn’t come out exactly as written', async () => {
+    await expect(run('yaml.toJson', 'id: 12345678901234567890')).rejects.toThrow(
+      'Not changed: 12345678901234567890 is too large to keep exact.',
+    )
+    await expect(run('yaml.toJson', '12345678901234567890: id')).rejects.toThrow(/too large/)
+    await expect(run('yaml.toJson', 'x: 1e400')).rejects.toThrow(/too large/)
+    await expect(run('yaml.toJson', 'x: 0.1000000000000000055511')).rejects.toThrow(
+      'Not changed: 0.1000000000000000055511 has more digits than can be kept exact.',
+    )
+    await expect(run('json.minify', '[1e-400]')).rejects.toThrow(/more digits/)
+    await expect(run('json.format', '{"x": 12345678901234567890.5}')).rejects.toThrow(
+      'Not changed: 12345678901234567890.5 is too large to keep exact.',
+    )
+    await expect(run('json.minify', '[1e400]')).rejects.toThrow(/too large/)
+    await expect(run('json.toYaml', '[-1e400]')).rejects.toThrow(/too large/)
+  })
+
+  it('keeps everyday numbers', async () => {
+    expect(await run('json.minify', '[0.1, 3.14, 1e10, -0.5, 1.50, 0]')).toBe(
+      '[0.1,3.14,10000000000,-0.5,1.5,0]',
+    )
+    expect(await run('yaml.toJson', 'a: [0.1, 3.14, 1e10, -0.5, 0x1F]')).toBe(
+      '{\n  "a": [\n    0.1,\n    3.14,\n    10000000000,\n    -0.5,\n    31\n  ]\n}',
+    )
+  })
+
   it('transforms only the selection', async () => {
     const v = view('id: aGk= end', [4, 8])
     await applyTransform(v, 'base64.decode')

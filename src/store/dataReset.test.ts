@@ -1,8 +1,10 @@
 import { openDb } from '../db/db'
 import { insertNote } from '../db/notesRepo'
 import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults'
-import { clearAllData, registerStorage } from './dataReset'
-import { readJournal, writeJournal } from './journal'
+import { clearAllData, registerMemoryJournal, registerStorage } from './dataReset'
+import { readAllJournals, readJournal, writeJournal } from './journal'
+import { startMemoryJournal } from './memoryJournal'
+import { createAppStore } from './store'
 import type { Persistence } from './persistence'
 
 describe('clearAllData', () => {
@@ -25,5 +27,22 @@ describe('clearAllData', () => {
     const fresh = openDb(name)
     expect(await fresh.notes.count()).toBe(0)
     fresh.close()
+  })
+
+  it('without IndexedDB, stops the memory journal first so the notes aren’t written back', async () => {
+    localStorage.clear()
+    registerStorage(null, null)
+    const store = createAppStore()
+    store.getState().newNote({ content: 'secret' })
+    const target = new EventTarget() as unknown as Window
+    registerMemoryJournal(startMemoryJournal(store, target))
+
+    // Reloading fires beforeunload and pagehide, which save the journal while it's running.
+    await clearAllData(() => {
+      target.dispatchEvent(new Event('beforeunload', { cancelable: true }))
+      target.dispatchEvent(new Event('pagehide'))
+    })
+
+    expect(readAllJournals()).toEqual([])
   })
 })

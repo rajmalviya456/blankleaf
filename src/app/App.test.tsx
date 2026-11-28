@@ -14,6 +14,20 @@ describe('App', () => {
     expect(screen.getByTestId('app-root')).toBeInTheDocument()
   })
 
+  it('still renders when the browser blocks site storage', () => {
+    // "Block site data": just reading window.localStorage throws.
+    const blocked = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    try {
+      render(<App />)
+      expect(screen.getByTestId('app-root')).toBeInTheDocument()
+      expect(screen.getByRole('main')).toBeInTheDocument()
+    } finally {
+      blocked.mockRestore()
+    }
+  })
+
   it('renders the hybrid layout regions', () => {
     render(<App />)
     expect(screen.getByRole('tablist')).toBeInTheDocument()

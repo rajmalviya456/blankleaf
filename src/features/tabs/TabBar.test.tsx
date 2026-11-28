@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createAppStore, initStore } from '../../store/store'
 import { TabBar } from './TabBar'
+import { UnpinPrompt } from './UnpinPrompt'
 
 function setup(contents: string[] = ['first', 'second']) {
   const store = initStore(createAppStore())
@@ -11,7 +12,13 @@ function setup(contents: string[] = ['first', 'second']) {
     return id
   })
   const user = userEvent.setup()
-  render(<TabBar />)
+  // The app shows the unpin prompt beside the tab bar (so it works in zen mode too).
+  render(
+    <>
+      <TabBar />
+      <UnpinPrompt />
+    </>,
+  )
   return { store, ids, user, s: () => store.getState() }
 }
 
@@ -51,6 +58,22 @@ describe('TabBar', () => {
     await user.dblClick(tab(/Plan/))
     await user.type(screen.getByRole('textbox', { name: /rename/i }), 'zzz{Escape}')
     expect(s().notes[ids[0]].title).toBe('Plan')
+  })
+
+  it('renaming without changing anything keeps the title automatic', async () => {
+    const { user, ids, s } = setup(['Shopping\nmilk', 'second'])
+    await user.dblClick(tab(/Shopping/))
+    await user.keyboard('{Enter}')
+    expect(s().notes[ids[0]].title).toBeNull()
+    const before = s().notes[ids[0]].updatedAt
+    // Clicking away without typing doesn't name it either.
+    await user.dblClick(tab(/Shopping/))
+    await user.click(tab(/second/))
+    expect(s().notes[ids[0]].title).toBeNull()
+    expect(s().notes[ids[0]].updatedAt).toBe(before)
+    // So the tab still follows the first line.
+    act(() => s().updateContent(ids[0], 'Groceries\nmilk'))
+    expect(tab(/Groceries/)).toBeInTheDocument()
   })
 
   it('middle-click closes a tab', () => {

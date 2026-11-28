@@ -1,12 +1,14 @@
 /**
  * Blankleaf's own spell check in the editor. Words are checked in the background a moment after
  * typing stops; misspelled ones get a red underline. Clicking or tapping one (or right-clicking
- * it) offers fixes and "Add to dictionary". The word being typed is left alone until you move on.
+ * it, or Shift+F10 / the context menu key with the cursor in it) offers fixes and "Add to
+ * dictionary". The word being typed is left alone until you move on.
  */
-import { StateEffect, StateField, type Extension, type Range } from '@codemirror/state'
+import { Prec, StateEffect, StateField, type Extension, type Range } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
+  keymap,
   showTooltip,
   ViewPlugin,
   type DecorationSet,
@@ -26,6 +28,8 @@ const recheck = StateEffect.define<null>()
 
 interface Suggesting {
   word: Word
+  /** Opened from the keyboard: focus goes into the fixes. */
+  keyboard?: boolean
 }
 const openSuggestions = StateEffect.define<Suggesting | null>()
 
@@ -121,6 +125,23 @@ function suggestionTooltip(service: SpellService, s: Suggesting): Tooltip {
       dom.setAttribute('role', 'group')
       dom.setAttribute('aria-label', `Spelling: ${s.word.word}`)
       const close = () => view.dispatch({ effects: openSuggestions.of(null) })
+      // Arrow keys move between the fixes; Escape closes them and goes back to the note.
+      dom.addEventListener('keydown', (e) => {
+        const buttons = [...dom.querySelectorAll('button')]
+        const at = buttons.indexOf(document.activeElement as HTMLButtonElement)
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          close()
+          view.focus()
+        } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && buttons.length) {
+          e.preventDefault()
+          const step = e.key === 'ArrowDown' ? 1 : -1
+          buttons[(at + step + buttons.length) % buttons.length].focus()
+        }
+      })
+      const focusFirst = () => {
+        if (s.keyboard) dom.querySelector('button')?.focus()
+      }
       const button = (label: string, run: () => void, extra = '') => {
         const b = document.createElement('button')
         b.type = 'button'
@@ -162,6 +183,7 @@ function suggestionTooltip(service: SpellService, s: Suggesting): Tooltip {
               view.focus()
             }),
           )
+        focusFirst()
       })
       return { dom }
     },
@@ -211,7 +233,29 @@ export function spellCheck(service: SpellService = getSpellService()): Extension
     },
   })
 
-  return [plugin, suggestions, onPointer, onContextMenu]
+  // From the keyboard: Shift+F10 or the context menu key on a misspelled word; Escape closes.
+  const openFromKeys = (view: EditorView) => {
+    const word = misspelledAt(view, view.state.selection.main.head)
+    if (!word) return false
+    view.dispatch({ effects: openSuggestions.of({ word, keyboard: true }) })
+    return true
+  }
+  const keys = Prec.high(
+    keymap.of([
+      { key: 'Shift-F10', run: openFromKeys },
+      { key: 'ContextMenu', run: openFromKeys },
+      {
+        key: 'Escape',
+        run: (view) => {
+          if (!view.state.field(suggestions, false)) return false
+          view.dispatch({ effects: openSuggestions.of(null) })
+          return true
+        },
+      },
+    ]),
+  )
+
+  return [plugin, suggestions, onPointer, onContextMenu, keys]
 }
 
 /** For tests: forget the last check of every editor. */

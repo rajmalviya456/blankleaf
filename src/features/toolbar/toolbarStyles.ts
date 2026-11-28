@@ -22,3 +22,12 @@ export async function copyAllText(noteId: string): Promise<void> {
     toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' })
   }
 }
+
+/**
+ * Where focus goes when a toolbar menu closes: if the chosen action already put it somewhere
+ * (the note, at a heading), it stays there; otherwise back to the menu's button, never lost.
+ */
+export function keepMovedFocus(e: Event): void {
+  const now = document.activeElement
+  if (now && now !== document.body) e.preventDefault()
+}

@@ -1,5 +1,8 @@
+import { EditorSelection, EditorState } from '@codemirror/state'
+import { EditorView } from '@codemirror/view'
 import { describe, expect, it } from 'vitest'
-import { canFormat, formatCode } from './formatCode'
+import type { LanguageId } from '../../domain/types'
+import { canFormat, formatCode, runFormatCode } from './formatCode'
 import { TransformError } from './transforms'
 
 describe('formatCode', () => {
@@ -66,5 +69,35 @@ describe('formatCode', () => {
       expect(canFormat(id)).toBe(true)
     for (const id of ['python', 'auto', 'plaintext', 'json'] as const)
       expect(canFormat(id)).toBe(false)
+  })
+})
+
+describe('Format code on a selection', () => {
+  /** The note after formatting `from`–`to` of `doc` as `language`. */
+  async function formatted(doc: string, from: number, to: number, language: LanguageId) {
+    const view = new EditorView({
+      state: EditorState.create({ doc, selection: EditorSelection.single(from, to) }),
+    })
+    await runFormatCode(view, language)
+    const out = view.state.doc.toString()
+    view.destroy()
+    return out
+  }
+
+  it('keeps the selected lines’ indent and adds no newline after them', async () => {
+    const doc = 'server:\n  port: 80\n  host:   x\nother: 1'
+    expect(await formatted(doc, 8, 30, 'yaml')).toBe('server:\n  port: 80\n  host: x\nother: 1')
+    // Taking the line break too keeps just that one.
+    expect(await formatted(doc, 8, 31, 'yaml')).toBe('server:\n  port: 80\n  host: x\nother: 1')
+    expect(await formatted('function f() {\n  if(a){b()}\n}', 15, 27, 'javascript')).toBe(
+      'function f() {\n  if (a) {\n    b();\n  }\n}',
+    )
+  })
+
+  it('from mid-line, formats just the selected text', async () => {
+    const doc = 'a:\n  b: {x:   1,\n    y: 2}'
+    expect(await formatted(doc, doc.indexOf('{'), doc.length, 'yaml')).toBe(
+      'a:\n  b: { x: 1, y: 2 }',
+    )
   })
 })

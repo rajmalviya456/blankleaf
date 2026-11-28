@@ -1,6 +1,7 @@
 import { language } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { useEffect } from 'react'
+import { noteForView } from '../features/editor/activeView'
 import { platform } from '../lib/platform'
 import { matchShortcut } from '../lib/shortcuts'
 import { languageMeta } from '../domain/languages'
@@ -17,10 +18,12 @@ function isStandalone(): boolean {
   )
 }
 
-/** The key went to the editor of a note written as code. */
+/** The key went to the editor of a note written as code (the main note or the side one). */
 function typingInCode(e: KeyboardEvent, state: AppState): boolean {
-  if (!(e.target instanceof Element) || !e.target.closest('.cm-editor')) return false
-  const id = state.session.activeTabId
+  const el = e.target instanceof Element ? e.target.closest('.cm-editor') : null
+  if (!(el instanceof HTMLElement)) return false
+  const view = EditorView.findFromDOM(el)
+  const id = (view && noteForView(view)) ?? state.session.activeTabId
   const lang = id ? state.notes[id]?.language : undefined
   return !!lang && languageMeta(lang).kind === 'code'
 }

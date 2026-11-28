@@ -3,22 +3,32 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { stubMedia } from '../../../tests/media'
 import { App } from '../../app/App'
 import { COMMANDS } from '../../commands/registry'
-import { createAppStore, initStore } from '../../store/store'
+import { createAppStore, getStore, initStore } from '../../store/store'
 import { ConfirmDialog } from '../../ui/ConfirmDialog'
 import { getActiveView } from '../editor/activeView'
 import { shareStore } from '../share/shareStore'
+import { backupPasswordStore } from '../backup/backupPasswordStore'
+import { voiceStore } from '../voice/voice'
 import { phoneStore } from './phoneStore'
 
 let media: ReturnType<typeof stubMedia>
-beforeEach(() => phoneStore.setState({ stack: [], previewByTab: {}, librarySection: 'notes' }))
+beforeEach(async () => {
+  // The last test's unmount pops its history entries a moment later: let that land first.
+  await new Promise((r) => setTimeout(r, 0))
+  await new Promise((r) => setTimeout(r, 0))
+  phoneStore.setState({ stack: [], previewByTab: {}, librarySection: 'notes' })
+})
 afterEach(() => {
   media?.restore()
   Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined })
 })
+/** Press Back and wait for the browser's popstate (jsdom fires it a moment later) to land. */
 const back = async () =>
   act(async () => {
+    const popped = new Promise((r) => window.addEventListener('popstate', r, { once: true }))
     history.back()
-    await new Promise((r) => setTimeout(r, 30))
+    await popped
+    await new Promise((r) => setTimeout(r, 0))
   })
 
 function setup() {
@@ -50,6 +60,37 @@ describe('Back closes app dialogs on phones', () => {
     await back()
     expect(shareStore.getState().dialogNoteId).toBeNull()
     expect(phoneStore.getState().stack).toEqual(['tabs'])
+  })
+
+  it('the backup password dialog over Settings: Back closes only the password dialog', async () => {
+    const { s } = setup()
+    act(() => s().setUi({ settingsOpen: true }))
+    await screen.findByRole('dialog', { name: /settings/i })
+    let answer: Promise<string> | undefined
+    act(() => void (answer = backupPasswordStore.getState().ask('set')))
+    await screen.findByRole('dialog', { name: /password/i })
+    await back()
+    expect(backupPasswordStore.getState().asking).toBeNull()
+    await expect(answer).resolves.toBe('cancel')
+    expect(s().ui.settingsOpen).toBe(true)
+    await back()
+    expect(s().ui.settingsOpen).toBe(false)
+  })
+
+  it('the voice typing consent dialog closes with Back', async () => {
+    setup()
+    act(() => voiceStore.setState({ consentOpen: true }))
+    await screen.findByRole('dialog')
+    await back()
+    expect(voiceStore.getState().consentOpen).toBe(false)
+  })
+
+  it('Rename note from the palette shows the rename box in the tabs sheet', async () => {
+    const { s, id } = setup()
+    act(() => COMMANDS.find((c) => c.id === 'tab.rename')!.run({ store: getStore() }))
+    expect(phoneStore.getState().stack).toContain('tabs')
+    expect(await screen.findByRole('textbox', { name: /rename/i })).toBeInTheDocument()
+    expect(s().ui.renamingId).toBe(id)
   })
 
   it('closing a dialog itself removes it from the Back stack', async () => {

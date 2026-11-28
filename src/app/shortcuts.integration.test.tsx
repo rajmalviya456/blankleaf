@@ -2,9 +2,10 @@ import { language } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { COMMANDS } from '../commands/registry'
+import { COMMANDS, commandEnabled } from '../commands/registry'
 import * as saveFile from '../features/backup/saveFile'
 import { toastStore } from '../ui/toast'
+import { symbolStore } from '../features/symbols/symbolStore'
 import { createAppStore, getStore, initStore } from '../store/store'
 import { App } from './App'
 
@@ -155,6 +156,38 @@ describe('global shortcuts', () => {
     setup()
     press('Comma', { ctrlKey: true })
     expect(await screen.findByRole('dialog', { name: /settings/i })).toBeInTheDocument()
+  })
+
+  it('closing a pinned tab in zen mode asks to unpin right away', async () => {
+    const { s, id } = setup()
+    act(() => s().togglePin(id))
+    act(() => s().toggleZen())
+    press('KeyW', { altKey: true })
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent(/unpin/i)
+  })
+
+  it('F2 in zen mode leaves zen so the rename box can show', async () => {
+    const { s, id } = setup()
+    act(() => s().toggleZen())
+    press('F2')
+    expect(s().session.zen).toBe(false)
+    expect(await screen.findByRole('textbox', { name: /rename/i })).toBeInTheDocument()
+    expect(s().ui.renamingId).toBe(id)
+  })
+
+  it('Insert symbol is only offered where the toolbar that holds it is showing', () => {
+    const { s } = setup()
+    const symbol = COMMANDS.find((c) => c.id === 'edit.symbol')!
+    expect(commandEnabled(symbol, s())).toBe(true)
+    act(() => s().updateSettings({ showToolbar: false }))
+    expect(commandEnabled(symbol, s())).toBe(false)
+    act(() => s().updateSettings({ showToolbar: true }))
+    act(() => s().toggleZen())
+    // In zen the toolbar comes back with it: the command leaves zen first.
+    expect(commandEnabled(symbol, s())).toBe(true)
+    act(() => symbol.run({ store: getStore() }))
+    expect(s().session.zen).toBe(false)
+    act(() => symbolStore.getState().setOpen(false))
   })
 
   it('closing a pinned tab by shortcut asks to unpin', async () => {
