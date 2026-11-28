@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Rail } from '../../app/layout/Rail'
 import { SidePanel } from '../../app/layout/SidePanel'
@@ -102,6 +102,55 @@ describe('Rail + SidePanel', () => {
     expect(s().notes[b]).toBeUndefined()
   })
 
+  it('Restore says so, offers to open the note, and keeps focus in the Trash list', async () => {
+    const { s, mk, user } = setup()
+    const a = mk('first trashed')
+    const b = mk('second trashed')
+    s().trashNote(a)
+    s().trashNote(b)
+    act(() => s().setSidebar({ open: true, panel: 'trash' }))
+    const list = screen.getByRole('list', { name: 'Trashed notes' })
+    const rows = within(list).getAllByRole('listitem')
+    const restoreFirst = within(rows[0]).getByRole('button', { name: /^Restore/ })
+    const next = within(rows[1]).getByRole('button', { name: /^Restore/ })
+    await user.click(restoreFirst)
+    expect(next).toHaveFocus()
+    const t = toastStore.getState().toasts.at(-1)!
+    expect(t.msg).toMatch(/^Restored “.+”$/)
+    expect(t.action?.label).toBe('Open')
+    // The last one: focus stays in the (now empty) list, not lost to the page.
+    await user.click(next)
+    expect(list).toHaveFocus()
+    act(() => t.action!.run())
+    expect(s().session.activeTabId).not.toBeNull()
+  })
+
+  it('after Delete permanently or Empty Trash, focus stays in the Trash list', async () => {
+    const { s, mk, user } = setup()
+    const a = mk('gone soon')
+    const b = mk('stays a bit')
+    const c = mk('also here')
+    s().trashNote(a)
+    s().trashNote(b)
+    s().trashNote(c)
+    act(() => s().setSidebar({ open: true, panel: 'trash' }))
+    const list = screen.getByRole('list', { name: 'Trashed notes' })
+    const [first, second] = within(list).getAllByRole('listitem')
+    const nextDelete = within(second).getByRole('button', { name: /permanently/ })
+    await user.click(within(first).getByRole('button', { name: /permanently/ }))
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: /delete permanently/i,
+      }),
+    )
+    await waitFor(() => expect(nextDelete).toHaveFocus())
+    await user.click(screen.getByRole('button', { name: /empty trash/i }))
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: /empty trash/i }),
+    )
+    await waitFor(() => expect(list).toHaveFocus())
+  })
+
   it('search box has an app-styled clear button instead of the browser one', async () => {
     const { s, user } = setup()
     act(() => s().setSidebar({ open: true, panel: 'search' }))
@@ -180,6 +229,16 @@ describe('Rail + SidePanel', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('No notes found')
     await user.clear(box)
     expect(screen.getByRole('status')).toHaveTextContent('')
+  })
+
+  it('counts every match, and says when only the first ones are listed', async () => {
+    const { s, mk, user } = setup()
+    for (let i = 0; i < 60; i++) mk(`zebra note ${i}`)
+    act(() => s().setSidebar({ open: true, panel: 'search' }))
+    await user.type(screen.getByRole('searchbox', { name: 'Search all notes' }), 'zebra')
+    expect(await screen.findByRole('status')).toHaveTextContent('60 notes found')
+    expect(screen.getByRole('heading', { name: /search/i })).toHaveTextContent('60')
+    expect(screen.getByText(/first 50 of 60/i)).toBeInTheDocument()
   })
 
   it('Enter that only confirms IME text does not open a result', async () => {

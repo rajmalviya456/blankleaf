@@ -26,6 +26,7 @@ import { useStore } from 'zustand'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { getStore, useAppStore } from '../../store/store'
 import { exportNote } from '../backup/actions'
+import { getActiveView } from '../editor/activeView'
 import { useNoteFontSize } from '../editor/useNoteFontSize'
 import { exportNoteAs } from '../export/exportNote'
 import { printStore } from '../print/printStore'
@@ -124,7 +125,14 @@ export function MoreTools({
                   Insert date and time
                 </Row>
               )}
-              <Row icon={Maximize2} onSelect={() => s().toggleZen()}>
+              <Row
+                icon={Maximize2}
+                onSelect={() => {
+                  s().toggleZen()
+                  // Zen hides the toolbar, menu button and all: back to the note to keep writing.
+                  setTimeout(() => getActiveView()?.focus())
+                }}
+              >
                 Zen mode
               </Row>
               {isVoiceSupported() && (

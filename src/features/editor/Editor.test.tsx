@@ -133,4 +133,19 @@ describe('Editor on a phone', () => {
     act(() => void runScopeHandlers(view, new KeyboardEvent('keydown', { key: 'Enter' }), 'editor'))
     expect(view.state.doc.toString()).toBe('- milk\n- ')
   })
+
+  it('a file dropped on the text opens as its own note (the app does that), not pasted in here', async () => {
+    const { view, s, id } = setup('My note')
+    const file = new File(['DROPPED'], 'd.txt', { type: 'text/plain' })
+    const drop = new Event('drop', { bubbles: true, cancelable: true })
+    Object.defineProperty(drop, 'dataTransfer', {
+      value: { files: [file], types: ['Files'], getData: () => '', dropEffect: 'copy' },
+    })
+    Object.defineProperty(drop, 'clientX', { value: 0 })
+    Object.defineProperty(drop, 'clientY', { value: 0 })
+    act(() => void view.contentDOM.querySelector('.cm-line')!.dispatchEvent(drop))
+    await act(() => new Promise((r) => setTimeout(r, 50)))
+    expect(view.state.doc.toString()).toBe('My note')
+    expect(s().notes[id].content).toBe('My note')
+  })
 })

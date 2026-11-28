@@ -57,6 +57,9 @@ export function useEditorExtensions({ wrap, settings, large = false }: Options):
         ...searchKeymap,
         indentWithTab,
       ]),
+      // A dropped file opens as a note of its own (DropZone, on the window): CodeMirror would
+      // also paste its text in here. Dropped text (not files) still lands at the drop point.
+      EditorView.domEventHandlers({ drop: (e) => !!e.dataTransfer?.files.length }),
       EditorView.contentAttributes.of({
         'aria-label': 'Note text',
         // Blankleaf checks spelling itself (features/spell): the browser's check lags behind the

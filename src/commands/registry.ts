@@ -22,7 +22,7 @@ import { openSample } from '../features/sample/sample'
 import { PHONE_QUERY, WIDE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
 import { phoneViewFor } from '../features/phone/phoneView'
-import { getActiveView } from '../features/editor/activeView'
+import { viewForNote } from '../features/editor/activeView'
 import { runTransform, TRANSFORM_IDS, TRANSFORMS } from '../features/toolbar/transforms'
 import { canFormat, runFormatCode } from '../features/toolbar/formatCode'
 import type { Shortcut } from '../lib/shortcuts'
@@ -63,6 +63,11 @@ const st = (ctx: CommandContext) => ctx.store.getState()
 const activeId = (ctx: CommandContext) => st(ctx).session.activeTabId
 /** The note being worked in (the side note while it has the cursor): for note commands. */
 const noteId = (ctx: CommandContext) => editingNote(st(ctx))?.id ?? null
+/** That note's editor, if it has one showing (not while it's preview-only). */
+const editingView = (ctx: CommandContext) => {
+  const id = noteId(ctx)
+  return id ? viewForNote(id) : null
+}
 
 const gotoTabs: Command[] = Array.from({ length: 9 }, (_, i) => ({
   id: `tab.goto${i + 1}`,
@@ -213,7 +218,7 @@ export const COMMANDS: Command[] = [
     when: (s) => hasOpenText(s) && isVoiceSupported(),
     run: (ctx) => {
       st(ctx).setUi({ paletteOpen: false })
-      toggleVoice(getActiveView())
+      toggleVoice(editingView(ctx))
     },
   },
   {
@@ -655,7 +660,7 @@ export const COMMANDS: Command[] = [
     },
     run: (ctx) => {
       const n = editingNote(st(ctx))
-      const view = getActiveView()
+      const view = editingView(ctx)
       st(ctx).setUi({ paletteOpen: false })
       if (n && view) void runFormatCode(view, n.language)
     },
@@ -667,8 +672,8 @@ export const COMMANDS: Command[] = [
     keywords: ['transform', 'convert', 'encode', 'decode', 'json', 'yaml', 'base64', 'url'],
     shortcuts: [],
     when: hasActive,
-    run: () => {
-      const view = getActiveView()
+    run: (ctx) => {
+      const view = editingView(ctx)
       if (view) void runTransform(view, id)
     },
   })),

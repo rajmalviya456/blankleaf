@@ -44,6 +44,16 @@ describe('trashWithUndo', () => {
     expect(s().session.activeTabId).toBe(ids[2])
   })
 
+  it('Undo for a tab in the background leaves you on the tab you are on now', () => {
+    const { s, ids } = setup()
+    act(() => s().setActive(ids[0]))
+    trashWithUndo(ids[1])
+    act(() => s().setActive(ids[2]))
+    undo()
+    expect(s().session.openTabIds).toEqual(ids)
+    expect(s().session.activeTabId).toBe(ids[2])
+  })
+
   it('Undo for a note that had no tab restores it without opening one', () => {
     const { s, ids } = setup()
     act(() => s().closeTab(ids[0]))

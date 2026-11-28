@@ -38,8 +38,22 @@ function countMatches(hay: string, needle: string): number {
   return count
 }
 
+/** The best `limit` matches, and how many notes matched in all. */
+export function searchAll(
+  notes: Note[],
+  query: string,
+  limit = 50,
+): { results: SearchResult[]; total: number } {
+  const all = rank(notes, query)
+  return { results: all.slice(0, limit), total: all.length }
+}
+
 /** Case-insensitive search over titles, tags and content of non-trashed notes. */
 export function searchNotes(notes: Note[], query: string, limit = 50): SearchResult[] {
+  return rank(notes, query).slice(0, limit)
+}
+
+function rank(notes: Note[], query: string): SearchResult[] {
   const q = fold(query.trim())
   if (!q) return []
   const results: SearchResult[] = []
@@ -76,5 +90,5 @@ export function searchNotes(notes: Note[], query: string, limit = 50): SearchRes
     results.push({ id: note.id, title, snippet, matchRanges, firstMatch: first, count, score })
   }
 
-  return results.sort((a, b) => b.score - a.score).slice(0, limit)
+  return results.sort((a, b) => b.score - a.score)
 }

@@ -119,8 +119,15 @@ export function detectLanguage(text: string): LanguageId {
   const sql =
     /\b(SELECT\s[\s\S]{1,400}?\sFROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|CREATE\s+TABLE|DELETE\s+FROM)\b/
   if (has(sql) || (has(new RegExp(sql.source, 'i')) && has(/;\s*$/m))) return 'sql'
-  // Keywords count only in code's shape: "let Sam know" and "type the letter" are prose.
-  const declaration = /^\s*(const|let|var)\s+[\w$]+\s*(=|:|;|$)/m
+  // Keywords count only in code's shape: "let Sam know", "let go" and "type the letter" are
+  // prose. A declaration assigns or types something, plain names or destructured.
+  const declaration = /^\s*(const|let|var)\s+([\w$]+|\[[^\]\n]*\]|\{[^}\n]*\})\s*(=|:|;)/m
+  const exported =
+    /^\s*export\s+((default|const|let|var|function|class|async)\b|\{[^}\n]*\}\s*(from\s*['"]|;|$)|\*\s*(as\s+[\w$]+\s*)?from\s*['"])/m
+  // An import line alone reads like prose too ("import taxes from "accountant""): it needs
+  // some code around it.
+  const imported =
+    /^\s*import\s+(['"][^'"\n]+['"]|[\w$*{][^\n]*\bfrom\s*['"][^'"\n]+['"])\s*;?\s*$/m
   if (
     has(/^\s*(export )?(interface \w+\s*(\{|extends\b)|type \w+\s*(<[^>\n]*>)?\s*=)/m) ||
     has(/(\b(const|let|var)\s+[\w$]+|\(\s*[\w$]+)\s*:\s*(string|number|boolean|void)\b/) ||
@@ -130,8 +137,8 @@ export function detectLanguage(text: string): LanguageId {
   if (
     has(declaration) ||
     has(/^\s*(async\s+)?function\s*\*?\s*[\w$]*\s*\(/m) ||
-    has(/^\s*import\s+(['"]|[\w$*{][^\n]*\bfrom\s*['"])/m) ||
-    has(/^\s*export\s+(default|const|let|var|function|class|async|\{|\*)/m) ||
+    has(exported) ||
+    (has(imported) && has(/[;{}()=]/)) ||
     (has(/(\)|\b\w+)\s*=>\s*[{(\w'"`[]/) && has(/[;{}()]/) && !has(/,\s*\w+\s*=>/))
   )
     return 'javascript'

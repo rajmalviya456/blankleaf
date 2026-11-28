@@ -115,7 +115,9 @@ describe('PhoneShell', () => {
     expect(phoneStore.getState().stack).toEqual([])
     expect(within(bar).getByRole('status')).toHaveTextContent('Not saved')
     act(() => s().setSaveStatus('saving'))
-    expect(within(bar).getByRole('status')).toHaveTextContent('Saving…')
+    // Shown, but not announced on every pause in typing.
+    expect(within(bar).getByRole('status')).toHaveTextContent('')
+    expect(bar).toHaveTextContent('Saving…')
   })
 
   it('save state: hidden when saved, "Saving…" while saving, "Not saved" on error', async () => {

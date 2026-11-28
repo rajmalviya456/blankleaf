@@ -14,8 +14,9 @@ import {
 import { setupPwa } from './pwa'
 import { startSync, type Sync } from './features/sync/sync'
 import { createShareHost } from './features/share/host'
-import { parseShareHash } from './features/share/link'
+import { SHARE_HASH_PREFIX } from './features/share/link'
 import { pickTransport } from './features/share/pickTransport'
+import { takeShareEntry } from './features/share/shareEntry'
 import { setShareHost } from './features/share/shareStore'
 import { stopSharesOfDeletedNotes } from './features/share/stopSharesOfDeletedNotes'
 import { setPersistentStorageStatus } from './lib/storageStatus'
@@ -95,11 +96,12 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
 
 /**
  * A share link (#/s/…) opens the lightweight recipient view without booting the app, so
- * nothing is written to this browser until the recipient chooses Save or Close.
+ * nothing is written to this browser until the recipient chooses Save or Close. A reload comes
+ * back to that view (the link waits in the tab, see shareEntry), not to the notepad.
  */
 async function main() {
-  const parts = parseShareHash(location.hash)
-  if (!parts) {
+  const share = takeShareEntry()
+  if (!share) {
     const shared = takeSharedNote()
     const shortcut = takeLaunchShortcut()
     await bootApp(shared ? { addNote: shared } : {})
@@ -107,40 +109,21 @@ async function main() {
     openLaunchedFiles()
     return
   }
-  // Keep the key out of the address bar and history once read.
-  history.replaceState(null, '', location.pathname + location.search)
   // The person's own theme, without saving anything: their settings load only if they open the app.
   applySettingsToDocument(
     { ...DEFAULT_SETTINGS, theme: savedTheme() ?? DEFAULT_SETTINGS.theme },
     systemPrefersDark(),
     false,
   )
-  const [{ ShareView }, { downloadText }] = await Promise.all([
-    import('./features/share/ShareView'),
-    import('./features/backup/download'),
-  ])
-  const shareRoot = createRoot(rootEl())
-  const handOver = (addNote?: Partial<Note>) => {
-    shareRoot.unmount()
-    void bootApp({ addNote })
-  }
-  shareRoot.render(
-    <StrictMode>
-      <ShareView
-        parts={parts}
-        transport={pickTransport()}
-        onSave={(n) => handOver(n)}
-        onClose={() => handOver()}
-        onDownload={(f) => downloadText(f.name, f.mime, f.text)}
-      />
-    </StrictMode>,
-  )
+  const { showSharePage } = await import('./features/share/sharePage')
+  showSharePage(rootEl(), share, (addNote) => void bootApp({ addNote }))
 }
 
 // A share link pasted into an already-open Blankleaf tab only changes the hash; reload so it
-// goes through the share entry point (and the key leaves the address bar).
+// goes through the share entry point (and the key leaves the address bar). A cut-off one too:
+// the share page then says the link is incomplete.
 window.addEventListener('hashchange', () => {
-  if (parseShareHash(location.hash)) location.reload()
+  if (location.hash.startsWith(SHARE_HASH_PREFIX)) location.reload()
 })
 
 void main()

@@ -1,6 +1,8 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from '../../app/App'
+import { DEFAULT_SETTINGS, newNoteDraft } from '../../domain/defaults'
 import { createAppStore, initStore } from '../../store/store'
+import { noteToHtml } from '../export/noteHtml'
 import { MarkdownPreview } from './MarkdownPreview'
 
 describe('MarkdownPreview', () => {
@@ -73,6 +75,76 @@ describe('MarkdownPreview', () => {
     const a = screen.getByRole('link', { name: 'site' })
     expect(a).toHaveAttribute('target', '_blank')
     expect(a).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+
+  it('shows a note nested thousands of levels deep as plain text (shared notes too)', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {}) // React reports the caught error
+    const deep = '>'.repeat(3000) + ' x'
+    expect(() => render(<MarkdownPreview source={deep} remoteImages={false} />)).not.toThrow()
+    expect(screen.getByText(/couldn’t be shown as formatted text/)).toBeInTheDocument()
+    vi.restoreAllMocks()
+  })
+
+  it.each(['[x](#note:%zz)', '[sale](#note:50%off)', '[x](#note:%E0%A4)'])(
+    'shows a malformed note link (%s) instead of crashing',
+    (source) => {
+      const opened: string[] = []
+      expect(() =>
+        render(<MarkdownPreview source={source} onOpenNote={(t) => opened.push(t)} />),
+      ).not.toThrow()
+      fireEvent.click(screen.getByRole('link'))
+      expect(opened).toHaveLength(1)
+    },
+  )
+})
+
+describe('footnotes and other in-page links', () => {
+  const source = 'A claim[^1].\n\n[^1]: Source.'
+
+  it('jump within the preview instead of opening a new tab', () => {
+    const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+    render(<MarkdownPreview source={source} />)
+    const ref = screen.getByRole('link', { name: '1' })
+    expect(ref).not.toHaveAttribute('target')
+    const footnote = document.getElementById(ref.getAttribute('href')!.slice(1))
+    expect(footnote).not.toBeNull()
+    fireEvent.click(ref)
+    expect(scroll.mock.contexts).toContain(footnote)
+    // The address bar's # belongs to the app (share links live there).
+    expect(location.hash).toBe('')
+    scroll.mockRestore()
+  })
+
+  it('take the focus along, and the back link returns to the reference', () => {
+    render(<MarkdownPreview source={source} />)
+    const ref = screen.getByRole('link', { name: '1' })
+    fireEvent.click(ref)
+    const footnote = document.activeElement as HTMLElement
+    expect(footnote).toHaveTextContent('Source.')
+    fireEvent.click(within(footnote).getByRole('link', { name: /back to reference/i }))
+    expect(document.activeElement).toBe(ref)
+  })
+
+  it('keep the sanitizer’s id prefix, once, so a note can’t clobber page globals', () => {
+    const { container } = render(<MarkdownPreview source={source} />)
+    const ids = [...container.querySelectorAll('[id]')].map((e) => e.id)
+    expect(ids.length).toBeGreaterThan(0)
+    for (const id of ids) expect(id).toMatch(/^user-content-(?!user-content-)/)
+  })
+
+  it('work as plain anchors in an exported page', async () => {
+    const html = await noteToHtml({
+      ...newNoteDraft(1, DEFAULT_SETTINGS),
+      mode: 'markdown',
+      content: source,
+    })
+    const page = new DOMParser().parseFromString(html, 'text/html')
+    const links = [...page.querySelectorAll('a[href^="#"]')]
+    expect(links).toHaveLength(2)
+    for (const a of links) {
+      expect(a.getAttribute('target')).toBeNull()
+      expect(page.getElementById(a.getAttribute('href')!.slice(1))).not.toBeNull()
+    }
   })
 })
 

@@ -1,6 +1,7 @@
 import { act, render, waitFor } from '@testing-library/react'
 import { ensureSyntaxTree, language } from '@codemirror/language'
 import { EditorView, runScopeHandlers } from '@codemirror/view'
+import { EditorSelection } from '@codemirror/state'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from './Editor'
 
@@ -95,6 +96,31 @@ describe('Tab nests a list item under the one above', () => {
     tab(v, true)
     expect(v.state.doc.toString()).toBe('1. one\n1. two')
     expect(topLevelItems(v)).toBe(2)
+  })
+
+  it('works with tab-indented lists, measuring a tab as the note’s tab size', async () => {
+    const v = await markdownEditor('- top\n\t- a\n\t- b')
+    tab(v)
+    // Under "\t- a" (its text at column 2 past the tab), keeping the tab.
+    expect(v.state.doc.toString()).toBe('- top\n\t- a\n\t  - b')
+    v.destroy()
+    const w = await markdownEditor('- top\n\t- a\n\t\t- b')
+    tab(w, true)
+    expect(w.state.doc.toString()).toBe('- top\n\t- a\n\t- b')
+  })
+
+  it('with several cursors, indents each line as before', async () => {
+    const v = await markdownEditor('- a\n- b\n- c')
+    act(() =>
+      v.dispatch({
+        selection: EditorSelection.create([EditorSelection.cursor(7), EditorSelection.cursor(11)]),
+      }),
+    )
+    tab(v)
+    const lines = v.state.doc.toString().split('\n')
+    expect(lines[0]).toBe('- a')
+    expect(lines[1]).toMatch(/^\s+- b$/)
+    expect(lines[2]).toMatch(/^\s+- c$/)
   })
 
   it('leaves Tab alone outside lists', async () => {

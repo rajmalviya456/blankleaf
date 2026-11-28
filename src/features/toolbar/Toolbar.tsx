@@ -51,7 +51,7 @@ import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
 import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
-import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
+import { getActiveView, noteForView, useActiveView, useActiveViewValue } from '../editor/activeView'
 import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
 import { trashWithUndo } from '../sidebar/trashWithUndo'
@@ -355,7 +355,10 @@ function TextGroup({
 /** Row of edit and note actions above the editor; adapts to the note's format. */
 /** `compact` (phones): text size and the note actions live in the note menu instead. */
 export function Toolbar({ noteId, compact = false }: { noteId: string; compact?: boolean }) {
-  const view = useActiveView()
+  // Only this note's own editor: a side note showing its preview has none, and its toolbar
+  // must not reach into the main note's editor instead.
+  const active = useActiveView()
+  const view = active && noteForView(active) === noteId ? active : null
   const markdown = useAppStore((s) => s.notes[noteId]?.mode === 'markdown')
   // Plain prose (not code or logs) gets formatting too; code keeps only the text tools.
   const prose = useAppStore((s) => {
@@ -368,8 +371,8 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
   const setSize = (n: number) => s().setNoteFontSize(noteId, n, false)
   const off = !view
   const listening = useStore(voiceStore, (v) => v.listening)
-  const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0)
-  const canRedo = useActiveViewValue((v) => !!v && redoDepth(v.state) > 0)
+  const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0) && !!view
+  const canRedo = useActiveViewValue((v) => !!v && redoDepth(v.state) > 0) && !!view
   const language = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
   const bar = useRef<HTMLDivElement>(null)
   // Phones scroll their toolbar instead; on laptops the least used tools fold into More tools.

@@ -24,6 +24,12 @@ async function enter(lang: LanguageId, doc: string, unit = '    '): Promise<stri
 }
 
 describe('Enter keeps the indent you typed', () => {
+  it('a step in after a tab-indented line keeps the tabs and adds one indent unit', async () => {
+    expect(await enter('javascript', 'function f() {\n\tif (x) {|')).toBe(
+      'function f() {\n\tif (x) {\n\t    |',
+    )
+  })
+
   it('plain text copies the line above', async () => {
     expect(await enter('plaintext', '      text|')).toBe('      text\n      |')
   })

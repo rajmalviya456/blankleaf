@@ -1,6 +1,7 @@
 import { ChevronDown, Eye, Menu as MenuIcon, MoreHorizontal, PencilLine } from 'lucide-react'
 import { displayTitle } from '../../domain/title'
 import { useAppStore } from '../../store/store'
+import { SaveAnnouncer } from '../../ui/SaveAnnouncer'
 import { toast } from '../../ui/toast'
 import { useActiveShares } from '../share/useActiveShares'
 import { phoneStore, usePhone } from './phoneStore'
@@ -15,13 +16,14 @@ function Dot() {
 
 /**
  * Saving… / Not saved, beside the title: its own button (tap to hear why), never inside the
- * title button, and announced to screen readers as it changes.
+ * title button. Screen readers hear only problems and recovery (SaveAnnouncer).
  */
 function SaveState() {
   const status = useAppStore((s) => s.ui.saveStatus)
   const error = useAppStore((s) => s.ui.saveError)
   return (
-    <span role="status" aria-label="Save status" className="contents">
+    <>
+      <SaveAnnouncer />
       {status === 'saving' && (
         <span className="shrink-0 px-1 text-[11px] text-fg-faint">Saving…</span>
       )}
@@ -36,7 +38,7 @@ function SaveState() {
           Not saved
         </button>
       )}
-    </span>
+    </>
   )
 }
 

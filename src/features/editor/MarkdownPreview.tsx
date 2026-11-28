@@ -17,11 +17,12 @@ import nginx from 'highlight.js/lib/languages/nginx'
 import powershell from 'highlight.js/lib/languages/powershell'
 import { common } from 'lowlight'
 import rehypeHighlight from 'rehype-highlight'
-import rehypeSanitize from 'rehype-sanitize'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import { taskLabelAt } from '../checklist/taskToggle'
 import { NOTE_HREF, remarkNoteLinks } from '../links/remarkNoteLinks'
 import { Diagram } from './Diagram'
+import { PreviewBoundary } from './PreviewBoundary'
 import { remarkBlankTasks } from './remarkBlankTasks'
 import { ReadyDiagrams } from './readyDiagrams'
 import { previewChunks, type Chunk } from './previewChunks'
@@ -30,10 +31,39 @@ import { loadMath, needsMath, type MathPlugins, type RichExtras } from './richCo
 /** Opens `[[Title]]` links as notes; only given in the editor's own preview. */
 const NoteLinkOpener = createContext<((title: string) => void) | null>(null)
 
+/** A note link's title. A stray % (`[sale](#note:50%off)`) is taken as typed. */
+function noteTitle(encoded: string): string {
+  try {
+    return decodeURIComponent(encoded)
+  } catch {
+    return encoded
+  }
+}
+
+/**
+ * The sanitizer prefixes every id, so a note can't clobber the page's globals (`window.x`).
+ * In-page links get the same prefix, so they still find their footnote.
+ */
+const ID_PREFIX = defaultSchema.clobberPrefix ?? ''
+/** Footnote ids are left unprefixed here: the sanitizer adds the prefix, once. */
+const REMARK_REHYPE = { clobberPrefix: '' }
+
+/** Scroll to a footnote (or back to its reference) in this preview, and take the focus there. */
+function jumpTo(from: HTMLElement, id: string) {
+  // Two previews can show side by side, each with its own footnote 1.
+  const preview = from.closest('.md-preview') ?? document
+  const target = [...preview.querySelectorAll<HTMLElement>('[id]')].find((el) => el.id === id)
+  if (!target) return
+  target.scrollIntoView({ block: 'center' })
+  // A footnote can't take focus by itself: let it, so the next Tab carries on from there.
+  if (target.tabIndex < 0) target.tabIndex = -1
+  target.focus({ preventScroll: true })
+}
+
 function Link({ node: _node, href, ...props }: ComponentProps<'a'> & ExtraProps) {
   const openNote = useContext(NoteLinkOpener)
   if (openNote && href?.startsWith(NOTE_HREF)) {
-    const title = decodeURIComponent(href.slice(NOTE_HREF.length))
+    const title = noteTitle(href.slice(NOTE_HREF.length))
     return (
       <a
         {...props}
@@ -42,6 +72,21 @@ function Link({ node: _node, href, ...props }: ComponentProps<'a'> & ExtraProps)
         onClick={(e) => {
           e.preventDefault()
           openNote(title)
+        }}
+      />
+    )
+  }
+  // A footnote or other link within the note. In a new tab it would only open Blankleaf again.
+  if (href?.startsWith('#')) {
+    const id = ID_PREFIX + href.slice(1)
+    return (
+      <a
+        {...props}
+        href={`#${id}`}
+        onClick={(e) => {
+          // The address bar's # is the app's own (share links live there): leave it alone.
+          e.preventDefault()
+          jumpTo(e.currentTarget, id)
         }}
       />
     )
@@ -163,36 +208,41 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   const math = useMath(source, extras?.math)
   const tasks = useMemo(() => ({ source, onToggleTask }), [source, onToggleTask])
   return (
-    <ReadyDiagrams.Provider value={extras?.diagrams}>
-      <NoteLinkOpener.Provider value={onOpenNote ?? null}>
-        <Tasks.Provider value={tasks}>
-          <article
-            role={bare ? 'none' : undefined}
-            aria-label={bare ? undefined : 'Markdown preview'}
-            className={className ? `md-preview ${className}` : 'md-preview'}
-          >
-            <ReactMarkdown
-              remarkPlugins={[
-                remarkGfm,
-                remarkBlankTasks,
-                ...(onOpenNote ? [remarkNoteLinks] : []),
-                ...(math?.remark ?? []),
-              ]}
-              // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
-              // highlighting only wraps text in spans, so it can't reintroduce anything unsafe.
-              rehypePlugins={[
-                rehypeSanitize,
-                ...(math?.rehype ?? []),
-                [rehypeHighlight, { detect: false, languages: FENCE_LANGUAGES }],
-              ]}
-              components={remoteImages ? components : noRemoteImages}
+    // Not only around the editor's preview: shared and printed notes are drawn here too, and in
+    // a big note only the chunk that can't be drawn falls back.
+    <PreviewBoundary source={source}>
+      <ReadyDiagrams.Provider value={extras?.diagrams}>
+        <NoteLinkOpener.Provider value={onOpenNote ?? null}>
+          <Tasks.Provider value={tasks}>
+            <article
+              role={bare ? 'none' : undefined}
+              aria-label={bare ? undefined : 'Markdown preview'}
+              className={className ? `md-preview ${className}` : 'md-preview'}
             >
-              {source}
-            </ReactMarkdown>
-          </article>
-        </Tasks.Provider>
-      </NoteLinkOpener.Provider>
-    </ReadyDiagrams.Provider>
+              <ReactMarkdown
+                remarkPlugins={[
+                  remarkGfm,
+                  remarkBlankTasks,
+                  ...(onOpenNote ? [remarkNoteLinks] : []),
+                  ...(math?.remark ?? []),
+                ]}
+                remarkRehypeOptions={REMARK_REHYPE}
+                // Sanitize first (keeps only safe markup, incl. language-* classes), then highlight:
+                // highlighting only wraps text in spans, so it can't reintroduce anything unsafe.
+                rehypePlugins={[
+                  rehypeSanitize,
+                  ...(math?.rehype ?? []),
+                  [rehypeHighlight, { detect: false, languages: FENCE_LANGUAGES }],
+                ]}
+                components={remoteImages ? components : noRemoteImages}
+              >
+                {source}
+              </ReactMarkdown>
+            </article>
+          </Tasks.Provider>
+        </NoteLinkOpener.Provider>
+      </ReadyDiagrams.Provider>
+    </PreviewBoundary>
   )
 })
 

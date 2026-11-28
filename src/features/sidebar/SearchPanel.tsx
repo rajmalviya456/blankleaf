@@ -4,7 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
 import { rowClass } from './rowClass'
-import { searchNotes, type SearchResult } from './search'
+import { searchAll, type SearchResult } from './search'
 
 function Highlighted({ text, ranges }: { text: string; ranges: [number, number][] }) {
   const parts: React.ReactNode[] = []
@@ -27,7 +27,10 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
   const [query, setQuery] = useState('')
   const deferred = useDeferredValue(query)
   const notes = useAppStore((s) => s.notes)
-  const results = useMemo(() => searchNotes(Object.values(notes), deferred), [notes, deferred])
+  const { results, total } = useMemo(
+    () => searchAll(Object.values(notes), deferred),
+    [notes, deferred],
+  )
   const input = useRef<HTMLInputElement>(null)
 
   const focusSearch = useAppStore((s) => s.ui.focusSearch)
@@ -45,7 +48,7 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
 
   return (
     <>
-      <PanelHeader title="Search" count={deferred.trim() ? results.length : undefined} />
+      <PanelHeader title="Search" count={deferred.trim() ? total : undefined} />
       <div className="px-2 pb-2">
         <label className="flex h-8 items-center gap-2 rounded-md border border-border bg-bg pl-2 pr-1 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]">
           <Search size={13} className="shrink-0 text-fg-faint" />
@@ -84,8 +87,8 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
       {/* Screen readers hear how a search went without leaving the search box. */}
       <p role="status" className="sr-only">
         {deferred.trim()
-          ? results.length
-            ? `${results.length} ${results.length === 1 ? 'note' : 'notes'} found`
+          ? total
+            ? `${total} ${total === 1 ? 'note' : 'notes'} found`
             : 'No notes found'
           : ''}
       </p>
@@ -109,6 +112,11 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
             </button>
           </li>
         ))}
+        {total > results.length && (
+          <li className="px-2 py-3 text-center text-[11.5px] text-fg-faint">
+            Showing the first {results.length} of {total}. Add a word to narrow it down.
+          </li>
+        )}
         {deferred.trim() && results.length === 0 && (
           <li className="px-2 py-6 text-center text-[12px] text-fg-faint">No matches.</li>
         )}

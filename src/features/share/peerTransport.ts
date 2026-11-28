@@ -9,7 +9,15 @@ import { ConnHandlers, TransportError, type Conn, type ShareTransport } from './
 type PeerCtor = typeof PeerType
 
 let peerCtor: Promise<PeerCtor> | null = null
-const loadPeer = () => (peerCtor ??= import('peerjs').then((m) => m.Peer))
+const loadPeer = () =>
+  (peerCtor ??= import('peerjs').then(
+    (m) => m.Peer,
+    (e: unknown) => {
+      // A failed download (a flaky phone connection) mustn't stick: "Try again" fetches it again.
+      peerCtor = null
+      throw e
+    },
+  ))
 
 function errorKind(type: string | undefined): TransportError['kind'] {
   switch (type) {

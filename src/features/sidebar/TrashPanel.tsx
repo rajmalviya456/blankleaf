@@ -1,6 +1,6 @@
 import { useIsTouch } from '../../lib/media'
 import { RotateCcw, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { TRASH_RETENTION_DAYS } from '../../domain/defaults'
 import { displayTitle } from '../../domain/title'
@@ -9,6 +9,7 @@ import { useNow } from '../../lib/useNow'
 import { trashedNotes } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { ConfirmDialog } from '../../ui/ConfirmDialog'
+import { toast } from '../../ui/toast'
 import { PanelHeader } from './panelParts'
 
 type Pending = { kind: 'one'; id: string; title: string } | { kind: 'all' } | null
@@ -19,6 +20,25 @@ export function TrashPanel() {
   const s = () => getStore().getState()
   const now = useNow()
   const btnSize = useIsTouch() ? 'size-11' : 'size-6'
+  const list = useRef<HTMLUListElement>(null)
+  // Where focus goes after a row leaves: the same button on the next row (or the one before),
+  // else the list itself, never lost to the page.
+  const nextFocus = (id: string, button: 'restore' | 'delete'): HTMLElement | null => {
+    const rows = [...(list.current?.querySelectorAll<HTMLElement>('li[data-note]') ?? [])]
+    const at = rows.findIndex((r) => r.dataset.note === id)
+    const row = rows[at + 1] ?? rows[at - 1]
+    return row?.querySelector<HTMLElement>(`[data-action="${button}"]`) ?? list.current
+  }
+  const afterConfirm = useRef<HTMLElement | null>(null)
+
+  const restore = (id: string, title: string) => {
+    const target = nextFocus(id, 'restore')
+    s().restoreNote(id)
+    target?.focus()
+    toast(`Restored “${title}”`, {
+      action: { label: 'Open', run: () => getStore().getState().openNote(id) },
+    })
+  }
 
   return (
     <>
@@ -40,12 +60,19 @@ export function TrashPanel() {
       <p className="px-3 pb-2 text-[11px] leading-snug text-fg-faint">
         Notes here are deleted for good after {TRASH_RETENTION_DAYS} days.
       </p>
-      <ul aria-label="Trashed notes" className="flex-1 overflow-y-auto px-1.5 pb-2">
+      <ul
+        ref={list}
+        aria-label="Trashed notes"
+        // Focus lands here when the last note leaves the list.
+        tabIndex={-1}
+        className="flex-1 overflow-y-auto px-1.5 pb-2 outline-none"
+      >
         {notes.map((n) => {
           const title = displayTitle(n)
           return (
             <li
               key={n.id}
+              data-note={n.id}
               className="group flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-bg-hover"
             >
               <span className="min-w-0 flex-1">
@@ -59,7 +86,8 @@ export function TrashPanel() {
                 type="button"
                 aria-label={`Restore ${title}`}
                 title="Restore"
-                onClick={() => s().restoreNote(n.id)}
+                data-action="restore"
+                onClick={() => restore(n.id, title)}
                 className={`grid ${btnSize} place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-fg`}
               >
                 <RotateCcw size={13} />
@@ -68,6 +96,7 @@ export function TrashPanel() {
                 type="button"
                 aria-label={`Delete ${title} permanently`}
                 title="Delete permanently"
+                data-action="delete"
                 onClick={() => setPending({ kind: 'one', id: n.id, title })}
                 className={`grid ${btnSize} place-items-center rounded text-fg-muted hover:bg-bg-elev hover:text-danger`}
               >
@@ -93,9 +122,22 @@ export function TrashPanel() {
         description="This can’t be undone."
         confirmLabel={pending?.kind === 'one' ? 'Delete permanently' : 'Empty Trash'}
         onConfirm={() => {
-          if (pending?.kind === 'one') s().purgeNote(pending.id)
-          else s().emptyTrash()
+          if (pending?.kind === 'one') {
+            afterConfirm.current = nextFocus(pending.id, 'delete')
+            s().purgeNote(pending.id)
+          } else {
+            afterConfirm.current = list.current
+            s().emptyTrash()
+          }
           setPending(null)
+        }}
+        onCloseAutoFocus={(e) => {
+          // The button that opened it may be gone with its note.
+          const target = afterConfirm.current
+          afterConfirm.current = null
+          if (!target) return
+          e.preventDefault()
+          target.focus()
         }}
       />
     </>

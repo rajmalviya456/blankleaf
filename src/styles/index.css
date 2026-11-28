@@ -777,6 +777,10 @@ input[type='search']::-webkit-search-decoration {
 .np-zen .cm-scroller {
   font-size: 1.06em;
 }
+/* Just the words: no fold arrows left behind at the window's edge, far from the text. */
+.np-zen .cm-gutters {
+  display: none;
+}
 
 /* Spelling: a red wavy underline, and fixes in a small popup under the word. */
 .np-misspelled {

@@ -1,11 +1,5 @@
 import { getIndentation, IndentContext, indentString } from '@codemirror/language'
-import {
-  countColumn,
-  EditorSelection,
-  type EditorState,
-  type StateCommand,
-  Text,
-} from '@codemirror/state'
+import { EditorSelection, type EditorState, type StateCommand, Text } from '@codemirror/state'
 
 const PAIRS: Record<string, string> = { '(': ')', '[': ']', '{': '}' }
 
@@ -51,7 +45,7 @@ export const newlineKeepingIndent: StateCommand = ({ state, dispatch }) => {
       from === to && PAIRS[state.sliceDoc(from - 1, from)] === state.sliceDoc(from, from + 1)
     const step = languageStep(state, from, split) ?? 0
     // The same indent is copied as typed, so tabs stay tabs; only a new step uses the indent unit.
-    const indent = step ? indentString(state, countColumn(ws, state.tabSize) + step) : ws
+    const indent = step ? ws + indentString(state, step) : ws
     while (to < line.to && /\s/.test(line.text[to - line.from])) to++
     if (!split && from > line.from && !/\S/.test(line.text.slice(0, from - line.from)))
       from = line.from

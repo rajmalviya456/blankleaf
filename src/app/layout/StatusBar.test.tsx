@@ -39,7 +39,8 @@ describe('StatusBar', () => {
     act(() => s().setSaveStatus('saving'))
     expect(screen.getByText('Saving…')).toBeInTheDocument()
     act(() => s().setSaveStatus('error', 'Quota exceeded'))
-    expect(screen.getByText('Not saved')).toHaveAttribute('title', 'Quota exceeded')
+    // The visible one carries the reason (screen readers also hear it from the announcer).
+    expect(screen.getByTitle('Quota exceeded')).toHaveTextContent('Not saved')
   })
 
   it('is empty of note info when no tab is open', () => {
@@ -113,11 +114,25 @@ describe('StatusBar for assistive tech', () => {
     expect(within(actions).getByRole('button', { name: 'Share note' })).toBeInTheDocument()
   })
 
-  it('is a footer with buttons, and announces only the save state', () => {
-    setup()
+  it('is a footer with buttons, and announces only save problems (not every save)', () => {
+    const { s } = setup()
     const bar = screen.getByRole('contentinfo', { name: 'Status bar' })
     expect(bar).not.toHaveAttribute('role', 'status')
-    expect(within(bar).getByRole('status', { name: 'Save status' })).toHaveTextContent('Saved')
+    const status = within(bar).getByRole('status', { name: 'Save status' })
+    // Saving happens after every pause in typing: saying so each time would be noise.
+    act(() => s().setSaveStatus('saving'))
+    expect(status).toHaveTextContent('')
+    act(() => s().setSaveStatus('saved'))
+    expect(status).toHaveTextContent('')
+    act(() => s().setSaveStatus('error', 'Disk full'))
+    expect(status).toHaveTextContent('Not saved')
+    // Once saving works again, that's worth hearing too.
+    act(() => s().setSaveStatus('saved'))
+    expect(status).toHaveTextContent('Saved')
+    act(() => s().setSaveStatus('saving'))
+    expect(status).toHaveTextContent('')
+    // The visible state is still there for everyone.
+    expect(bar).toHaveTextContent('Saving…')
   })
 })
 
