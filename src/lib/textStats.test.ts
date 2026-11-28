@@ -9,6 +9,13 @@ describe('textStats', () => {
     expect(textStats('hello  world\nfoo')).toEqual({ words: 3, chars: 16 })
     expect(textStats('  \n\t ')).toEqual({ words: 0, chars: 5 })
   })
+
+  it('counts an emoji or accented letter as one character, as people see it', () => {
+    expect(textStats('hi 👋🏽').chars).toBe(4)
+    expect(textStats('👨‍👩‍👧').chars).toBe(1)
+    expect(textStats('cafe\u0301').chars).toBe(4)
+    expect(textStats('नमस्ते').chars).toBe(3)
+  })
 })
 
 describe('lineColAt', () => {

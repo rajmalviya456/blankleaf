@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { stubMedia } from '../../../tests/media'
@@ -40,6 +40,8 @@ describe('tag rules', () => {
     expect(normalizeTag('  ##Big   idea ')).toBe('Big idea')
     expect(normalizeTag('#')).toBe('')
     expect(normalizeTag('x'.repeat(99))).toHaveLength(TAG_MAX_LENGTH)
+    // Never half an emoji at the cut.
+    expect(normalizeTag('a'.repeat(TAG_MAX_LENGTH - 1) + '😀')).toBe('a'.repeat(TAG_MAX_LENGTH - 1))
   })
 
   it('ignores duplicates in any case, and stops at the limit', () => {
@@ -135,6 +137,36 @@ describe.each([
     await user.click(within(dialog).getByRole('button', { name: 'Done' }))
     expect(s().notes[none].tags).toContain('typed but not entered')
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Tags' })).toBeNull())
+  })
+
+  it('splits pasted or phone-typed commas into separate tags', async () => {
+    media = stubMedia({ phone, touch: phone })
+    const { s, none } = setup()
+    const user = userEvent.setup()
+    render(<App />)
+    act(() => tagsStore.getState().open(none))
+    const dialog = await screen.findByRole('dialog', { name: 'Tags' })
+    const input = within(dialog).getByRole('textbox', { name: 'Add a tag' })
+    // A paste, or an Android keyboard (whose comma key reports no key name), changes the
+    // value without a comma keydown.
+    await user.click(input)
+    await user.paste('design, ideas,draf')
+    expect(s().notes[none].tags).toEqual(['design', 'ideas'])
+    expect(input).toHaveValue('draf')
+  })
+
+  it('Enter that only confirms IME text does not add a tag', async () => {
+    media = stubMedia({ phone, touch: phone })
+    const { s, none } = setup()
+    const user = userEvent.setup()
+    render(<App />)
+    act(() => tagsStore.getState().open(none))
+    const dialog = await screen.findByRole('dialog', { name: 'Tags' })
+    const input = within(dialog).getByRole('textbox', { name: 'Add a tag' })
+    await user.type(input, 'しごと')
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(s().notes[none].tags ?? []).toEqual([])
+    expect(input).toHaveValue('しごと')
   })
 })
 

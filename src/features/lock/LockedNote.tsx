@@ -1,3 +1,4 @@
+import type { LockedContent } from '../../domain/types'
 /**
  * A locked note. Its text exists only here, in this component's memory, while unlocked: the app's
  * store, storage, search, backups and sync only ever see the encrypted data. Leaving the note
@@ -17,6 +18,15 @@ import { useEditorExtensions } from '../editor/useEditorExtensions'
 import { seal, unseal, unsealWith, WrongPasswordError, type LockKey } from './lockCrypto'
 
 const SAVE_DELAY = 300
+
+/** Save text typed in one window as a new locked note, when another window changed the note. */
+function keepCopy(noteId: string, sealed: LockedContent) {
+  const s = getStore().getState()
+  const title = `${displayTitle(s.notes[noteId] ?? { title: null, content: '' })} (conflict copy)`
+  s.newNote({ id: crypto.randomUUID(), title, content: '', locked: sealed })
+  if (s.notes[noteId]) s.setActive(noteId)
+  toast('Edited in another window — your version was saved as a locked copy.', { tone: 'warn' })
+}
 
 function UnlockedEditor({
   noteId,
@@ -62,8 +72,15 @@ function UnlockedEditor({
       .then(async () => {
         const sealed = await seal(lock, text)
         const s = getStore().getState()
+        const current = s.notes[noteId]
+        // Another window removed the lock meanwhile: keep this text as a locked copy, since
+        // nothing below will see a newer locked version to compare it with.
+        if (current && !current.locked && current.content !== text) {
+          keepCopy(noteId, sealed)
+          return
+        }
         // Another window saved first: `stored` below keeps this text as a copy instead.
-        if (s.notes[noteId]?.locked !== base.current) return void (unsaved.current = true)
+        if (current?.locked !== base.current) return void (unsaved.current = true)
         base.current = sealed
         s.updateLocked(noteId, sealed)
       })
@@ -82,16 +99,8 @@ function UnlockedEditor({
       if (!alive || incoming === base.current) return
       const text = await unsealWith(lock, incoming).catch(() => null)
       if (text === null || !alive) return
-      if (unsaved.current && latest.current !== text) {
-        const s = getStore().getState()
-        const id = crypto.randomUUID()
-        const title = `${displayTitle(s.notes[noteId] ?? { title: null, content: '' })} (conflict copy)`
-        s.newNote({ id, title, content: '', locked: await seal(lock, latest.current) })
-        s.setActive(noteId)
-        toast('Edited in another window — your version was saved as a locked copy.', {
-          tone: 'warn',
-        })
-      }
+      if (unsaved.current && latest.current !== text)
+        keepCopy(noteId, await seal(lock, latest.current))
       clearTimeout(timer.current)
       unsaved.current = false
       base.current = incoming

@@ -34,6 +34,18 @@ describe('displayTitle', () => {
   })
 })
 
+describe('displayTitle skips marker-only lines', () => {
+  it('skips a code fence or front-matter line and uses the text after it', () => {
+    expect(displayTitle({ title: '', content: '```js\nconst a = 1\n```' })).toBe('const a = 1')
+    expect(displayTitle({ title: '', content: '---\ntitle: x\n---\nBody' })).toBe('title: x')
+    expect(displayTitle({ title: '', content: '~~~\nhi' })).toBe('hi')
+  })
+
+  it('still names a note that holds only markers', () => {
+    expect(displayTitle({ title: '', content: '```' })).toBe('```')
+  })
+})
+
 describe('displayTitle cut', () => {
   it('never cuts an emoji in half', () => {
     const t = displayTitle({ title: null, content: 'a'.repeat(TITLE_MAX - 1) + '😀 more' })

@@ -65,6 +65,36 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
           <div
             role="tablist"
             aria-label="Open notes"
+            onKeyDown={(e) => {
+              // Arrow keys, Home and End move between tabs (the WAI-ARIA tabs pattern).
+              const at = tabs.findIndex((t) => t.id === activeId)
+              const last = tabs.length - 1
+              const to =
+                e.key === 'ArrowRight'
+                  ? at === last
+                    ? 0
+                    : at + 1
+                  : e.key === 'ArrowLeft'
+                    ? at <= 0
+                      ? last
+                      : at - 1
+                    : e.key === 'Home'
+                      ? 0
+                      : e.key === 'End'
+                        ? last
+                        : -1
+              if (
+                to < 0 ||
+                !tabs[to] ||
+                (e.target as HTMLElement).getAttribute('role') !== 'tab' ||
+                // Moving a tab with the keyboard (Space, then arrows) is dnd-kit's.
+                (e.target as HTMLElement).getAttribute('aria-pressed') === 'true'
+              )
+                return
+              e.preventDefault()
+              getStore().getState().setActive(tabs[to].id)
+              e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[to]?.focus()
+            }}
             className="flex min-w-0 items-end gap-0.5 overflow-x-auto [scrollbar-width:none]"
           >
             {tabs.map((n) => (

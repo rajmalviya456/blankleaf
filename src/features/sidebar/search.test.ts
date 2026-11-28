@@ -10,6 +10,13 @@ const note = (content: string, patch: Partial<Note> = {}): Note => ({
 })
 
 describe('searchNotes', () => {
+  it('points at the match even when lowercasing changes a letter’s length', () => {
+    // "İ" lowercases to two code units, which used to shift every offset after it.
+    const [hit] = searchNotes([note('İİİ hello')], 'hello')
+    expect(hit.firstMatch).toBe(4)
+    expect(hit.snippet.slice(...hit.matchRanges[0])).toBe('hello')
+  })
+
   it('searchNotes empty query returns []', () => {
     expect(searchNotes([note('abc')], '   ')).toEqual([])
   })

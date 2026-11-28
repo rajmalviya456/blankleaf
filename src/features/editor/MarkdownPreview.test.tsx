@@ -16,6 +16,19 @@ describe('MarkdownPreview', () => {
     expect(screen.getByRole('table')).toBeInTheDocument()
   })
 
+  it('shows a blank task line (as templates have) as a box that can be ticked', () => {
+    const ticked: number[] = []
+    const source = '- [ ]\n- [x]\n- [ ] real'
+    render(<MarkdownPreview source={source} onToggleTask={(at) => ticked.push(at)} />)
+    const boxes = screen.getAllByRole('checkbox')
+    expect(boxes).toHaveLength(3)
+    expect(boxes[1]).toBeChecked()
+    expect(boxes[0]).toHaveAccessibleName('Empty task')
+    expect(screen.queryByText('[ ]')).toBeNull()
+    fireEvent.click(boxes[0])
+    expect(ticked).toEqual([0])
+  })
+
   it('strips <script> and on* handlers', () => {
     const { container } = render(
       <MarkdownPreview

@@ -18,6 +18,21 @@ const press = (code: string, mods: Partial<KeyboardEvent> = {}) =>
   act(() => void fireEvent.keyDown(window, { code, key: code, ...mods }))
 
 describe('global shortcuts', () => {
+  it('Ctrl+P never falls through to the browser’s print of the whole page', async () => {
+    const { s, id } = setup()
+    act(() =>
+      s().applyLock(id, { v: 1, salt: 's', iv: 'i', data: 'd', iterations: 1, origin: id }, 'L'),
+    )
+    // Printing is off for a locked note; the browser's own print would show it unlocked.
+    let allowed = true
+    act(() => void (allowed = fireEvent.keyDown(window, { code: 'KeyP', key: 'p', ctrlKey: true })))
+    expect(allowed).toBe(false)
+    press('Comma', { ctrlKey: true })
+    await screen.findByRole('dialog', { name: 'Settings' })
+    act(() => void (allowed = fireEvent.keyDown(window, { code: 'KeyP', key: 'p', ctrlKey: true })))
+    expect(allowed).toBe(false)
+  })
+
   it('Alt+N creates a note and Alt+W closes it', () => {
     const { s } = setup()
     press('KeyN', { altKey: true })

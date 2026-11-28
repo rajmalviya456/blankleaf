@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EditorView } from '@codemirror/view'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { COMMANDS } from '../../commands/registry'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from '../editor/Editor'
@@ -38,6 +38,30 @@ describe('symbols', () => {
 })
 
 describe('symbol picker', () => {
+  afterEach(() => act(() => symbolStore.getState().setOpen(false)))
+
+  it('stays open after a pick, so several can be typed in a row', async () => {
+    const { s, id, user } = setup()
+    await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))
+    await user.click(await screen.findByRole('tab', { name: 'Emoji' }))
+    const grin = await screen.findByRole('button', { name: 'grinning face' })
+    await user.click(grin)
+    await user.click(screen.getByRole('button', { name: 'grinning face' }))
+    expect(s().notes[id].content).toBe('Go 😀😀')
+    expect(screen.getByRole('dialog', { name: 'Insert symbol or emoji' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Inserted grinning face')
+    // Keyboard: the picked button keeps focus, so Enter types it again.
+    expect(screen.getByRole('button', { name: 'grinning face' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(s().notes[id].content).toBe('Go 😀😀😀')
+    // Escape closes it and puts you back in the note, after what was typed.
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Insert symbol or emoji' })).toBeNull()
+    expect(document.activeElement?.closest('.cm-editor')).not.toBeNull()
+    await user.keyboard('!')
+    expect(s().notes[id].content).toBe('Go 😀😀😀!')
+  })
+
   it('inserts a symbol at the cursor from the toolbar', async () => {
     const { s, id, user } = setup()
     await user.click(screen.getByRole('button', { name: 'Insert symbol or emoji' }))

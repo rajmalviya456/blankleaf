@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Rail } from '../../app/layout/Rail'
 import { SidePanel } from '../../app/layout/SidePanel'
@@ -152,5 +152,41 @@ describe('Rail + SidePanel', () => {
     within(list).getByText('press delete').closest('button')!.focus()
     await user.keyboard('{Delete}')
     expect(s().notes[id].deletedAt).not.toBeNull()
+  })
+
+  it('Enter that only confirms IME text does not open a result', async () => {
+    const { s, mk, user } = setup()
+    const a = mk('first')
+    const b = mk('second needle')
+    act(() => s().setActive(a))
+    act(() => s().setSidebar({ open: true, panel: 'search' }))
+    const box = screen.getByRole('searchbox')
+    await user.type(box, 'needle')
+    await screen.findByRole('button', { name: /second needle/i })
+    fireEvent.keyDown(box, { key: 'Enter', isComposing: true })
+    expect(s().session.activeTabId).toBe(a)
+    expect(b).toBeDefined()
+  })
+
+  it('after Delete on a row, focus moves to the next row, not the page', async () => {
+    const { mk, user } = setup()
+    mk('older')
+    mk('press delete')
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    const list = screen.getByRole('list', { name: 'Notes' })
+    within(list).getByText('press delete').closest('button')!.focus()
+    await user.keyboard('{Delete}')
+    expect(document.activeElement).toBe(within(list).getByText('older').closest('button'))
+  })
+
+  it('undo after Move to Trash keeps the note pinned', async () => {
+    const { s, mk, user } = setup()
+    const id = mk('pinned one')
+    act(() => s().togglePin(id))
+    await user.click(screen.getByRole('button', { name: 'Notes' }))
+    await user.click(screen.getByRole('button', { name: 'Move “pinned one” to Trash' }))
+    act(() => toastStore.getState().toasts.at(-1)!.action!.run())
+    expect(s().notes[id].deletedAt).toBeNull()
+    expect(s().notes[id].pinned).toBe(true)
   })
 })

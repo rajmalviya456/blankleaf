@@ -1,4 +1,5 @@
 /** Add and remove a note's tags. A centred dialog on laptops, a bottom sheet on phones. */
+import { composing } from '../../lib/ime'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Plus, X } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
@@ -39,7 +40,19 @@ function TagsForm({ noteId }: { noteId: string }) {
     getStore().getState().setNoteTags(noteId, addTag(tags, raw))
     setDraft('')
   }
+  // A comma ends a tag however it arrives: typed, pasted, or from a phone keyboard that sends
+  // no comma keydown.
+  const onType = (value: string) => {
+    const parts = value.split(',')
+    const rest = parts.pop() ?? ''
+    if (parts.length) {
+      const next = parts.reduce<string[]>((all, raw) => addTag(all, raw), tags)
+      getStore().getState().setNoteTags(noteId, next)
+    }
+    setDraft(rest)
+  }
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (composing(e)) return
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
       add(draft)
@@ -90,7 +103,7 @@ function TagsForm({ noteId }: { noteId: string }) {
         value={draft}
         maxLength={TAG_MAX_LENGTH + 2}
         enterKeyHint="done"
-        onChange={(e) => setDraft(e.target.value.replace(/,/g, ''))}
+        onChange={(e) => onType(e.target.value)}
         onKeyDown={onKeyDown}
         className="h-9 rounded-md border border-border bg-bg px-2.5 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:border-accent max-sm:h-11"
       />

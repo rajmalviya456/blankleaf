@@ -16,6 +16,21 @@ export interface SearchResult {
 const SNIPPET = 120
 const MAX_COUNT = 999
 
+/**
+ * Lowercase without changing length, so offsets into it are offsets into the original. A letter
+ * whose lowercase is longer (Turkish "İ") is kept as it is.
+ */
+function fold(text: string): string {
+  const lower = text.toLowerCase()
+  if (lower.length === text.length) return lower
+  let out = ''
+  for (const ch of text) {
+    const l = ch.toLowerCase()
+    out += l.length === ch.length ? l : ch
+  }
+  return out
+}
+
 function countMatches(hay: string, needle: string): number {
   let count = 0
   for (let i = hay.indexOf(needle); i !== -1 && count < MAX_COUNT; i = hay.indexOf(needle, i + 1))
@@ -25,7 +40,7 @@ function countMatches(hay: string, needle: string): number {
 
 /** Case-insensitive search over titles, tags and content of non-trashed notes. */
 export function searchNotes(notes: Note[], query: string, limit = 50): SearchResult[] {
-  const q = query.trim().toLowerCase()
+  const q = fold(query.trim())
   if (!q) return []
   const results: SearchResult[] = []
 
@@ -33,7 +48,7 @@ export function searchNotes(notes: Note[], query: string, limit = 50): SearchRes
     if (note.deletedAt !== null) continue
     const title = displayTitle(note)
     const titleHit = title.toLowerCase().includes(q)
-    const lower = note.content.toLowerCase()
+    const lower = fold(note.content)
     const first = lower.indexOf(q)
     const tag = q.replace(/^#+/, '')
     const tagHit = !!tag && (note.tags ?? []).some((t) => t.toLowerCase().includes(tag))
@@ -47,7 +62,7 @@ export function searchNotes(notes: Note[], query: string, limit = 50): SearchRes
       const raw = note.content.slice(start, end).replace(/\s/g, ' ')
       const prefix = start > 0 ? '…' : ''
       snippet = prefix + raw + (end < note.content.length ? '…' : '')
-      const lowerSnippet = snippet.toLowerCase()
+      const lowerSnippet = fold(snippet)
       for (let i = lowerSnippet.indexOf(q); i !== -1; i = lowerSnippet.indexOf(q, i + q.length))
         matchRanges.push([i, i + q.length])
     }
