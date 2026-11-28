@@ -1,5 +1,5 @@
 import { act, render, waitFor } from '@testing-library/react'
-import { language } from '@codemirror/language'
+import { ensureSyntaxTree, language } from '@codemirror/language'
 import { EditorView, runScopeHandlers } from '@codemirror/view'
 import { createAppStore, initStore } from '../../store/store'
 import { Editor } from './Editor'
@@ -47,5 +47,59 @@ describe('lists continue on Enter in Markdown notes', () => {
     const v = await markdownEditor('- milk\n- ')
     enter(v)
     expect(v.state.doc.toString()).toBe('- milk\n')
+  })
+})
+
+const tab = (v: EditorView, shift = false) =>
+  act(
+    () =>
+      void runScopeHandlers(
+        v,
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey: shift }),
+        'editor',
+      ),
+  )
+
+/** How many items the outermost list has (a nested item belongs to its parent's item). */
+function topLevelItems(v: EditorView): number {
+  const tree = ensureSyntaxTree(v.state, v.state.doc.length, 1000)!
+  const list = tree.topNode.firstChild!
+  let n = 0
+  for (let c = list.firstChild; c; c = c.nextSibling) if (c.name === 'ListItem') n++
+  return n
+}
+
+describe('Tab nests a list item under the one above', () => {
+  it('a numbered item, by the width of "1. ", starting its own list at 1', async () => {
+    const v = await markdownEditor('1. one\n2. two')
+    tab(v)
+    expect(v.state.doc.toString()).toBe('1. one\n   1. two')
+    expect(topLevelItems(v)).toBe(1)
+  })
+
+  it('bullets and checklist items', async () => {
+    for (const [start, nested] of [
+      ['- one\n- two', '- one\n  - two'],
+      ['- [ ] a\n- [ ] b', '- [ ] a\n  - [ ] b'],
+      ['1. a\n   1. b\n   2. c', '1. a\n   1. b\n      1. c'],
+    ]) {
+      const v = await markdownEditor(start)
+      tab(v)
+      expect(v.state.doc.toString()).toBe(nested)
+      v.destroy()
+    }
+  })
+
+  it('Shift+Tab moves it back out to its parent’s level', async () => {
+    const v = await markdownEditor('1. one\n   1. two')
+    tab(v, true)
+    expect(v.state.doc.toString()).toBe('1. one\n1. two')
+    expect(topLevelItems(v)).toBe(2)
+  })
+
+  it('leaves Tab alone outside lists', async () => {
+    const v = await markdownEditor('plain line')
+    tab(v)
+    expect(v.state.doc.toString()).toBe('  plain line')
   })
 })

@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { stubMedia } from '../../../tests/media'
@@ -70,6 +70,28 @@ describe('Note menu', () => {
     menu = await openMenu()
     await user.click(within(menu).getByRole('button', { name: 'Move to Trash' }))
     expect(s().notes[id].deletedAt).not.toBeNull()
+  })
+
+  it('shows Move to Trash in the danger colour (no competing text colour)', async () => {
+    setup()
+    const menu = await openMenu()
+    const trash = within(menu).getByRole('button', { name: 'Move to Trash' })
+    expect(trash).toHaveClass('text-danger')
+    expect(trash).not.toHaveClass('text-fg')
+    expect(within(menu).getByRole('button', { name: 'Duplicate' })).toHaveClass('text-fg')
+  })
+
+  it('Find & replace puts the cursor in the Find box, not back in the note', async () => {
+    const { s, id, user } = setup('find me here')
+    // The note is being typed in when the menu opens, so closing the menu hands focus back to it.
+    await user.click(document.querySelector('.cm-content')!)
+    const menu = await openMenu()
+    await user.click(within(menu).getByRole('button', { name: 'Find & replace' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Note menu' })).toBeNull())
+    await act(() => new Promise((r) => setTimeout(r, 50)))
+    expect(screen.getByRole('textbox', { name: 'Find' })).toHaveFocus()
+    await user.keyboard('me')
+    expect(s().notes[id].content).toBe('find me here')
   })
 
   it('text size − / + changes this note’s phone size (16–72), not Settings or the laptop size', async () => {

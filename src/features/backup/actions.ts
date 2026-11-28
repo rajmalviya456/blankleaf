@@ -23,6 +23,7 @@ import { downloadText } from './download'
 import { fileToNote, isProbablyBinary, noteExportFile } from './importFiles'
 import { importStore } from './importStore'
 import { markBackedUp } from './meta'
+import { saveTextFile } from './saveFile'
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024
 const MAX_BACKUP_BYTES = 500 * 1024 * 1024
@@ -92,6 +93,16 @@ export function exportNote(id: string): void {
   if (!note) return
   const f = noteExportFile(note)
   downloadText(f.name, f.mime, f.text)
+}
+
+/** Cmd/Ctrl+S: save the note as a file, asking where to put it when the browser can. */
+export async function saveNoteAsFile(id: string): Promise<void> {
+  const note = getStore().getState().notes[id]
+  if (!note || note.locked) return
+  const f = noteExportFile(note)
+  const saved = await saveTextFile(f.name, f.mime, f.text)
+  // A download shows in the browser's own downloads list; a saved file needs a word from us.
+  if (saved.outcome === 'saved') toast(`Saved “${saved.name}”`)
 }
 
 async function tombstoneIdsFromDb(): Promise<Set<string>> {

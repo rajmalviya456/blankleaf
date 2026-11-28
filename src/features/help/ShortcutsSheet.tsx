@@ -26,6 +26,8 @@ const EDITOR_KEYS: [string, string[], string[]][] = [
   ['Move focus out of the note', ['Esc then Tab'], ['Esc then Tab']],
   ['Tidy a Markdown table, next / previous cell', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
   ['Insert a heading, list, table… (Markdown, start of a line)', ['/'], ['/']],
+  ['Nest a list item / move it back out (Markdown)', ['Tab', '⇧Tab'], ['Tab', 'Shift+Tab']],
+  ['Spelling fixes for the underlined word at the cursor', ['⇧F10'], ['Shift+F10']],
 ]
 
 const kbdClass = 'rounded border border-border bg-bg-sunken px-1.5 py-px text-[11px] text-fg-muted'

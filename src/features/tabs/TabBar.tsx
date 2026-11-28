@@ -1,4 +1,5 @@
 import { useIsTouch } from '../../lib/media'
+import { useScrollEdges } from '../../lib/useScrollEdges'
 import {
   closestCenter,
   DndContext,
@@ -17,13 +18,12 @@ import {
 } from '@dnd-kit/sortable'
 import { ChevronDown, Plus } from 'lucide-react'
 import { TemplateMenu } from '../templates/TemplateMenu'
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { orderedTabs } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { TabItem } from './TabItem'
 import { TabOverflowMenu } from './TabOverflowMenu'
-import { UnpinPrompt } from './UnpinPrompt'
 import { requestCloseTab } from './requestCloseTab'
 
 export function TabBar({ actions }: { actions?: ReactNode }) {
@@ -31,6 +31,8 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
   // Blank "Untitled" tabs are nothing to pick from, so the ⌄ menu skips them.
   const listed = tabs.filter((n) => n.title?.trim() || /\S/.test(n.content))
   const activeId = useAppStore((s) => s.session.activeTabId)
+  const strip = useRef<HTMLDivElement>(null)
+  const edges = useScrollEdges(strip)
   const s = () => getStore().getState()
 
   // Touch: press-and-hold to drag, so a swipe still scrolls the tab strip.
@@ -63,8 +65,10 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
       >
         <SortableContext items={tabs.map((t) => t.id)} strategy={horizontalListSortingStrategy}>
           <div
+            ref={strip}
             role="tablist"
             aria-label="Open notes"
+            data-fade={edges}
             onKeyDown={(e) => {
               // Arrow keys, Home and End move between tabs (the WAI-ARIA tabs pattern).
               const at = tabs.findIndex((t) => t.id === activeId)
@@ -95,7 +99,7 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
               getStore().getState().setActive(tabs[to].id)
               e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[to]?.focus()
             }}
-            className="flex min-w-0 items-end gap-0.5 overflow-x-auto [scrollbar-width:none]"
+            className="np-fade-x flex min-w-0 items-end gap-0.5 overflow-x-auto [scrollbar-width:none]"
           >
             {tabs.map((n) => (
               <TabItem
@@ -125,8 +129,6 @@ export function TabBar({ actions }: { actions?: ReactNode }) {
         {listed.length > 1 && <TabOverflowMenu tabs={listed} activeId={activeId} />}
         {actions}
       </div>
-
-      <UnpinPrompt />
     </header>
   )
 }

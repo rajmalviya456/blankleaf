@@ -10,6 +10,7 @@ import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
 import { lockStore } from '../lock/lockStore'
 import { shareStore } from '../share/shareStore'
+import { trashWithUndo } from '../sidebar/trashWithUndo'
 
 interface Props {
   note: Note
@@ -17,8 +18,10 @@ interface Props {
   children: ReactNode
 }
 
-const itemClass =
-  'flex cursor-default select-none items-center rounded px-2 py-1.5 text-[12.5px] text-fg outline-none data-[disabled]:text-fg-faint data-[highlighted]:bg-accent-soft data-[highlighted]:text-fg'
+/** A menu row; its highlighted text colour is added where it's used (normal or danger). */
+const itemBase =
+  'flex cursor-default select-none items-center rounded px-2 py-1.5 text-[12.5px] text-fg outline-none data-[disabled]:text-fg-faint data-[highlighted]:bg-accent-soft'
+const itemClass = `${itemBase} data-[highlighted]:text-fg`
 
 export function TabContextMenu({ note, onClose, children }: Props) {
   const wide = useIsWide()
@@ -74,8 +77,8 @@ export function TabContextMenu({ note, onClose, children }: Props) {
           </ContextMenu.Item>
           <ContextMenu.Separator className="my-1 h-px bg-border" />
           <ContextMenu.Item
-            className={`${itemClass} data-[highlighted]:text-danger`}
-            onSelect={() => s().trashNote(note.id)}
+            className={`${itemBase} data-[highlighted]:text-danger`}
+            onSelect={() => trashWithUndo(note.id)}
           >
             Move to Trash
           </ContextMenu.Item>

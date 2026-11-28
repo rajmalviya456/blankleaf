@@ -26,8 +26,9 @@ export function Row({
   htmlFor?: string
 }) {
   return (
-    <div className="flex min-h-11 items-center gap-4 px-3 py-2">
-      <div className="min-w-0 flex-1">
+    // Phones: when the controls don't fit beside the label, they go on the line below it.
+    <div className="flex min-h-11 items-center gap-4 px-3 py-2 max-sm:flex-wrap max-sm:gap-y-1">
+      <div className="min-w-0 flex-1 max-sm:min-w-36">
         <label htmlFor={htmlFor} className="text-[12.5px] text-fg">
           {label}
         </label>
@@ -59,7 +60,7 @@ export function Segmented<T extends string | number>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={[
-            'rounded px-2.5 py-1 text-[12px] outline-none focus-visible:ring-1 focus-visible:ring-accent',
+            'rounded px-2.5 py-1 text-[12px] outline-none focus-visible:ring-1 focus-visible:ring-accent max-sm:min-h-11 max-sm:px-3',
             o.value === value ? 'bg-bg-elev text-fg shadow-sm' : 'text-fg-muted hover:text-fg',
           ].join(' ')}
         >
@@ -84,9 +85,9 @@ export function Toggle({
       aria-label={label}
       checked={checked}
       onCheckedChange={onChange}
-      className="relative h-5 w-9 rounded-full bg-bg-hover outline-none transition-colors focus-visible:ring-1 focus-visible:ring-accent data-[state=checked]:bg-accent"
+      className="relative h-5 w-9 rounded-full bg-bg-hover outline-none transition-colors focus-visible:ring-1 focus-visible:ring-accent data-[state=checked]:bg-accent max-sm:h-7 max-sm:w-12 max-sm:before:absolute max-sm:before:inset-x-0 max-sm:before:-inset-y-2"
     >
-      <Switch.Thumb className="block size-4 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[18px]" />
+      <Switch.Thumb className="block size-4 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[18px] max-sm:size-6 max-sm:data-[state=checked]:translate-x-[22px]" />
     </Switch.Root>
   )
 }
@@ -112,7 +113,7 @@ export function SelectBox<T extends string | number>({
     >
       <Select.Trigger
         aria-label={label}
-        className="flex h-7 w-36 items-center justify-between gap-2 rounded-md border border-border bg-bg-sunken pl-2.5 pr-2 text-[12px] text-fg outline-none transition-colors hover:border-fg-faint focus-visible:border-accent focus-visible:shadow-[0_0_0_3px_var(--accent-soft)] data-[state=open]:border-accent"
+        className="flex h-7 w-36 items-center justify-between gap-2 rounded-md border border-border bg-bg-sunken pl-2.5 pr-2 text-[12px] text-fg outline-none max-sm:h-11 transition-colors hover:border-fg-faint focus-visible:border-accent focus-visible:shadow-[0_0_0_3px_var(--accent-soft)] data-[state=open]:border-accent"
       >
         <Select.Value />
         <Select.Icon className="text-fg-faint">
@@ -132,7 +133,7 @@ export function SelectBox<T extends string | number>({
               <Select.Item
                 key={String(o.value)}
                 value={String(o.value)}
-                className="relative flex h-7 cursor-default select-none items-center rounded pl-7 pr-2 text-[12px] text-fg outline-none data-[highlighted]:bg-accent-soft"
+                className="relative flex h-7 cursor-default select-none items-center rounded pl-7 pr-2 text-[12px] text-fg outline-none data-[highlighted]:bg-accent-soft max-sm:h-11"
               >
                 <Select.ItemIndicator className="absolute left-2 text-accent">
                   <Check size={12} />
@@ -148,4 +149,4 @@ export function SelectBox<T extends string | number>({
 }
 
 export const buttonClass =
-  'rounded-md border border-border bg-bg-elev px-2.5 py-1 text-[12px] text-fg hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50'
+  'rounded-md border border-border bg-bg-elev px-2.5 py-1 text-[12px] text-fg hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50 max-sm:min-h-11 max-sm:min-w-11 max-sm:px-3'

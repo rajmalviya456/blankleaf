@@ -5,15 +5,15 @@
  */
 import type { Completion, CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { syntaxTree } from '@codemirror/language'
-import type { Extension } from '@codemirror/state'
+import type { EditorState, Extension } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 import { completionCore, completionSources } from './completion'
 
 interface SlashItem {
   label: string
   detail: string
-  /** Text to insert, and where the cursor goes in it (the end when absent). */
-  text: () => { text: string; cursor?: number }
+  /** Text for the slash at `at`, and where the cursor goes in it (the end when absent). */
+  text: (state: EditorState, at: number) => { text: string; cursor?: number }
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -40,13 +40,22 @@ export const SLASH_ITEMS: readonly SlashItem[] = [
     detail: '| |',
     text: () => ({ text: TABLE, cursor: TABLE.lastIndexOf('\n') + 3 }),
   },
-  { label: 'Divider', detail: '---', text: plain('---\n') },
+  {
+    label: 'Divider',
+    detail: '---',
+    // Right under text, --- would underline that text as a heading: a blank line keeps it a rule.
+    text: (state, at) => {
+      const line = state.doc.lineAt(at)
+      const above = line.number > 1 && state.doc.line(line.number - 1).text.trim() !== ''
+      return { text: above ? '\n---\n' : '---\n' }
+    },
+  },
   { label: 'Today’s date', detail: 'yyyy-mm-dd', text: () => ({ text: today() }) },
 ]
 
 function insert(item: SlashItem) {
   return (view: EditorView, _c: Completion, from: number, to: number) => {
-    const { text, cursor = text.length } = item.text()
+    const { text, cursor = text.length } = item.text(view.state, from - 1)
     // `from` is just after the slash: the slash goes too.
     view.dispatch({
       changes: { from: from - 1, to, insert: text },

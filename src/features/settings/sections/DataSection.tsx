@@ -95,7 +95,7 @@ export function DataSection({ settings: s, update }: Props) {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder="Type delete"
-            className="w-32 rounded-md border border-border-field bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none transition-colors focus:border-danger focus:shadow-[0_0_0_3px_rgb(212_60_75/0.15)]"
+            className="w-32 rounded-md border border-border-field bg-bg-sunken px-2 py-1 text-[12px] text-fg outline-none transition-colors focus:border-danger focus:shadow-[0_0_0_3px_rgb(212_60_75/0.15)] max-sm:h-11"
           />
           <button
             type="button"
@@ -104,7 +104,7 @@ export function DataSection({ settings: s, update }: Props) {
               setBusy(true)
               void clearAllData()
             }}
-            className="rounded-md bg-danger px-2.5 py-1 text-[12px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md bg-danger px-2.5 py-1 text-[12px] text-white disabled:cursor-not-allowed disabled:opacity-40 max-sm:min-h-11 max-sm:px-3"
           >
             Clear all data
           </button>

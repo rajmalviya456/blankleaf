@@ -68,6 +68,13 @@ describe('Enter keeps the indent you typed', () => {
     )
   })
 
+  it('copies a tab indent as tabs, not the indent unit’s spaces', async () => {
+    expect(await enter('plaintext', 'all:\n\tgo build|')).toBe('all:\n\tgo build\n\t|')
+    expect(await enter('json', '{\n\t"a": 1,|', '  ')).toBe('{\n\t"a": 1,\n\t|')
+    // Splitting braces: the closing one keeps the line's own tab.
+    expect((await enter('javascript', '\tif (x) {|}')).split('\n')[2]).toBe('\t}')
+  })
+
   it('a blank line between indented lines keeps the indent', async () => {
     expect(await enter('javascript', 'function a() {\n      |')).toBe('function a() {\n\n      |')
   })

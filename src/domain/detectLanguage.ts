@@ -119,10 +119,19 @@ export function detectLanguage(text: string): LanguageId {
   const sql =
     /\b(SELECT\s[\s\S]{1,400}?\sFROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|CREATE\s+TABLE|DELETE\s+FROM)\b/
   if (has(sql) || (has(new RegExp(sql.source, 'i')) && has(/;\s*$/m))) return 'sql'
-  if (has(/^\s*(export )?(interface|type) \w+/m) || has(/\w+\s*:\s*(string|number|boolean|void)\b/))
+  // Keywords count only in code's shape: "let Sam know" and "type the letter" are prose.
+  const declaration = /^\s*(const|let|var)\s+[\w$]+\s*(=|:|;|$)/m
+  if (
+    has(/^\s*(export )?(interface \w+\s*(\{|extends\b)|type \w+\s*(<[^>\n]*>)?\s*=)/m) ||
+    has(/(\b(const|let|var)\s+[\w$]+|\(\s*[\w$]+)\s*:\s*(string|number|boolean|void)\b/) ||
+    has(/\)\s*:\s*(string|number|boolean|void)\s*\{/)
+  )
     return 'typescript'
   if (
-    has(/^\s*(const|let|var|function|import|export)\b/m) ||
+    has(declaration) ||
+    has(/^\s*(async\s+)?function\s*\*?\s*[\w$]*\s*\(/m) ||
+    has(/^\s*import\s+(['"]|[\w$*{][^\n]*\bfrom\s*['"])/m) ||
+    has(/^\s*export\s+(default|const|let|var|function|class|async|\{|\*)/m) ||
     (has(/(\)|\b\w+)\s*=>\s*[{(\w'"`[]/) && has(/[;{}()]/) && !has(/,\s*\w+\s*=>/))
   )
     return 'javascript'

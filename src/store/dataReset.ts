@@ -6,6 +6,7 @@ import type { Persistence } from './persistence'
 let activeDb: BlankleafDB | null = null
 let activePersistence: Persistence | null = null
 let announceCleared: (() => void) | null = null
+let stopMemoryJournal: (() => void) | null = null
 
 export function registerStorage(
   db: BlankleafDB | null,
@@ -15,6 +16,11 @@ export function registerStorage(
   activeDb = db
   activePersistence = persistence
   announceCleared = announce
+}
+
+/** Without IndexedDB the notes live in a localStorage journal; this stops it (main.tsx). */
+export function registerMemoryJournal(stop: (() => void) | null): void {
+  stopMemoryJournal = stop
 }
 
 export function getActiveDb(): BlankleafDB | null {
@@ -36,6 +42,9 @@ export async function clearAllData(reload: () => void = () => location.reload())
   }
   activePersistence?.stop()
   activePersistence = null
+  // Without IndexedDB, the journal would save every note again as the page unloads.
+  stopMemoryJournal?.()
+  stopMemoryJournal = null
   if (activeDb) {
     await activeDb.delete()
     activeDb = null

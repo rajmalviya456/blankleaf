@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
+import { AppErrorBoundary } from './app/AppErrorBoundary'
 import { exportAll } from './features/backup/actions'
 import { startFolderBackup } from './features/backup/folderBackup'
 import { initMeta } from './features/backup/meta'
@@ -22,7 +23,7 @@ import { applySettingsToDocument, savedTheme, systemPrefersDark } from './lib/th
 import { DEFAULT_SETTINGS } from './domain/defaults'
 import type { Note } from './domain/types'
 import { bootstrap, requestPersistentStorage } from './store/bootstrap'
-import { registerStorage } from './store/dataReset'
+import { registerMemoryJournal, registerStorage } from './store/dataReset'
 import { isFreshVisit, startOnBlankLeaf } from './store/freshStart'
 import { startMemoryJournal } from './store/memoryJournal'
 import { startPersistence } from './store/persistence'
@@ -67,7 +68,7 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
     void startFolderBackup(store, boot.db)
   } else {
     store.getState().setSaveStatus('error', boot.error)
-    startMemoryJournal(store)
+    registerMemoryJournal(startMemoryJournal(store))
     toast(`${boot.error}. Export your notes before closing this tab.`, {
       tone: 'error',
       durationMs: 0,
@@ -80,7 +81,9 @@ export async function bootApp(opts: { addNote?: Partial<Note> } = {}): Promise<v
 
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </StrictMode>,
   )
 

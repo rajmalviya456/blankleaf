@@ -4,6 +4,8 @@ import { DEFAULT_SETTINGS, emptySession, newNoteDraft } from '../domain/defaults
 import type { Note } from '../domain/types'
 import type { Meta } from '../db/db'
 import { bootstrap, loadInitialState, requestPersistentStorage } from './bootstrap'
+import { startMemoryJournal } from './memoryJournal'
+import { createAppStore } from './store'
 import { JOURNAL_PREFIX, readAllJournals, readJournal, writeJournal } from './journal'
 
 const DAY = 86_400_000
@@ -251,5 +253,30 @@ describe('startup resilience', () => {
     expect(result.state.notes[j.id].content).toBe('typed in memory mode')
     expect(result.state.session.openTabIds).toEqual([j.id])
     expect(result.state.settings.tabSize).toBe(4)
+  })
+
+  it('without IndexedDB, a note deleted for good stays deleted, and journals don’t pile up', async () => {
+    const noIdb = () => {
+      throw new Error('IndexedDB is not available')
+    }
+    const x = { ...newNoteDraft(NOW - 9, DEFAULT_SETTINGS), content: 'delete me' }
+    const keep = { ...newNoteDraft(NOW - 8, DEFAULT_SETTINGS), content: 'keep me' }
+    writeJournal(
+      { at: NOW - 5, notes: [x, keep], settings: DEFAULT_SETTINGS },
+      `${JOURNAL_PREFIX}earlier-visit`,
+    )
+    const first = await bootstrap(NOW, noIdb)
+    const store = createAppStore(first.state)
+    const target = new EventTarget() as unknown as Window
+    const stop = startMemoryJournal(store, target)
+    store.getState().trashNote(x.id)
+    store.getState().purgeNote(x.id)
+    target.dispatchEvent(new Event('pagehide'))
+    stop()
+
+    const next = await bootstrap(NOW + 1000, noIdb)
+    expect(next.state.notes[x.id]).toBeUndefined()
+    expect(next.state.notes[keep.id].content).toBe('keep me')
+    expect(readAllJournals()).toHaveLength(1)
   })
 })

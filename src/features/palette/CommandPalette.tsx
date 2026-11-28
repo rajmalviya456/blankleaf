@@ -1,4 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { editingNote } from '../../store/selectors'
 import { Command, useCommandState } from 'cmdk'
 import { paletteScore } from './paletteScore'
 import { ChevronLeft, FileText } from 'lucide-react'
@@ -77,7 +78,8 @@ export function CommandPalette() {
 
   const setFormat = (lang: LanguageId) => {
     const s = store.getState()
-    const id = s.session.activeTabId
+    // The note being worked in: the side note while it has the cursor.
+    const id = editingNote(s)?.id
     if (!id) return
     s.setLanguage(id, lang)
     if (lang === 'auto') {

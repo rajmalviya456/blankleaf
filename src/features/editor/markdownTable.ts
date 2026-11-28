@@ -86,11 +86,11 @@ function cellIndex(line: string, col: number): number {
   return Math.max(0, pipes - (line.trimStart().startsWith('|') ? 1 : 0))
 }
 
-/** Where a cell's text starts in a formatted row. */
+/** Where a cell's text starts in a formatted row (`\|` is cell text, as in cellIndex). */
 function cellStart(row: string, cell: number): number {
-  let at = 0
-  for (let i = 0; i <= cell; i++) at = row.indexOf('|', at) + 1
-  return at + 1
+  const border = /(?<!\\)\|/g
+  for (let i = 0; i <= cell; i++) border.exec(row)
+  return border.lastIndex + 1
 }
 
 export const tableTab =

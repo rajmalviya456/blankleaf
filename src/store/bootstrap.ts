@@ -9,7 +9,7 @@ import {
   WELCOME_CONTENT,
 } from '../domain/defaults'
 import type { Note, Session, Settings } from '../domain/types'
-import { clearJournal, readAllJournals } from './journal'
+import { clearJournal, journalKey, readAllJournals, writeJournal } from './journal'
 import type { AppState } from './store'
 
 export interface InitialState {
@@ -167,9 +167,14 @@ export async function bootstrap(
   }
 }
 
-/** In-memory start when IndexedDB can't be used: rebuild from journals if there are any. */
+/**
+ * In-memory start when IndexedDB can't be used: rebuild from journals if there are any.
+ * They become this window's one journal, so a note deleted from now on can't come back from
+ * an older one, and journals don't pile up with every visit until storage is full.
+ */
 function memoryState(now: number): InitialState['state'] {
-  const journals = readAllJournals().map((x) => x.journal)
+  const found = readAllJournals()
+  const journals = found.map((x) => x.journal)
   const notes: Record<string, Note> = {}
   let session: Session | undefined
   let settings: Settings = mergeSettings(undefined)
@@ -184,6 +189,12 @@ function memoryState(now: number): InitialState['state'] {
     const note = newNoteDraft(now, settings)
     notes[note.id] = note
     sess = { ...sess, openTabIds: [note.id], activeTabId: note.id }
+  }
+  if (found.length) {
+    const kept = Object.values(notes).filter((n) => n.content.trim() || n.title || n.locked)
+    // Only once the merged copy is safely written do the old journals go.
+    if (writeJournal({ at: now, notes: kept, session: sess, settings }))
+      for (const { key } of found) if (key !== journalKey()) clearJournal(key)
   }
   return { notes, session: sess, settings }
 }

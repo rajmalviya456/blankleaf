@@ -18,9 +18,10 @@
   --accent: #3d5ce6;
   --accent-soft: #3d5ce61f;
   --accent-fg: #ffffff;
-  --danger: #d43c4b;
-  --warn: #b7791f;
-  --ok: #2f9e5b;
+  /* Status colours are text too: 4.5:1 on every surface (src/styles/contrast.test.ts). */
+  --danger: #c42b3b;
+  --warn: #8f5a0a;
+  --ok: #1b7340;
   --selection: #3d5ce633;
 
   /* Each at least 4.6:1 on code blocks and the highlighted line, not only on white. */
@@ -631,9 +632,9 @@ input[type='search']::-webkit-search-decoration {
     --accent: #3d5ce6;
     --accent-soft: #3d5ce61f;
     --accent-fg: #ffffff;
-    --danger: #d43c4b;
-    --warn: #b7791f;
-    --ok: #2f9e5b;
+    --danger: #c42b3b;
+    --warn: #8f5a0a;
+    --ok: #1b7340;
     --selection: #3d5ce633;
     --syn-keyword: #823bed;
     --syn-string: #207650;
@@ -771,7 +772,7 @@ input[type='search']::-webkit-search-decoration {
 .np-zen .cm-content {
   max-width: 70ch;
   margin: 0 auto;
-  padding: 12vh 24px 40vh;
+  padding: calc(12vh + var(--np-find-space, 0px)) 24px 40vh;
 }
 .np-zen .cm-scroller {
   font-size: 1.06em;
@@ -868,4 +869,21 @@ input[type='search']::-webkit-search-decoration {
     width: 1.5em;
     font-size: 1em;
   }
+}
+
+/* A row that scrolls sideways fades out at an edge with more past it (src/lib/useScrollEdges). */
+.np-fade-x[data-fade='start'] {
+  mask-image: linear-gradient(to right, transparent, #000 28px);
+}
+.np-fade-x[data-fade='end'] {
+  mask-image: linear-gradient(to left, transparent, #000 28px);
+}
+.np-fade-x[data-fade='both'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent
+  );
 }

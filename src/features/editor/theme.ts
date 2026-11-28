@@ -14,7 +14,11 @@ export const calmEditorTheme = EditorView.theme({
     lineHeight: 'var(--editor-line-height)',
     overflow: 'auto',
   },
-  '.cm-content': { padding: '14px 0 40vh', caretColor: 'var(--accent)' },
+  // --np-find-space: room above the first line while the find widget floats over the text.
+  '.cm-content': {
+    padding: 'calc(14px + var(--np-find-space, 0px)) 0 40vh',
+    caretColor: 'var(--accent)',
+  },
   '.cm-line': { padding: '0 18px 0 14px' },
   '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
   '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, ::selection': {

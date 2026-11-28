@@ -46,15 +46,17 @@ export const newlineKeepingIndent: StateCommand = ({ state, dispatch }) => {
   const changes = state.changeByRange((range) => {
     let { from, to } = range
     const line = state.doc.lineAt(from)
-    const own = countColumn(/^\s*/.exec(line.text)![0], state.tabSize)
+    const ws = /^\s*/.exec(line.text)![0]
     const split =
       from === to && PAIRS[state.sliceDoc(from - 1, from)] === state.sliceDoc(from, from + 1)
-    const indent = own + (languageStep(state, from, split) ?? 0)
+    const step = languageStep(state, from, split) ?? 0
+    // The same indent is copied as typed, so tabs stay tabs; only a new step uses the indent unit.
+    const indent = step ? indentString(state, countColumn(ws, state.tabSize) + step) : ws
     while (to < line.to && /\s/.test(line.text[to - line.from])) to++
     if (!split && from > line.from && !/\S/.test(line.text.slice(0, from - line.from)))
       from = line.from
-    const insert = ['', indentString(state, indent)]
-    if (split) insert.push(indentString(state, own))
+    const insert = ['', indent]
+    if (split) insert.push(ws)
     return {
       changes: { from, to, insert: Text.of(insert) },
       range: EditorSelection.cursor(from + 1 + insert[1].length),

@@ -81,6 +81,11 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
   const spellcheck = useAppStore((s) => s.settings.spellcheck)
   const lang = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
+  // A Markdown note whose format is still being detected ("Markdown (auto)") edits as Markdown.
+  const markdownAuto = useAppStore(
+    (s) => s.notes[noteId]?.mode === 'markdown' && s.notes[noteId]?.language === 'auto',
+  )
+  const editLang: LanguageId = markdownAuto ? 'markdown' : lang
   const settings = useAppStore((s) => s.settings)
   const zen = useAppStore((s) => s.session.zen)
   const large = isLargeDoc(content.length)
@@ -98,8 +103,10 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
     },
     large,
   })
-  const langExt = useLanguageExtension(lang, large)
-  const live = useLiveMarkdown(lang === 'markdown' && settings.liveMarkdown && !large && !!langExt)
+  const langExt = useLanguageExtension(editLang, large)
+  const live = useLiveMarkdown(
+    editLang === 'markdown' && settings.liveMarkdown && !large && !!langExt,
+  )
   const links = useMemo(() => noteLinks(noteId), [noteId])
   const longOn = useStore(readabilityStore, (r) => r.highlight && r.noteId === noteId)
   const rulerAt = languageMeta(lang).kind === 'code' ? settings.codeRuler : 0
@@ -177,7 +184,8 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
         cancelAnimationFrame(raf)
         view.scrollDOM.removeEventListener('scroll', onScroll)
       }
-      if (!side) view.focus()
+      // The main note takes the cursor; the side note only if it had it (back from preview).
+      if (!side || getStore().getState().ui.sideFocused) view.focus()
     },
     [noteId, side],
   )
@@ -189,7 +197,6 @@ export function Editor({ noteId, side = false }: { noteId: string; side?: boolea
         releaseActiveView(viewRef.current)
         unregisterNoteView(noteId, viewRef.current)
       }
-      if (side) getStore().getState().setUi({ sideFocused: false })
     },
     [side, noteId],
   )

@@ -11,6 +11,41 @@ const why = (e: unknown) => (e instanceof Error ? e.message.split('\n')[0] : Str
 
 const JSON_TOKEN = /"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g
 
+/** A decimal such as -1.50e2 as its significant digits and exponent ("-15e1"); null if not one. */
+function digits(src: string): string | null {
+  const m = /^([-+]?)(\d*)(?:\.(\d*))?(?:e([-+]?\d+))?$/i.exec(src)
+  if (!m || !(m[2] || m[3])) return null
+  const [, sign, int, frac = '', exp = '0'] = m
+  const zeros = /^0*/.exec(int + frac)![0].length
+  const sig = (int + frac).slice(zeros).replace(/0+$/, '')
+  return sig ? `${sign === '-' ? '-' : ''}${sig}e${Number(exp) + int.length - zeros - 1}` : '0'
+}
+
+/** Whether the number written as `src` comes out as exactly `value`. */
+function exact(src: string, value: number): boolean {
+  if (!Number.isFinite(value)) return false
+  const d = digits(src)
+  // Whole numbers (YAML's 0x1F and 0o17 too) are exact up to 2^53.
+  if (d === null || /^[-+]?\d+$/.test(src))
+    return !Number.isInteger(value) || Number.isSafeInteger(value)
+  return d === digits(String(value))
+}
+
+/**
+ * JavaScript numbers round whole numbers past 2^53 (IDs, snowflakes) and long decimals, and
+ * overflow to Infinity: refuse, don't corrupt.
+ */
+function checkNumber(src: string, value: number) {
+  if (exact(src, value)) return
+  // Say which way it fails: too big (IDs, 1e400), or too many digits (long decimals, 1e-400).
+  const big = !Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER
+  throw new TransformError(
+    big
+      ? `Not changed: ${src} is too large to keep exact.`
+      : `Not changed: ${src} has more digits than can be kept exact.`,
+  )
+}
+
 function parseJson(text: string): unknown {
   let value: unknown
   try {
@@ -18,10 +53,7 @@ function parseJson(text: string): unknown {
   } catch (e) {
     throw new TransformError(`Not valid JSON: ${why(e)}`)
   }
-  // JavaScript numbers round whole numbers past 2^53 (IDs, snowflakes): refuse, don't corrupt.
-  for (const [tok] of text.matchAll(JSON_TOKEN))
-    if (/^-?\d+$/.test(tok) && !Number.isSafeInteger(Number(tok)))
-      throw new TransformError(`Not changed: ${tok} is too large to keep exact.`)
+  for (const [tok] of text.matchAll(JSON_TOKEN)) if (tok[0] !== '"') checkNumber(tok, Number(tok))
   return value
 }
 
@@ -59,11 +91,20 @@ export const TRANSFORMS = {
   'yaml.toJson': {
     label: 'YAML → JSON',
     run: async (t: string) => {
-      const { parse } = await yaml()
+      const { parseDocument, visit } = await yaml()
       let data: unknown
       try {
-        data = parse(t)
+        const doc = parseDocument(t)
+        if (doc.errors.length) throw doc.errors[0]
+        // As for JSON → YAML: numbers must come out exactly as written.
+        visit(doc, {
+          Scalar: (_, n) => {
+            if (typeof n.value === 'number') checkNumber(n.source ?? String(n.value), n.value)
+          },
+        })
+        data = doc.toJS()
       } catch (e) {
+        if (e instanceof TransformError) throw e
         throw new TransformError(`Not valid YAML: ${why(e)}`)
       }
       return JSON.stringify(data, null, 2)

@@ -9,30 +9,10 @@ import { liveNotesSorted } from '../../store/selectors'
 import { getStore, useAppStore } from '../../store/store'
 import { PanelHeader } from './panelParts'
 import { rowClass } from './rowClass'
-import { toast } from '../../ui/toast'
 import { useIsTouch } from '../../lib/media'
 import { NoteRowMenu } from './NoteRowMenu'
 import { SortMenu } from './SortMenu'
-
-/** Move a note to Trash from the list (it stays closed) and offer an Undo. */
-function trashFromList(id: string) {
-  const s = getStore().getState()
-  const note = s.notes[id]
-  if (!note) return
-  const wasPinned = note.pinned
-  s.trashNote(id)
-  toast(`Moved “${displayTitle(note)}” to Trash`, {
-    action: {
-      label: 'Undo',
-      run: () => {
-        const st = getStore().getState()
-        st.restoreNote(id)
-        // Trash unpins; Undo puts it back as it was.
-        if (wasPinned && !st.notes[id]?.pinned) st.togglePin(id)
-      },
-    },
-  })
-}
+import { trashWithUndo } from './trashWithUndo'
 
 function preview(content: string): string {
   const lines = content.split('\n', 6).filter((l) => l.trim())
@@ -139,7 +119,7 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
                     // The row goes away: keep focus in the list, on the next row (or the last).
                     const li = e.currentTarget.closest('li')
                     const next = li?.nextElementSibling ?? li?.previousElementSibling
-                    trashFromList(n.id)
+                    trashWithUndo(n.id)
                     next?.querySelector<HTMLElement>('button')?.focus()
                   }
                 }}
@@ -177,7 +157,7 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
                     s().openNote(n.id)
                     onOpened?.()
                   }}
-                  onTrash={() => trashFromList(n.id)}
+                  onTrash={() => trashWithUndo(n.id)}
                   open={menuFor === n.id}
                   onOpenChange={(o) => setMenuFor(o ? n.id : null)}
                 />
@@ -186,7 +166,7 @@ export function NotesList({ onOpened }: { onOpened?: () => void } = {}) {
                   type="button"
                   aria-label={`Move “${displayTitle(n)}” to Trash`}
                   title="Move to Trash (Delete)"
-                  onClick={() => trashFromList(n.id)}
+                  onClick={() => trashWithUndo(n.id)}
                   className="absolute right-1 top-1 grid size-6 place-items-center rounded text-fg-muted opacity-0 hover:bg-bg-hover outline-none hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
                 >
                   <Trash2 size={13} />

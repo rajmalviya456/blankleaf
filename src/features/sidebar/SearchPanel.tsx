@@ -52,6 +52,7 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
           <input
             ref={input}
             type="search"
+            aria-label="Search all notes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -80,6 +81,14 @@ export function SearchPanel({ onOpened }: { onOpened?: () => void } = {}) {
           )}
         </label>
       </div>
+      {/* Screen readers hear how a search went without leaving the search box. */}
+      <p role="status" className="sr-only">
+        {deferred.trim()
+          ? results.length
+            ? `${results.length} ${results.length === 1 ? 'note' : 'notes'} found`
+            : 'No notes found'
+          : ''}
+      </p>
       <ul aria-label="Search results" className="flex-1 overflow-y-auto px-1.5 pb-2">
         {results.map((r) => (
           <li key={r.id}>

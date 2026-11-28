@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { exportNote } from '../backup/actions'
 import { shareStore } from '../share/shareStore'
+import { trashWithUndo } from '../sidebar/trashWithUndo'
 import { requestCloseTab } from '../tabs/requestCloseTab'
 import { getStore } from '../../store/store'
 import { toast } from '../../ui/toast'
@@ -97,7 +98,7 @@ export function tabActionItems(noteId: string): ActionItem[] {
       label: 'Move to Trash',
       icon: Trash2,
       danger: true,
-      onSelect: () => getStore().getState().trashNote(noteId),
+      onSelect: () => trashWithUndo(noteId),
     },
   ]
 }

@@ -1,6 +1,6 @@
 import { CompletionContext, type Completion } from '@codemirror/autocomplete'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { forceParsing } from '@codemirror/language'
+import { forceParsing, syntaxTree } from '@codemirror/language'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -89,6 +89,20 @@ describe('slash menu', () => {
     const v = editor('/')
     pick(v, 'Divider')
     expect(v.state.doc.toString()).toBe('---\n')
+  })
+
+  it('a divider right under text stays a divider, not that text’s heading underline', () => {
+    const v = editor('Shopping\n/')
+    pick(v, 'Divider')
+    expect(v.state.doc.toString()).toBe('Shopping\n\n---\n')
+    forceParsing(v, v.state.doc.length, 1000)
+    const blocks: string[] = []
+    for (let n = syntaxTree(v.state).topNode.firstChild; n; n = n.nextSibling) blocks.push(n.name)
+    expect(blocks).toEqual(['Paragraph', 'HorizontalRule'])
+    v.destroy()
+    // Under a blank line it needs no other.
+    pick(editor('Shopping\n\n/'), 'Divider')
+    expect(view!.state.doc.toString()).toBe('Shopping\n\n---\n')
   })
 
   it('today’s date', () => {

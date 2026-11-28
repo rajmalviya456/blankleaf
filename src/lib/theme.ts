@@ -1,4 +1,5 @@
 import type { Settings } from '../domain/types'
+import { accentShade } from './color'
 
 export type ThemePref = 'system' | 'light' | 'dark'
 export type Theme = 'light' | 'dark'
@@ -69,8 +70,10 @@ export function applySettingsToDocument(s: Settings, systemDark: boolean, persis
   root.style.setProperty('--editor-line-height', String(s.lineHeight))
   root.style.setProperty('--ui-font-size', `${s.uiFontSize}px`)
   if (HEX.test(s.accent)) {
-    root.style.setProperty('--accent', s.accent)
-    root.style.setProperty('--accent-soft', `${s.accent}24`)
+    // The chosen colour, darker or lighter as this theme needs for text and buttons to read.
+    const accent = accentShade(s.accent.toLowerCase(), theme)
+    root.style.setProperty('--accent', accent)
+    root.style.setProperty('--accent-soft', `${accent}24`)
   } else {
     root.style.removeProperty('--accent')
     root.style.removeProperty('--accent-soft')

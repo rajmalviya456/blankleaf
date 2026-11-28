@@ -1,14 +1,17 @@
-import { act, renderHook } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createAppStore, initStore } from '../../store/store'
 import { phoneStore } from './phoneStore'
 import { useBackToClose } from './useBackToClose'
 
 const st = () => phoneStore.getState()
+/** Wait for the browser's next popstate (jsdom fires it a moment after history.back()). */
+const popped = () => new Promise((r) => window.addEventListener('popstate', r, { once: true }))
 const back = async () => {
   await act(async () => {
+    const done = popped()
     history.back()
-    await new Promise((r) => setTimeout(r, 20))
+    await done
   })
 }
 
@@ -32,12 +35,10 @@ describe('phone overlays', () => {
     renderHook(() => useBackToClose())
     const before = history.state
     act(() => st().open('tabs'))
-    await act(async () => {
-      st().close()
-      await new Promise((r) => setTimeout(r, 20))
-    })
+    act(() => st().close())
     expect(st().stack).toEqual([])
-    expect(history.state).toEqual(before)
+    // Under load the browser's history can take a while to catch up: wait for it, not a guess.
+    await waitFor(() => expect(history.state).toEqual(before))
   })
 
   it('Back with no overlay open is not intercepted', async () => {
@@ -54,12 +55,9 @@ describe('phone overlays', () => {
     history.pushState({ app: 'base' }, '')
     act(() => st().open('library'))
     act(() => st().open('menu'))
-    await act(async () => {
-      hook.unmount()
-      await new Promise((r) => setTimeout(r, 30))
-    })
+    act(() => hook.unmount())
     expect(st().stack).toEqual([])
-    expect(history.state).toEqual({ app: 'base' })
+    await waitFor(() => expect(history.state).toEqual({ app: 'base' }))
   })
 
   it('setPreview stores per tab and never touches the app session', () => {

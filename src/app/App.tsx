@@ -1,4 +1,5 @@
 import { useUpdateNotice } from '../features/about/useUpdateNotice'
+import { UnpinPrompt } from '../features/tabs/UnpinPrompt'
 import { Contrast, Settings as SettingsIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
@@ -254,6 +255,8 @@ export function App() {
       </div>
       {!zen && <StatusBar />}
       {zen && <ZenExitHint />}
+      {/* Outside the tab bar, so closing a pinned tab asks even in zen mode. */}
+      <UnpinPrompt />
       <Dialogs />
       <DropZone />
       <Toaster />

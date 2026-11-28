@@ -226,7 +226,11 @@ export function createAppStore(
       const openTabIds = session.openTabIds.includes(id)
         ? session.openTabIds
         : insertTab(session, id, notes)
-      set({ session: { ...session, openTabIds, activeTabId: id } })
+      // Open again: it's no longer a closed tab that "Reopen closed tab" could bring back.
+      const closedStack = session.closedStack.includes(id)
+        ? session.closedStack.filter((x) => x !== id)
+        : session.closedStack
+      set({ session: { ...session, openTabIds, activeTabId: id, closedStack } })
     }
 
     return {

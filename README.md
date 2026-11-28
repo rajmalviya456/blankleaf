@@ -123,6 +123,8 @@ On macOS **⌃⌥** is Control+Option; on Windows/Linux it is **Alt**.
 | Next / previous tab             | ⌃⌥] / ⌃⌥[ | Alt+] / Alt+[   |
 | Go to tab 1–9                   | ⌃⌥1 … ⌃⌥9 | Alt+1 … Alt+9   |
 | Rename note                     | F2        | F2              |
+| Save note as a file             | ⌘S        | Ctrl+S          |
+| Print / save as PDF             | ⌘P        | Ctrl+P          |
 | Markdown edit / split / preview | ⌃⌥P       | Alt+P           |
 | Toggle sidebar                  | ⌘B        | Ctrl+B          |
 | Search all notes                | ⌘⇧F       | Ctrl+Shift+F    |

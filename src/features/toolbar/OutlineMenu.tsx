@@ -5,6 +5,7 @@ import { outline } from '../../domain/outline'
 import { PHONE_QUERY } from '../../lib/media'
 import { getStore, useAppStore } from '../../store/store'
 import { phoneStore } from '../phone/phoneStore'
+import { keepMovedFocus } from './toolbarStyles'
 
 /** Show the heading at `from` in the editor, leaving preview-only so the jump is visible. */
 function jumpTo(noteId: string, from: number) {
@@ -47,6 +48,8 @@ export function OutlineMenu({
           align="start"
           sideOffset={4}
           collisionPadding={8}
+          // The jump puts the cursor in the note: it stays there.
+          onCloseAutoFocus={keepMovedFocus}
           className="z-50 max-h-[min(420px,var(--radix-dropdown-menu-content-available-height))] min-w-48 max-w-[min(360px,calc(100vw-16px))] overflow-y-auto rounded-md border border-border bg-bg-elev p-1 shadow-lg"
         >
           {headings.length === 0 ? (

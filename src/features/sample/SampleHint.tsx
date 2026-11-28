@@ -21,7 +21,7 @@ export function SampleHint({ noteId }: { noteId: string }) {
       <button
         type="button"
         onClick={() => openSample(getStore())}
-        className="flex min-h-8 items-center gap-1.5 rounded-l-full py-1 pl-3 pr-2 hover:bg-bg-hover hover:text-fg"
+        className="flex min-h-8 items-center gap-1.5 rounded-l-full py-1 pl-3 pr-2 hover:bg-bg-hover hover:text-fg max-sm:min-h-11"
       >
         <Sparkles size={13} aria-hidden />
         Try a sample note
@@ -34,7 +34,7 @@ export function SampleHint({ noteId }: { noteId: string }) {
           hideSampleHint()
           setHidden(true)
         }}
-        className="grid min-h-8 w-8 place-items-center rounded-r-full hover:bg-bg-hover hover:text-fg"
+        className="grid min-h-8 w-8 place-items-center rounded-r-full hover:bg-bg-hover hover:text-fg max-sm:min-h-11 max-sm:w-11"
       >
         <X size={13} />
       </button>

@@ -28,7 +28,7 @@ import {
   type LucideIcon,
   Link2,
 } from 'lucide-react'
-import { useDeferredValue, type ReactNode } from 'react'
+import { useDeferredValue, useRef, type ReactNode } from 'react'
 import {
   EDITOR_FONTS,
   editorFontStack,
@@ -57,6 +57,7 @@ import { readabilityStore } from '../readability/readabilityStore'
 import { historyStore } from '../history/historyStore'
 import { printStore } from '../print/printStore'
 import { tagsStore } from '../tags/tagsStore'
+import { trashWithUndo } from '../sidebar/trashWithUndo'
 import { goalStore } from '../goal/goalStore'
 import { lockStore } from '../lock/lockStore'
 import { useLinkedFrom } from '../links/useLinkedFrom'
@@ -66,8 +67,10 @@ import { phoneStore } from './phoneStore'
 /** Above this size, skip word counting (same rule as the laptop status bar). */
 const WORD_COUNT_LIMIT = 2_000_000
 
-const row =
-  'flex h-12 w-full items-center gap-3 rounded-lg px-3 text-left text-[15px] text-fg active:bg-bg-hover disabled:opacity-40'
+/** A menu row; its text colour is added where it's used (normal or danger). */
+const rowBase =
+  'flex h-12 w-full items-center gap-3 rounded-lg px-3 text-left text-[15px] active:bg-bg-hover disabled:opacity-40'
+const row = `${rowBase} text-fg`
 
 function Action({
   icon: Icon,
@@ -91,7 +94,7 @@ function Action({
         if (!keepOpen) phoneStore.getState().closeAll()
         onSelect()
       }}
-      className={row + (danger ? ' text-danger' : '')}
+      className={danger ? `${rowBase} text-danger` : row}
     >
       <Icon size={18} className="shrink-0 opacity-80" aria-hidden />
       <span className="flex-1">{label}</span>
@@ -175,12 +178,24 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
   const font = useNoteFont(noteId)
   const spellcheck = useAppStore((st) => st.settings.spellcheck)
   const liveMarkdown = useAppStore((st) => st.settings.liveMarkdown)
+  /** Runs once the menu has closed, in place of handing focus back to where it was. */
+  const afterClose = useRef<(() => void) | null>(null)
 
   return (
     <Dialog.Root open={open && !!note} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="np-overlay fixed inset-0 z-40" />
-        <DialogSurface aria-describedby={undefined} className="fixed left-1/2 top-[8vh] w-96 px-2">
+        <DialogSurface
+          aria-describedby={undefined}
+          className="fixed left-1/2 top-[8vh] w-96 px-2"
+          onCloseAutoFocus={(e) => {
+            const run = afterClose.current
+            afterClose.current = null
+            if (!run) return
+            e.preventDefault()
+            run()
+          }}
+        >
           <Dialog.Title className="sr-only">Note menu</Dialog.Title>
           {note && noteId && (
             <>
@@ -259,7 +274,10 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                     label="Find & replace"
                     onSelect={() => {
                       const view = getActiveView()
-                      if (view) openSearchPanel(view)
+                      if (!view) return
+                      openSearchPanel(view)
+                      // The closing menu hands focus back to the note: return it to the Find box.
+                      afterClose.current = () => openSearchPanel(view)
                     }}
                   />
                 )}
@@ -369,7 +387,7 @@ export function NoteMenu({ open, onClose }: { open: boolean; onClose(): void }) 
                   icon={Trash2}
                   label="Move to Trash"
                   danger
-                  onSelect={() => s().trashNote(noteId)}
+                  onSelect={() => trashWithUndo(noteId)}
                 />
               </Group>
               <Stats noteId={noteId} />

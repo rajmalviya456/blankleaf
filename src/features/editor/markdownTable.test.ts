@@ -74,6 +74,15 @@ describe('Tab in a table', () => {
     expect(r.state.doc.lineAt(r.at).number).toBe(4)
   })
 
+  it('Tab steps over an escaped pipe inside a cell', () => {
+    const doc = '| x | y |\n| - | - |\n| a \\| b | c |'
+    const r = press(doc, doc.indexOf('a \\|'))
+    expect(cellAt(r)).toBe('c')
+    // From the last cell, the next Tab adds a row instead of getting stuck.
+    const next = press(r.doc, r.at)
+    expect(next.state.doc.lineAt(next.at).number).toBe(4)
+  })
+
   it('does nothing outside a table, or in a code block', () => {
     expect(press('just text | with a pipe', 3).handled).toBe(false)
     expect(press('```\n| a | b |\n| - | - |\n```', 6).handled).toBe(false)

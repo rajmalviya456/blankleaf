@@ -1,10 +1,13 @@
 import { language } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { useEffect } from 'react'
+import { noteForView } from '../features/editor/activeView'
 import { platform } from '../lib/platform'
 import { matchShortcut } from '../lib/shortcuts'
 import { languageMeta } from '../domain/languages'
+import { editingNote } from '../store/selectors'
 import { getStore, type AppState } from '../store/store'
+import { toast } from '../ui/toast'
 import { COMMANDS, commandEnabled } from './registry'
 
 /** Running as an installed app (no browser tabs competing for Cmd/Ctrl+T/W). */
@@ -15,10 +18,12 @@ function isStandalone(): boolean {
   )
 }
 
-/** The key went to the editor of a note written as code. */
+/** The key went to the editor of a note written as code (the main note or the side one). */
 function typingInCode(e: KeyboardEvent, state: AppState): boolean {
-  if (!(e.target instanceof Element) || !e.target.closest('.cm-editor')) return false
-  const id = state.session.activeTabId
+  const el = e.target instanceof Element ? e.target.closest('.cm-editor') : null
+  if (!(el instanceof HTMLElement)) return false
+  const view = EditorView.findFromDOM(el)
+  const id = (view && noteForView(view)) ?? state.session.activeTabId
   const lang = id ? state.notes[id]?.language : undefined
   return !!lang && languageMeta(lang).kind === 'code'
 }
@@ -32,6 +37,15 @@ function typingInMarkdown(e: KeyboardEvent): boolean {
       : null
   if (!(el instanceof HTMLElement)) return false
   return EditorView.findFromDOM(el)?.state.facet(language)?.name === 'markdown'
+}
+
+/**
+ * Keys the browser never gets, even while their command is off: its own Print and Save Page
+ * work on the whole app, an unlocked note's text included. Each has a hint for a locked note.
+ */
+const KEPT_FROM_BROWSER: Record<string, string> = {
+  'note.print': 'This note is locked. Remove the lock to print it.',
+  'note.export': 'This note is locked. Remove the lock to save it as a file.',
 }
 
 /** A dialog (Settings, Share, the palette…) is open over the notes. */
@@ -61,11 +75,14 @@ export function useGlobalShortcuts(): void {
             !(s.yieldsToMarkdown && typingInMarkdown(e)),
         )
         if (!hit) continue
-        // The browser's own print would print the whole app, unlocked notes included.
-        if (cmd.id === 'note.print') e.preventDefault()
+        const lockedHint = KEPT_FROM_BROWSER[cmd.id]
+        if (lockedHint) e.preventDefault()
         // Behind a dialog only the palette key works (it toggles the palette itself).
         if (cmd.id !== 'palette.open' && dialogOpen()) return
-        if (!commandEnabled(cmd, state)) return
+        if (!commandEnabled(cmd, state)) {
+          if (lockedHint && editingNote(state)?.locked) toast(lockedHint)
+          return
+        }
         e.preventDefault()
         e.stopPropagation()
         cmd.run({ store })

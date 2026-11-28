@@ -155,4 +155,86 @@ describe('switching notes', () => {
     act(() => s().setSplitNote(a))
     expect(document.querySelectorAll('.cm-editor')).toHaveLength(1)
   })
+
+  it('Change format… applies to the side note while it has the cursor', async () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => s().setUi({ sideFocused: true, paletteOpen: true, paletteMode: 'formats' }))
+    const dialog = await screen.findByRole('dialog', { name: /command palette/i })
+    const user = userEvent.setup()
+    await user.type(within(dialog).getByRole('combobox'), 'python')
+    await user.keyboard('{Enter}')
+    expect(s().notes[a].language).toBe('python')
+    expect(s().notes[b].language).toBe('auto')
+  })
+
+  it('Ctrl+/ in a code note shown beside a plain one comments the line', async () => {
+    const { s, b } = setup()
+    const code = s().newNote({ content: 'let x = 1', language: 'javascript' })
+    act(() => s().setActive(b))
+    act(() => s().setSplitNote(code))
+    render(<App />)
+    const side = pane()!
+    const content = side.querySelector('.cm-content') as HTMLElement
+    const view = EditorView.findFromDOM(side.querySelector('.cm-editor') as HTMLElement)!
+    act(() => view.dispatch({ selection: { anchor: 0 } }))
+    act(() => view.focus())
+    const user = userEvent.setup()
+    await user.click(content)
+    await user.keyboard('{Control>}/{/Control}')
+    expect(screen.queryByRole('dialog', { name: /keyboard shortcuts/i })).toBeNull()
+    expect(s().notes[code].content).toBe('// let x = 1')
+  })
+})
+
+describe('working in the side note', () => {
+  it('switching its view keeps commands on the side note, and returns the cursor to it', () => {
+    const { s, a, b } = setup()
+    act(() => s().setNoteMode(a, 'markdown'))
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    const sideEditor = () => pane()!.querySelector('.cm-content') as HTMLElement | null
+    act(() => sideEditor()!.focus())
+    expect(s().ui.sideFocused).toBe(true)
+    const cycle = COMMANDS.find((c) => c.id === 'view.preview.cycle')!
+    act(() => cycle.run({ store: getStore() })) // edit → split
+    expect(s().session.perTab[a]?.previewMode).toBe('split')
+    expect(s().ui.sideFocused).toBe(true)
+    act(() => cycle.run({ store: getStore() })) // split → preview
+    expect(s().session.perTab[a]?.previewMode).toBe('preview')
+    expect(s().ui.sideFocused).toBe(true)
+    act(() => cycle.run({ store: getStore() })) // preview → edit, still the side note
+    expect(s().session.perTab[a]?.previewMode).toBe('edit')
+    expect(s().session.perTab[b]?.previewMode ?? 'edit').toBe('edit')
+    expect(sideEditor()!.contains(document.activeElement)).toBe(true)
+    // And note commands still mean the side note.
+    act(() => COMMANDS.find((c) => c.id === 'note.trash')!.run({ store: getStore() }))
+    expect(s().notes[a].deletedAt).not.toBeNull()
+    expect(s().notes[b].deletedAt).toBeNull()
+  })
+
+  it('once the side note is hidden (zen), commands go back to the main note', () => {
+    const { s, a, b } = setup()
+    act(() => s().setSplitNote(a))
+    render(<App />)
+    act(() => (pane()!.querySelector('.cm-content') as HTMLElement).focus())
+    expect(s().ui.sideFocused).toBe(true)
+    act(() => s().toggleZen())
+    expect(s().ui.sideFocused).toBe(false)
+    act(() => COMMANDS.find((c) => c.id === 'note.trash')!.run({ store: getStore() }))
+    expect(s().notes[b].deletedAt).not.toBeNull()
+    expect(s().notes[a].deletedAt).toBeNull()
+  })
+})
+
+describe('opening a note beside another', () => {
+  it('is offered only where two notes fit side by side (900px and up)', () => {
+    const { s } = setup({ wide: false })
+    const open = COMMANDS.find((c) => c.id === 'view.split.open')!
+    expect(s().session.openTabIds.length).toBeGreaterThan(1)
+    expect(commandEnabled(open, s())).toBe(false)
+    media?.set({ wide: true })
+    expect(commandEnabled(open, s())).toBe(true)
+  })
 })

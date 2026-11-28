@@ -19,7 +19,6 @@ import {
   Bold,
   Braces,
   CaseSensitive,
-  Check,
   ChevronDown,
   Clock,
   Code,
@@ -46,20 +45,16 @@ import {
   WrapText,
   type LucideIcon,
 } from 'lucide-react'
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useRef, type ReactNode } from 'react'
 import { useStore } from 'zustand'
 import { isVoiceSupported, toggleVoice, voiceStore } from '../voice/voice'
-import {
-  EDITOR_FONTS,
-  editorFontStack,
-  EDITOR_FONT_MAX,
-  EDITOR_FONT_MIN,
-} from '../../domain/defaults'
+import { EDITOR_FONT_MAX, EDITOR_FONT_MIN } from '../../domain/defaults'
 import { exportNote } from '../backup/actions'
 import { exportNoteAs } from '../export/exportNote'
 import { getActiveView, useActiveView, useActiveViewValue } from '../editor/activeView'
 import { printStore } from '../print/printStore'
 import { shareStore } from '../share/shareStore'
+import { trashWithUndo } from '../sidebar/trashWithUndo'
 import { languageMeta } from '../../domain/languages'
 import { OutlineMenu } from './OutlineMenu'
 import { shortcutFor } from '../editor/markdownKeys'
@@ -83,17 +78,13 @@ import {
 } from './editCommands'
 import { runTransform, TRANSFORM_IDS, TRANSFORMS, type TransformId } from './transforms'
 import { canFormat, runFormatCode } from './formatCode'
+import { MoreTools } from './MoreTools'
+import { FontChoices } from './FontChoices'
+import { btn, copyAllText, item, keepMovedFocus, menuBtn, menuContent } from './toolbarStyles'
+import { useFold } from './useFold'
 
 /** Where a new group starts in the Transform menu (a separator goes before it). */
 const TRANSFORM_GROUP_START = new Set<TransformId>(['json.toYaml', 'base64.encode', 'url.encode'])
-
-const btn =
-  'grid h-7 min-w-7 shrink-0 place-items-center rounded-md px-1 text-fg-muted outline-none hover:bg-bg-hover hover:text-fg focus-visible:bg-bg-hover focus-visible:text-fg disabled:pointer-events-none disabled:opacity-35 aria-pressed:bg-accent-soft aria-pressed:text-accent'
-const menuBtn = btn
-  .replace('grid ', 'flex ')
-  .replace('place-items-center', 'items-center gap-0.5 px-1.5')
-const item =
-  'flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-[12.5px] text-fg outline-none data-[highlighted]:bg-accent-soft data-[disabled]:opacity-40'
 
 function Btn({
   icon: Icon,
@@ -157,8 +148,8 @@ function Menu({
         <DropdownMenu.Content
           align="start"
           sideOffset={4}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          className="z-50 min-w-44 rounded-md border border-border bg-bg-elev p-1 shadow-lg"
+          onCloseAutoFocus={keepMovedFocus}
+          className={menuContent}
         >
           {children}
         </DropdownMenu.Content>
@@ -175,43 +166,11 @@ function Item({ onSelect, children }: { onSelect(): void; children: ReactNode })
   )
 }
 
-/** The tick beside the chosen menu item (a fixed-width space when not chosen). */
-const Tick = () => (
-  <span className="w-3.5 shrink-0">
-    <DropdownMenu.ItemIndicator>
-      <Check size={13} />
-    </DropdownMenu.ItemIndicator>
-  </span>
-)
-
 /** This note's editor font; "Same as Settings" follows the Settings font again. */
 function FontMenu({ noteId }: { noteId: string }) {
-  const own = useAppStore((s) => s.notes[noteId]?.font)
-  const base = useAppStore((s) => s.settings.editorFont)
-  const baseLabel = EDITOR_FONTS.find((f) => f.value === base)?.label
-  const set = (v: string) =>
-    getStore()
-      .getState()
-      .setNoteFont(noteId, v === '' ? undefined : (v as (typeof EDITOR_FONTS)[number]['value']))
   return (
     <Menu icon={Type} label="Font">
-      <DropdownMenu.RadioGroup value={own ?? ''} onValueChange={set}>
-        <DropdownMenu.RadioItem value="" className={item}>
-          <Tick />
-          Same as Settings ({baseLabel})
-        </DropdownMenu.RadioItem>
-        {EDITOR_FONTS.map((f) => (
-          <DropdownMenu.RadioItem
-            key={f.value}
-            value={f.value}
-            className={item}
-            style={{ fontFamily: editorFontStack(f.value) }}
-          >
-            <Tick />
-            {f.label}
-          </DropdownMenu.RadioItem>
-        ))}
-      </DropdownMenu.RadioGroup>
+      <FontChoices noteId={noteId} />
     </Menu>
   )
 }
@@ -224,8 +183,12 @@ const Sep = () => <span aria-hidden data-separator className="mx-1.5 h-4 w-px sh
  */
 function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorView) => unknown) {
   const s = getStore().getState()
-  if (s.notes[noteId]?.mode === 'markdown') return void format(view)
-  s.setNoteMode(noteId, 'markdown')
+  const note = s.notes[noteId]
+  if (!note || note.mode === 'markdown') return void format(view)
+  const was = note.language
+  // A format still being detected just becomes Markdown; one chosen as Plain text changes to it.
+  if (was === 'auto') s.setNoteMode(noteId, 'markdown')
+  else s.setLanguage(noteId, 'markdown')
   format(view)
   const after = view.state.doc
   toast('Switched this note to Markdown', {
@@ -235,7 +198,8 @@ function formatAsMarkdown(noteId: string, view: EditorView, format: (v: EditorVi
         // The editor may have been recreated for the new format; its history carries over.
         const v = getActiveView()
         if (v && v.state.doc.eq(after) && undoDepth(v.state) > 0) undo(v)
-        getStore().getState().setNoteMode(noteId, 'plain')
+        if (was === 'auto') getStore().getState().setNoteMode(noteId, 'plain')
+        else getStore().getState().setLanguage(noteId, was)
       },
     },
   })
@@ -307,7 +271,16 @@ function MarkdownGroup({ view, noteId }: { view: EditorView | null; noteId: stri
   )
 }
 
-function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }) {
+function TextGroup({
+  view,
+  noteId,
+  foldDate,
+}: {
+  view: EditorView | null
+  noteId: string
+  /** The date button has moved into More tools. */
+  foldDate: boolean
+}) {
   const off = !view
   const wrap = useAppStore((s) => s.notes[noteId]?.wrap ?? true)
   const code = useAppStore((s) => languageMeta(s.notes[noteId]?.language ?? 'auto').kind === 'code')
@@ -361,12 +334,14 @@ function TextGroup({ view, noteId }: { view: EditorView | null; noteId: string }
           </Fragment>
         ))}
       </Menu>
-      <Btn
-        icon={Clock}
-        label="Insert date and time"
-        disabled={off}
-        onClick={run((v) => insertText(v, new Date().toLocaleString()))}
-      />
+      {!foldDate && (
+        <Btn
+          icon={Clock}
+          label="Insert date and time"
+          disabled={off}
+          onClick={run((v) => insertText(v, new Date().toLocaleString()))}
+        />
+      )}
       <Btn
         icon={WrapText}
         label="Wrap long lines"
@@ -395,9 +370,14 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
   const listening = useStore(voiceStore, (v) => v.listening)
   const canUndo = useActiveViewValue((v) => !!v && undoDepth(v.state) > 0)
   const canRedo = useActiveViewValue((v) => !!v && redoDepth(v.state) > 0)
+  const language = useAppStore((s) => s.notes[noteId]?.language ?? 'auto')
+  const bar = useRef<HTMLDivElement>(null)
+  // Phones scroll their toolbar instead; on laptops the least used tools fold into More tools.
+  const fold = useFold(bar, compact ? 0 : 3, `${noteId} ${markdown} ${prose} ${language}`)
 
   return (
     <div
+      ref={bar}
       role="toolbar"
       aria-label="Editor toolbar"
       data-compact={compact || undefined}
@@ -412,8 +392,8 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
       <Sep />
       {(markdown || prose) && <MarkdownGroup view={view} noteId={noteId} />}
       {prose && <Sep />}
-      {!markdown && <TextGroup view={view} noteId={noteId} />}
-      {!compact && (
+      {!markdown && <TextGroup view={view} noteId={noteId} foldDate={fold >= 3} />}
+      {!compact && fold < 2 && (
         <>
           <Sep />
           <FontMenu noteId={noteId} />
@@ -447,10 +427,10 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
         onClick={() => view && openSearchPanel(view)}
       />
       <SymbolPicker className={btn} disabled={off} />
-      {!compact && (
+      {!compact && fold < 3 && (
         <Btn icon={Maximize2} label="Zen mode" onClick={() => getStore().getState().toggleZen()} />
       )}
-      {!compact && isVoiceSupported() && (
+      {!compact && fold < 3 && isVoiceSupported() && (
         <Btn
           icon={Mic}
           label={listening ? 'Stop voice typing' : 'Start voice typing'}
@@ -459,21 +439,11 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
           onClick={() => toggleVoice(view)}
         />
       )}
-      {!compact && (
+      {!compact && <span data-spacer className="min-w-2 flex-1" />}
+      {!compact && fold >= 1 && <MoreTools noteId={noteId} fold={fold} view={view} />}
+      {!compact && fold < 1 && (
         <>
-          <span className="min-w-2 flex-1" />
-          <Btn
-            icon={Copy}
-            label="Copy all text"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(s().notes[noteId]?.content ?? '')
-                toast('Copied note text')
-              } catch {
-                toast('Couldn’t copy — your browser blocked clipboard access.', { tone: 'warn' })
-              }
-            }}
-          />
+          <Btn icon={Copy} label="Copy all text" onClick={() => void copyAllText(noteId)} />
           <Menu icon={Download} label="Download note">
             <Item onSelect={() => exportNote(noteId)}>Original format</Item>
             <Item onSelect={() => void exportNoteAs(noteId, 'html')}>Web page (.html)</Item>
@@ -490,7 +460,7 @@ export function Toolbar({ noteId, compact = false }: { noteId: string; compact?:
             onClick={() => shareStore.getState().open(noteId)}
           />
           <Sep />
-          <Btn icon={Trash2} label="Move to Trash" danger onClick={() => s().trashNote(noteId)} />
+          <Btn icon={Trash2} label="Move to Trash" danger onClick={() => trashWithUndo(noteId)} />
         </>
       )}
     </div>

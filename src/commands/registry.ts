@@ -3,8 +3,9 @@
  * sheet and menus all read from here.
  */
 import type { StoreApi } from 'zustand'
-import { exportAll, exportNote, pickFilesToImport } from '../features/backup/actions'
+import { exportAll, pickFilesToImport, saveNoteAsFile } from '../features/backup/actions'
 import { shareStore } from '../features/share/shareStore'
+import { trashWithUndo } from '../features/sidebar/trashWithUndo'
 import { exportNoteAs } from '../features/export/exportNote'
 import { historyStore } from '../features/history/historyStore'
 import { printStore } from '../features/print/printStore'
@@ -18,7 +19,7 @@ import { compareStore } from '../features/compare/compareStore'
 import { symbolStore } from '../features/symbols/symbolStore'
 import { readabilityStore } from '../features/readability/readabilityStore'
 import { openSample } from '../features/sample/sample'
-import { PHONE_QUERY } from '../lib/media'
+import { PHONE_QUERY, WIDE_QUERY } from '../lib/media'
 import { phoneStore } from '../features/phone/phoneStore'
 import { phoneViewFor } from '../features/phone/phoneView'
 import { getActiveView } from '../features/editor/activeView'
@@ -147,7 +148,12 @@ export const COMMANDS: Command[] = [
     keywords: ['title'],
     shortcuts: [{ code: 'F2' }],
     when: hasActive,
-    run: (ctx) => st(ctx).setUi({ renamingId: activeId(ctx), paletteOpen: false }),
+    run: (ctx) => {
+      // The rename box sits on the tab: leave zen so it shows; on phones, in the tabs sheet.
+      if (st(ctx).session.zen) st(ctx).toggleZen()
+      st(ctx).setUi({ renamingId: activeId(ctx), paletteOpen: false })
+      if (isPhoneNow()) phoneStore.getState().open('tabs')
+    },
   },
   {
     id: 'note.pin',
@@ -181,7 +187,7 @@ export const COMMANDS: Command[] = [
     when: hasActive,
     run: (ctx) => {
       const id = noteId(ctx)
-      if (id) st(ctx).trashNote(id)
+      if (id) trashWithUndo(id)
     },
   },
   {
@@ -230,8 +236,10 @@ export const COMMANDS: Command[] = [
     section: 'Note',
     keywords: ['emoji', 'character', 'arrow', 'special', 'unicode', 'euro', 'check'],
     shortcuts: [],
-    when: hasOpenText,
+    // The picker opens from the toolbar's button, so it needs the toolbar (zen leaves first).
+    when: (s) => hasOpenText(s) && s.settings.showToolbar,
     run: (ctx) => {
+      if (st(ctx).session.zen) st(ctx).toggleZen()
       st(ctx).setUi({ paletteOpen: false })
       symbolStore.getState().setOpen(true)
     },
@@ -364,7 +372,8 @@ export const COMMANDS: Command[] = [
     keywords: ['split', 'two', 'compare', 'beside'],
     shortcuts: [],
     only: 'laptop',
-    when: (s) => s.session.openTabIds.length > 1,
+    // Below 900px there's no room for two notes, so the side note wouldn't show.
+    when: (s) => s.session.openTabIds.length > 1 && isWideNow(),
     run: (ctx) => {
       const { openTabIds, activeTabId } = st(ctx).session
       const i = openTabIds.indexOf(activeTabId ?? '')
@@ -504,14 +513,15 @@ export const COMMANDS: Command[] = [
   },
   {
     id: 'note.export',
-    title: 'Export note as file',
-    section: 'Data',
-    keywords: ['download', 'save as'],
-    shortcuts: [],
+    title: 'Save note as file…',
+    section: 'Note',
+    keywords: ['download', 'export', 'save as'],
+    // Otherwise the browser's own "Save page" answers the key.
+    shortcuts: [{ code: 'KeyS', mod: true }],
     when: hasOpenText,
     run: (ctx) => {
       const id = noteId(ctx)
-      if (id) exportNote(id)
+      if (id) void saveNoteAsFile(id)
     },
   },
   {
@@ -673,6 +683,8 @@ function openLibrary(section: 'search' | 'trash') {
 
 const isPhoneNow = () =>
   typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches
+const isWideNow = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia(WIDE_QUERY).matches
 
 /** The command's palette title for the current layout. */
 export function commandTitle(c: Command): string {
